@@ -111,6 +111,8 @@ function OnboardingContent() {
               {isEs ? 'Callsign / Nombre del Comandante' : 'Commander Callsign / Name'}
             </span>
             <input
+              id="commander-callsign"
+              name="commanderCallsign"
               type="text"
               maxLength={28}
               value={draftCommander}
@@ -126,6 +128,8 @@ function OnboardingContent() {
               {isEs ? 'Nombre Oficial de tu Misión' : 'Official Mission Name'}
             </span>
             <input
+              id="mission-name"
+              name="missionName"
               type="text"
               maxLength={32}
               value={draftMission}

@@ -108,6 +108,8 @@ export function TopBar() {
           </button>
 
           <select
+            id="nasa-preset-select"
+            name="nasaPreset"
             aria-label={isEs ? 'Presets NASA' : 'NASA Presets'}
             defaultValue=""
             onChange={(e) => {

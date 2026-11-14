@@ -54,6 +54,8 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             <span className="text-[#5FF3FF]">{clampedAlt.toLocaleString()} KM</span>
           </div>
           <input
+            id="orbit-altitude-range"
+            name="orbitAltitudeKm"
             type="range"
             min={minAlt}
             max={maxAlt}
@@ -74,6 +76,8 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             <span className="text-[#FFC15E]">{orbitInclinationDeg.toFixed(1)}°</span>
           </div>
           <input
+            id="orbit-inclination-range"
+            name="orbitInclinationDeg"
             type="range"
             min={0}
             max={98}

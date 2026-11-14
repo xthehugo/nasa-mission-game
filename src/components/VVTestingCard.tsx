@@ -50,6 +50,8 @@ export function VVTestingCard() {
           >
             <span className="font-light">{item.label[language]}</span>
             <input
+              id={`vv-${item.key}`}
+              name={item.key}
               type="checkbox"
               checked={testing[item.key]}
               onChange={(e) => {
@@ -70,6 +72,8 @@ export function VVTestingCard() {
           </span>
         </div>
         <input
+          id="rf-inhibit-timer"
+          name="rfInhibitTimerMin"
           type="range"
           min={0}
           max={60}

@@ -68,6 +68,8 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 <span className={s.val >= 95 ? 'text-[#FFC15E]' : 'text-[#5FF3FF]'}>{s.val}%</span>
               </div>
               <input
+                id={`tank-${s.key}`}
+                name={s.key}
                 type="range"
                 min={10}
                 max={120}

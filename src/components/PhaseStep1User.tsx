@@ -129,6 +129,8 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           {isEs ? 'ENUNCIADO DE SERVILLETA (CONCEPTO)' : 'NAPKIN MISSION STATEMENT'}
         </span>
         <textarea
+          id="napkin-mission-statement"
+          name="missionStatement"
           rows={2}
           maxLength={140}
           value={missionStatement}
