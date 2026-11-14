@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { findSubsystemById } from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone } from './holoAudio';
+import { project3D, projectRing3D, toSvgPoly, type Point3D } from './holo3d';
+
+type CadViewMode = 'ISO' | 'FRONT' | 'SIDE' | 'TOP';
+type InspectionPinId = 'pin-1' | 'pin-2' | 'pin-3' | 'pin-4';
 
 const MINI_ARCHS = [
   { key: 'obj-earth-bionutrients', label: { en: 'A · CDS 3U', es: 'A · CDS 3U' }, shape: 'CUBESAT' as const },
@@ -11,8 +15,6 @@ const MINI_ARCHS = [
   { key: 'obj-jupiter-clipper', label: { en: 'D · Deep RTG', es: 'D · RTG 5.2AU' }, shape: 'RTG' as const },
 ];
 
-type InspectionPinId = 'pin-1' | 'pin-2' | 'pin-3' | 'pin-4';
-
 interface CadPinMeta {
   id: InspectionPinId;
   shortLabel: { en: string; es: string };
@@ -20,8 +22,7 @@ interface CadPinMeta {
   title: { en: string; es: string };
   jplDetail: { en: string; es: string };
   cadetDetail: { en: string; es: string };
-  x: number;
-  y: number;
+  pos3D: Point3D;
   ok: (ctx: { massOk: boolean; powerOk: boolean; rfOk: boolean }) => boolean;
 }
 
@@ -42,8 +43,7 @@ const CAD_PINS: CadPinMeta[] = [
       en: 'Propellant tanks are proof-tested up to 1.20x max pressure and built 1.40x stronger so fuel never leaks under rocket shake.',
       es: 'Los tanques se prueban al 120% de su presión máxima y resisten 1.40x para no sufrir fisuras ni fugas en el despegue.',
     },
-    x: 250,
-    y: 238,
+    pos3D: { x: 0, y: 48, z: 0 },
     ok: ({ massOk }) => massOk,
   },
   {
@@ -62,8 +62,7 @@ const CAD_PINS: CadPinMeta[] = [
       en: 'Frame bolts and aluminum rails survive 1.40x peak launch forces, with 2.00x reinforcement around honeycomb joints.',
       es: 'Los pernos de separación y rieles de aluminio soportan 1.40x la fuerza máxima y doble refuerzo (2.00x) en las esquinas.',
     },
-    x: 204,
-    y: 204,
+    pos3D: { x: -34, y: 18, z: 34 },
     ok: ({ massOk }) => massOk,
   },
   {
@@ -82,8 +81,7 @@ const CAD_PINS: CadPinMeta[] = [
       en: 'Harness plugs leave >=30% spare pins, use unique USB-like keys so cables never mix up, and keep 50 mm hand clearance.',
       es: 'Los conectores dejan >=30% clavijas extra libres, tienen formas únicas imposibles de invertir y 50 mm libres para ensamblar.',
     },
-    x: 298,
-    y: 196,
+    pos3D: { x: 34, y: -4, z: 16 },
     ok: ({ powerOk }) => powerOk,
   },
   {
@@ -102,8 +100,7 @@ const CAD_PINS: CadPinMeta[] = [
       en: 'Critical star cameras and gyro wires run in twin independent paths so one broken wire can never blind the spacecraft.',
       es: 'Las cámaras estelares y giróscopos usan cables gemelos independientes para que un solo fallo nunca deje ciega a la nave.',
     },
-    x: 250,
-    y: 102,
+    pos3D: { x: 0, y: -56, z: 8 },
     ok: ({ rfOk }) => rfOk,
   },
 ];
@@ -153,6 +150,32 @@ export function HoloSpacecraftWireframe() {
   } = useMissionStore();
 
   const [selectedPin, setSelectedPin] = useState<InspectionPinId>('pin-1');
+  const [yawDeg, setYawDeg] = useState<number>(28);
+  const [cadView, setCadView] = useState<CadViewMode>('ISO');
+  const [autoSpin, setAutoSpin] = useState<boolean>(true);
+  const [dragState, setDragState] = useState<{ x: number; yaw: number } | null>(null);
+
+  const autoSpinRef = useRef<boolean>(autoSpin);
+
+  useEffect(() => {
+    autoSpinRef.current = autoSpin;
+  }, [autoSpin]);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    let raf = 0;
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+      if (autoSpinRef.current) {
+        setYawDeg((y) => (y + dt * 18) % 360);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [reducedMotion]);
 
   const isEs = language === 'es';
   const isJpl = experienceMode === 'JPL_ENGINEER';
@@ -184,10 +207,8 @@ export function HoloSpacecraftWireframe() {
         : cubesatFormFactor === '3U'
           ? 3
           : 4;
-  const bodyH = 44 + units * 20;
-  const topY = 172 - bodyH / 2;
-  const botY = 172 + bodyH / 2;
-  const dur = reducedMotion ? 0 : 0.6;
+  const halfH = 22 + units * 10;
+  const boxW = 34;
 
   const isMassAlarm =
     metrics.wetMass_kg > metrics.launchCapacity_kg || !metrics.volume.isCompliant;
@@ -200,6 +221,51 @@ export function HoloSpacecraftWireframe() {
     selection.epsId === 'eps-deployable' || hasMegaWing || hasLiltWing;
   const hasRTG = selection.epsId === 'eps-rtg';
 
+  const pitchDeg =
+    cadView === 'TOP' ? 78 : cadView === 'FRONT' || cadView === 'SIDE' ? 6 : 22;
+
+  const CX = 250;
+  const CY = 166;
+  const p = (x: number, y: number, z: number) =>
+    project3D({ x, y, z }, yawDeg, pitchDeg, CX, CY);
+
+  // Project 3D rectangular prism helper
+  const projectBox = (w: number, yTop: number, yBot: number, d: number) => {
+    const t0 = p(-w, yTop, -d);
+    const t1 = p(w, yTop, -d);
+    const t2 = p(w, yTop, d);
+    const t3 = p(-w, yTop, d);
+    const b0 = p(-w, yBot, -d);
+    const b1 = p(w, yBot, -d);
+    const b2 = p(w, yBot, d);
+    const b3 = p(-w, yBot, d);
+    return {
+      topFace: toSvgPoly([t0, t1, t2, t3]),
+      botFace: toSvgPoly([b0, b1, b2, b3]),
+      edges: [
+        [t0, b0],
+        [t1, b1],
+        [t2, b2],
+        [t3, b3],
+      ],
+      corners: [t0, t1, t2, t3, b0, b1, b2, b3],
+    };
+  };
+
+  // Turntable Projection Rings
+  const ringOuter = projectRing3D(125, 125, 118, 48, yawDeg, pitchDeg, CX, CY);
+  const ringInner = projectRing3D(76, 76, 118, 36, yawDeg, pitchDeg, CX, CY);
+  const tickN = p(0, 118, -125);
+  const tickE = p(125, 118, 0);
+  const tickS = p(0, 118, 125);
+  const tickW = p(-125, 118, 0);
+
+  // Body axes triad
+  const axOrigin = p(0, 0, 0);
+  const axX = p(105, 0, 0);
+  const axY = p(0, 0, 105);
+  const axZ = p(0, -110, 0);
+
   const cotaHeader = getPlatformCotaLabel(
     selection.objectiveId,
     selection.destinationId,
@@ -207,12 +273,61 @@ export function HoloSpacecraftWireframe() {
   );
 
   const activePinMeta =
-    CAD_PINS.find((p) => p.id === selectedPin) ?? CAD_PINS[0];
+    CAD_PINS.find((pin) => pin.id === selectedPin) ?? CAD_PINS[0];
   const pinContext = {
     massOk: metrics.dryMass.status === 'GREEN' && metrics.volume.isCompliant,
     powerOk: metrics.power.status === 'GREEN',
     rfOk: metrics.telecom.status === 'GREEN',
   };
+
+  const handleSelectView = (view: CadViewMode) => {
+    setCadView(view);
+    if (view === 'FRONT') {
+      setAutoSpin(false);
+      setYawDeg(0);
+    } else if (view === 'SIDE') {
+      setAutoSpin(false);
+      setYawDeg(90);
+    } else if (view === 'TOP') {
+      setAutoSpin(false);
+    } else {
+      setAutoSpin(true);
+    }
+    playHoloTone('STEP', soundEnabled);
+  };
+
+  // Shared projected boxes for CubeSat / MRO
+  const cubeBox = projectBox(boxW, -halfH, halfH, boxW);
+  const mroBox = projectBox(42, -36, 38, 30);
+
+  // Wing projection in 3D space (slightly canted z=+14/-14 for thickness illusion)
+  const wingSpan = hasMegaWing ? 142 : hasLiltWing ? 108 : 88;
+  const wingInnerX = isTracersArch ? 46 : isMroArch ? 42 : boxW + 2;
+  const wingColor = isPowerAlarm ? '#FF4D6D' : '#5FF3FF';
+  const leftWing = [
+    p(-wingInnerX, -14, 10),
+    p(-(wingInnerX + wingSpan), -20, 14),
+    p(-(wingInnerX + wingSpan), 20, -14),
+    p(-wingInnerX, 14, -10),
+  ];
+  const rightWing = [
+    p(wingInnerX, -14, 10),
+    p(wingInnerX + wingSpan, -20, 14),
+    p(wingInnerX + wingSpan, 20, -14),
+    p(wingInnerX, 14, -10),
+  ];
+
+  // Subsystem 3D positions
+  const subTopY = isMroArch ? -36 : isTracersArch ? -36 : -halfH;
+  const subBotY = isMroArch ? 38 : isTracersArch ? 36 : halfH;
+  const starRoot = p(boxW, -halfH * 0.45, 8);
+  const starTipTop = p(boxW + 26, -halfH * 0.45 - 14, 14);
+  const starTipBot = p(boxW + 26, -halfH * 0.45 - 2, 6);
+  const laserBox = projectBox(10, subTopY - 22, subTopY - 6, 8);
+  const laserOrigin = p(0, subTopY - 22, 0);
+  const laserBeamTip = p(0, subTopY - 76, 0);
+  const nozzleTop = projectRing3D(11, 11, subBotY + 2, 12, yawDeg, pitchDeg, CX, CY);
+  const nozzleBot = projectRing3D(18, 18, subBotY + 24, 12, yawDeg, pitchDeg, CX, CY);
 
   return (
     <div className="relative flex w-full flex-col items-center justify-center">
@@ -282,11 +397,25 @@ export function HoloSpacecraftWireframe() {
 
       <svg
         viewBox="0 0 500 345"
-        className="h-[305px] w-full max-w-[540px] sm:h-[350px]"
+        onPointerDown={(e) => {
+          setAutoSpin(false);
+          setDragState({ x: e.clientX, yaw: yawDeg });
+        }}
+        onPointerMove={(e) => {
+          if (!dragState) return;
+          const dx = e.clientX - dragState.x;
+          const next = (((dragState.yaw + dx * 0.7) % 360) + 360) % 360;
+          setYawDeg(next);
+        }}
+        onPointerUp={() => setDragState(null)}
+        onPointerLeave={() => setDragState(null)}
+        className={`h-[300px] w-full max-w-[540px] select-none sm:h-[345px] ${
+          dragState ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
       >
         <defs>
           <filter id="holoGlow">
-            <feGaussianBlur stdDeviation="2.2" result="blur" />
+            <feGaussianBlur stdDeviation="2.1" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -328,177 +457,176 @@ export function HoloSpacecraftWireframe() {
           </g>
         )}
 
-        {/* Base Projection Rings */}
-        <ellipse
-          cx="250"
-          cy="292"
-          rx="125"
-          ry="24"
-          fill="none"
-          stroke="#5FF3FF"
-          strokeOpacity="0.22"
-          strokeDasharray="3 4"
-          strokeWidth="1"
-        />
-        <ellipse
-          cx="250"
-          cy="292"
-          rx="76"
-          ry="15"
-          fill="none"
-          stroke="#5FF3FF"
-          strokeOpacity="0.35"
-          strokeWidth="1"
-        />
+        {/* Rotating 3D Turntable Rings & Compass */}
+        <g stroke="#5FF3FF" fill="none">
+          <polygon points={toSvgPoly(ringOuter)} strokeOpacity="0.22" strokeDasharray="3 4" strokeWidth="1" />
+          <polygon points={toSvgPoly(ringInner)} strokeOpacity="0.36" strokeWidth="1" />
+          <circle cx={tickN.x} cy={tickN.y} r="2" fill="#5FF3FF" fillOpacity="0.6" />
+          <circle cx={tickE.x} cy={tickE.y} r="2" fill="#FFC15E" fillOpacity="0.7" />
+          <circle cx={tickS.x} cy={tickS.y} r="2" fill="#5FF3FF" fillOpacity="0.6" />
+          <circle cx={tickW.x} cy={tickW.y} r="2" fill="#5FF3FF" fillOpacity="0.6" />
+        </g>
 
-        {/* STAGE 01: COCKTAIL NAPKIN SKETCH WITH CDS RAILS & AXES */}
+        {/* Rotating 3D Body Axis Triad */}
+        <g stroke="#5FF3FF" strokeOpacity="0.26" strokeDasharray="3 3" className="font-mono text-[7.5px]">
+          <line x1={axOrigin.x} y1={axOrigin.y} x2={axX.x} y2={axX.y} />
+          <text x={axX.x + 3} y={axX.y} fill="#5FF3FF" fillOpacity="0.7">
+            +X
+          </text>
+          <line x1={axOrigin.x} y1={axOrigin.y} x2={axY.x} y2={axY.y} />
+          <text x={axY.x + 3} y={axY.y} fill="#5FF3FF" fillOpacity="0.7">
+            +Y
+          </text>
+          <line x1={axOrigin.x} y1={axOrigin.y} x2={axZ.x} y2={axZ.y} />
+          <text x={axZ.x + 4} y={axZ.y + 4} fill="#FFC15E" fillOpacity="0.8">
+            +Z
+          </text>
+        </g>
+
+        {/* STAGE 01: 3D ROTATING NAPKIN SKETCH WITH CDS RAILS & TUNA CAN */}
         {phase === 'CML_1' ? (
           <g filter="url(#holoGlow)">
-            {/* Body Axes (+Z up, +X right, +Y diagonal) */}
-            <line x1="250" y1="275" x2="250" y2="42" stroke="#5FF3FF" strokeOpacity="0.35" strokeDasharray="3 3" />
-            <text x="255" y="48" className="font-mono text-[8.5px]" fill="#5FF3FF">+Z AXIS</text>
-            <line x1="125" y1="175" x2="375" y2="175" stroke="#5FF3FF" strokeOpacity="0.28" strokeDasharray="3 3" />
-            <text x="360" y="170" className="font-mono text-[8.5px]" fill="#5FF3FF">+X</text>
-            <line x1="185" y1="215" x2="315" y2="135" stroke="#5FF3FF" strokeOpacity="0.25" strokeDasharray="3 3" />
-            <text x="318" y="138" className="font-mono text-[8.5px]" fill="#5FF3FF">+Y</text>
-
-            {/* Sketch Wireframe Chassis with 4 Corner Guide Rails & >=6.5mm Standoffs */}
             <polygon
-              points={`250,${topY - 22} 296,${topY} 250,${topY + 22} 204,${topY}`}
-              fill="#5FF3FF08"
+              points={cubeBox.topFace}
+              fill="#5FF3FF0A"
               stroke={strokeMain}
               strokeWidth="1.2"
               strokeDasharray="4 3"
             />
             <polygon
-              points={`204,${topY} 250,${topY + 22} 250,${botY + 22} 204,${botY}`}
-              fill="#5FF3FF05"
+              points={cubeBox.botFace}
+              fill="#5FF3FF06"
               stroke={strokeMain}
               strokeWidth="1.2"
               strokeDasharray="4 3"
             />
-            <polygon
-              points={`296,${topY} 250,${topY + 22} 250,${botY + 22} 296,${botY}`}
-              fill="#5FF3FF05"
-              stroke={strokeMain}
-              strokeWidth="1.2"
-              strokeDasharray="4 3"
-            />
-            {/* Highlighted 4 Longitudinal Corner Rails */}
-            {[204, 250, 296].map((rxPos, i) => (
+            {/* 4 Corner Guide Rails */}
+            {cubeBox.edges.map(([tPt, bPt], idx) => (
               <line
-                key={`rail-${i}`}
-                x1={rxPos}
-                y1={topY + (i === 1 ? 22 : 0) - 6}
-                x2={rxPos}
-                y2={botY + (i === 1 ? 22 : 0) + 6}
+                key={`nap-rail-${idx}`}
+                x1={tPt.x}
+                y1={tPt.y}
+                x2={bPt.x}
+                y2={bPt.y}
                 stroke="#FFC15E"
                 strokeWidth="2"
               />
             ))}
+
             {/* -Z Cylindrical Tuna Can Volume (Ø64 x 36 mm) */}
-            <ellipse
-              cx="250"
-              cy={botY + 22}
-              rx="22"
-              ry="8"
-              fill="none"
-              stroke="#FFC15E"
-              strokeDasharray="2 2"
-              strokeWidth="1"
-            />
-            <path
-              d={`M 228,${botY + 22} L 228,${botY + 42} A 22 8 0 0 0 272,${botY + 42} L 272,${botY + 22}`}
-              fill="#FFC15E0C"
-              stroke="#FFC15E"
-              strokeWidth="1"
-            />
-            {/* Payload Sensor FOV Cone */}
-            <polygon
-              points={`250,${topY} 214,62 286,62`}
-              fill="#FFC15E10"
-              stroke="#FFC15E"
-              strokeOpacity="0.65"
-              strokeDasharray="3 2"
-              strokeWidth="1"
-            />
-            <g className="font-mono text-[8.5px]" fill="#FFC15E">
-              <text x="250" y="56" textAnchor="middle">
-                {isEs ? 'CONO DE VISIÓN (FOV)' : 'PAYLOAD FOV CONE'}
+            {(() => {
+              const tcTop = projectRing3D(18, 18, halfH, 16, yawDeg, pitchDeg, CX, CY);
+              const tcBot = projectRing3D(18, 18, halfH + 22, 16, yawDeg, pitchDeg, CX, CY);
+              return (
+                <g stroke="#FFC15E" fill="#FFC15E0C" strokeWidth="1">
+                  <polygon points={toSvgPoly(tcTop)} />
+                  <polygon points={toSvgPoly(tcBot)} />
+                  <line x1={tcTop[0].x} y1={tcTop[0].y} x2={tcBot[0].x} y2={tcBot[0].y} />
+                  <line x1={tcTop[8].x} y1={tcTop[8].y} x2={tcBot[8].x} y2={tcBot[8].y} />
+                </g>
+              );
+            })()}
+
+            {/* +Z Payload FOV Cone */}
+            {(() => {
+              const apex = p(0, -halfH, 0);
+              const fovRing = projectRing3D(38, 38, -halfH - 58, 16, yawDeg, pitchDeg, CX, CY);
+              return (
+                <g stroke="#FFC15E" strokeOpacity="0.68" strokeDasharray="3 2" fill="none">
+                  <polygon points={toSvgPoly(fovRing)} fill="#FFC15E0D" />
+                  <line x1={apex.x} y1={apex.y} x2={fovRing[0].x} y2={fovRing[0].y} />
+                  <line x1={apex.x} y1={apex.y} x2={fovRing[4].x} y2={fovRing[4].y} />
+                  <line x1={apex.x} y1={apex.y} x2={fovRing[8].x} y2={fovRing[8].y} />
+                  <line x1={apex.x} y1={apex.y} x2={fovRing[12].x} y2={fovRing[12].y} />
+                </g>
+              );
+            })()}
+
+            {/* Billboard Cota Callouts */}
+            <g className="font-mono text-[8px]" fill="#FFC15E">
+              <text x="250" y="42" textAnchor="middle">
+                {isEs ? 'CONO DE VISIÓN (FOV) · ±Z STANDOFF ≥6.5 mm' : 'PAYLOAD FOV CONE · ±Z STANDOFF ≥6.5 mm'}
               </text>
-              <line x1="308" y1={topY} x2="352" y2={topY} stroke="#FFC15E" strokeOpacity="0.6" />
-              <text x="357" y={topY + 3}>±Z STANDOFF ≥6.5 mm</text>
-              <line x1="274" y1={botY + 35} x2="345" y2={botY + 35} stroke="#FFC15E" strokeOpacity="0.6" />
-              <text x="350" y={botY + 38}>TUNA CAN Ø64×36 mm</text>
-              <text x="86" y="170" fill="#5FF3FF">
-                1U RAIL: 100×100 mm
+              <text x="250" y="314" textAnchor="middle" fill="#5FF3FF">
+                1U RAIL: 100×100 mm · TUNA CAN Ø64×36 mm
               </text>
             </g>
           </g>
         ) : (
-          /* STAGES 03 & 05: REAL PLATFORM MORPHOLOGY + SSRI SUBSYSTEMS */
+          /* STAGES 03 & 05: 3D ROTATING PLATFORM MORPHOLOGY + SUBSYSTEMS */
           <g>
-            {/* Solar Wings / RTG deployed around bus */}
+            {/* Solar Wings in 3D */}
             {hasWing && (
-              <motion.g
-                key={selection.epsId}
-                initial={reducedMotion ? false : { opacity: 0, scaleX: 0.25 }}
-                animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ duration: dur }}
-                style={{ originX: '250px', originY: '172px' }}
-                filter="url(#holoGlow)"
-              >
+              <g filter="url(#holoGlow)">
                 <polygon
-                  points={`198,158 ${hasMegaWing ? 62 : hasLiltWing ? 96 : 114},136 ${hasMegaWing ? 62 : hasLiltWing ? 96 : 114},194 198,186`}
-                  fill={isPowerAlarm ? '#FF4D6D14' : '#5FF3FF10'}
-                  stroke={isPowerAlarm ? '#FF4D6D' : '#5FF3FF'}
+                  points={toSvgPoly(leftWing)}
+                  fill={isPowerAlarm ? '#FF4D6D16' : '#5FF3FF10'}
+                  stroke={wingColor}
                   strokeWidth="1.1"
                 />
                 <polygon
-                  points={`302,158 ${hasMegaWing ? 438 : hasLiltWing ? 404 : 386},136 ${hasMegaWing ? 438 : hasLiltWing ? 404 : 386},194 302,186`}
-                  fill={isPowerAlarm ? '#FF4D6D14' : '#5FF3FF10'}
-                  stroke={isPowerAlarm ? '#FF4D6D' : '#5FF3FF'}
+                  points={toSvgPoly(rightWing)}
+                  fill={isPowerAlarm ? '#FF4D6D16' : '#5FF3FF10'}
+                  stroke={wingColor}
                   strokeWidth="1.1"
                 />
                 {[0.25, 0.5, 0.75].map((f) => {
-                  const span = hasMegaWing ? 136 : hasLiltWing ? 102 : 84;
-                  const xl = 198 - span * f;
-                  const xr = 302 + span * f;
+                  const xl = -(wingInnerX + wingSpan * f);
+                  const xr = wingInnerX + wingSpan * f;
+                  const lTop = p(xl, -14 - f * 6, 10 + f * 4);
+                  const lBot = p(xl, 14 + f * 6, -10 - f * 4);
+                  const rTop = p(xr, -14 - f * 6, 10 + f * 4);
+                  const rBot = p(xr, 14 + f * 6, -10 - f * 4);
                   return (
-                    <g key={`wing-cell-${f}`} stroke="#5FF3FF" strokeOpacity="0.35" strokeWidth="0.7">
-                      <line x1={xl} y1={152 - f * 12} x2={xl} y2={190 + f * 3} />
-                      <line x1={xr} y1={152 - f * 12} x2={xr} y2={190 + f * 3} />
+                    <g key={`wing-rib-${f}`} stroke={wingColor} strokeOpacity="0.38" strokeWidth="0.75">
+                      <line x1={lTop.x} y1={lTop.y} x2={lBot.x} y2={lBot.y} />
+                      <line x1={rTop.x} y1={rTop.y} x2={rBot.x} y2={rBot.y} />
                     </g>
                   );
                 })}
-              </motion.g>
+              </g>
             )}
 
+            {/* RTG Nuclear Radiator Fins in 3D */}
             {hasRTG && (
-              <motion.g
-                initial={reducedMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: dur }}
-                filter="url(#holoGlow)"
-              >
-                <polygon points="200,185 138,205 138,225 200,209" fill="#FFC15E15" stroke="#FFC15E" strokeWidth="1.1" />
-                <polygon points="300,185 362,205 362,225 300,209" fill="#FFC15E15" stroke="#FFC15E" strokeWidth="1.1" />
-                <line x1="148" y1="202" x2="188" y2="213" stroke="#FFC15E" strokeWidth="0.8" />
-                <line x1="352" y1="202" x2="312" y2="213" stroke="#FFC15E" strokeWidth="0.8" />
-              </motion.g>
-            )}
-
-            {/* ARCH 1: JWST / CSA FGS — 5-Layer Rhomboid Sunshield (21.2x14.2m) + Hexagonal OTE Ø6.5m */}
-            {isJwstArch ? (
               <g filter="url(#holoGlow)">
-                {/* 5-Layer Diamond Sunshield */}
-                {[0, 1, 2, 3, 4].map((layer) => {
-                  const dy = layer * 7;
-                  const shrink = layer * 6;
+                {([-1, 1] as const).map((side) => {
+                  const rFin = [
+                    p(side * 36, 12, 8),
+                    p(side * 96, 22, 12),
+                    p(side * 96, 36, -12),
+                    p(side * 36, 28, -8),
+                  ];
                   return (
                     <polygon
-                      key={`jwst-shield-${layer}`}
-                      points={`250,${180 + dy} ${375 - shrink},${210 + dy} 250,${242 + dy} ${125 + shrink},${210 + dy}`}
+                      key={`rtg-${side}`}
+                      points={toSvgPoly(rFin)}
+                      fill="#FFC15E15"
+                      stroke="#FFC15E"
+                      strokeWidth="1.1"
+                    />
+                  );
+                })}
+              </g>
+            )}
+
+            {/* ARCH 1: 3D JWST / CSA FGS */}
+            {isJwstArch ? (
+              <g filter="url(#holoGlow)">
+                {/* 5-Layer Rhomboid Sunshield (21.2 x 14.2m proportions) */}
+                {[0, 1, 2, 3, 4].map((layer) => {
+                  const yL = 32 + layer * 8;
+                  const shrink = layer * 6;
+                  const pts = [
+                    p(0, yL, -(112 - shrink)),
+                    p(68 - shrink * 0.6, yL, 0),
+                    p(0, yL, 112 - shrink),
+                    p(-(68 - shrink * 0.6), yL, 0),
+                  ];
+                  return (
+                    <polygon
+                      key={`jwst-s-${layer}`}
+                      points={toSvgPoly(pts)}
                       fill={layer >= 3 ? '#FFC15E0C' : '#5FF3FF0A'}
                       stroke={layer >= 3 ? '#FFC15E' : '#5FF3FF'}
                       strokeOpacity={0.95 - layer * 0.14}
@@ -506,305 +634,268 @@ export function HoloSpacecraftWireframe() {
                     />
                   );
                 })}
-                {/* Segmented Gold Hexagonal Primary Mirror (OTE Ø6.5m) */}
-                {[
-                  [250, 108],
-                  [232, 118],
-                  [268, 118],
-                  [232, 138],
-                  [268, 138],
-                  [250, 148],
-                  [250, 128],
-                ].map(([hx, hy], idx) => (
-                  <polygon
-                    key={`hex-${idx}`}
-                    points={`${hx},${hy - 10} ${hx + 9},${hy - 5} ${hx + 9},${hy + 5} ${hx},${hy + 10} ${hx - 9},${hy + 5} ${hx - 9},${hy - 5}`}
-                    fill="#FFC15E18"
-                    stroke="#FFC15E"
-                    strokeWidth="1.1"
-                  />
-                ))}
-                {/* Aft ISIM + CSA Fine Guidance Sensor Housing */}
-                <rect
-                  x="234"
-                  y="156"
-                  width="32"
-                  height="20"
-                  fill="#5FF3FF14"
-                  stroke="#5FF3FF"
-                  strokeWidth="1"
-                />
-                {/* Secondary Mirror Tripod Struts */}
-                <line x1="250" y1="98" x2="250" y2="56" stroke="#FFC15E" strokeWidth="1" />
-                <line x1="226" y1="140" x2="250" y2="56" stroke="#5FF3FF" strokeWidth="0.9" />
-                <line x1="274" y1="140" x2="250" y2="56" stroke="#5FF3FF" strokeWidth="0.9" />
-                <circle cx="250" cy="56" r="4.5" fill="none" stroke="#FFC15E" strokeWidth="1.2" />
 
-                <g className="font-mono text-[8px]">
-                  <text x="112" y="198" fill="#5FF3FF">CRYO SIDE (&lt;50 K)</text>
-                  <text x="112" y="255" fill="#FFC15E">SUNSHIELD 21.2×14.2 m (+85°C)</text>
-                  <text x="292" y="124" fill="#FFC15E">OTE Ø6.5 m (18 HEX)</text>
-                  <text x="292" y="168" fill="#5FF3FF">CSA FGS / ISIM · 16 Hz</text>
-                </g>
+                {/* Segmented Hexagonal Primary Mirror (OTE Ø6.5m) facing +Z */}
+                {[
+                  [0, -48],
+                  [-19, -37],
+                  [19, -37],
+                  [-19, -15],
+                  [19, -15],
+                  [0, -4],
+                  [0, -26],
+                ].map(([hx, hy], idx) => {
+                  const hex3D = [
+                    p(hx, hy - 10, 6),
+                    p(hx + 9, hy - 5, 6),
+                    p(hx + 9, hy + 5, 6),
+                    p(hx, hy + 10, 6),
+                    p(hx - 9, hy + 5, 6),
+                    p(hx - 9, hy - 5, 6),
+                  ];
+                  return (
+                    <polygon
+                      key={`jwst-hex-${idx}`}
+                      points={toSvgPoly(hex3D)}
+                      fill="#FFC15E18"
+                      stroke="#FFC15E"
+                      strokeWidth="1.1"
+                    />
+                  );
+                })}
+
+                {/* Aft ISIM / CSA FGS Box at z = -12..-28 */}
+                {(() => {
+                  const isim = projectBox(15, -36, -6, 10);
+                  const sec = p(0, -34, 62);
+                  const topM = p(0, -56, 8);
+                  const botL = p(-20, -6, 8);
+                  const botR = p(20, -6, 8);
+                  return (
+                    <>
+                      <polygon points={isim.topFace} fill="#5FF3FF14" stroke="#5FF3FF" strokeWidth="1" />
+                      {isim.edges.map(([a, b], i) => (
+                        <line key={`is-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#5FF3FF" strokeWidth="1" />
+                      ))}
+                      <line x1={topM.x} y1={topM.y} x2={sec.x} y2={sec.y} stroke="#FFC15E" strokeWidth="1.1" />
+                      <line x1={botL.x} y1={botL.y} x2={sec.x} y2={sec.y} stroke="#5FF3FF" strokeWidth="1" />
+                      <line x1={botR.x} y1={botR.y} x2={sec.x} y2={sec.y} stroke="#5FF3FF" strokeWidth="1" />
+                      <circle cx={sec.x} cy={sec.y} r="4.5" fill="none" stroke="#FFC15E" strokeWidth="1.3" />
+                    </>
+                  );
+                })()}
+
+                <text x="115" y="256" className="font-mono text-[8px]" fill="#FFC15E">
+                  SUNSHIELD 21.2×14.2m · OTE Ø6.5m · CSA FGS 16Hz
+                </text>
               </g>
             ) : isTracersArch ? (
-              /* ARCH 2: NASA TRACERS — Symmetric Octagonal Bus (Ø1.32x0.95m) + 4 EFI Wire Booms + MAG Boom */
+              /* ARCH 2: 3D NASA TRACERS OCTAGONAL BUS + 4 RADIAL EFI BOOMS */
               <g filter="url(#holoGlow)">
-                {/* 4 Radial Electric Field Instrument (EFI) Wire Booms */}
-                <line x1="72" y1="172" x2="205" y2="172" stroke="#FFC15E" strokeDasharray="4 2" strokeWidth="1.1" />
-                <line x1="295" y1="172" x2="428" y2="172" stroke="#FFC15E" strokeDasharray="4 2" strokeWidth="1.1" />
-                <line x1="150" y1="112" x2="215" y2="148" stroke="#FFC15E" strokeDasharray="4 2" strokeWidth="1" />
-                <line x1="350" y1="232" x2="285" y2="196" stroke="#FFC15E" strokeDasharray="4 2" strokeWidth="1" />
-                {[
-                  [72, 172],
-                  [428, 172],
-                  [150, 112],
-                  [350, 232],
-                ].map(([bx, by], idx) => (
-                  <circle key={`efi-${idx}`} cx={bx} cy={by} r="3.5" fill="#FFC15E" />
-                ))}
+                {(() => {
+                  const octTop = projectRing3D(44, 44, -36, 8, yawDeg, pitchDeg, CX, CY);
+                  const octBot = projectRing3D(44, 44, 36, 8, yawDeg, pitchDeg, CX, CY);
+                  const magTop = p(0, -106, 0);
+                  const magBase = p(0, -36, 0);
+                  return (
+                    <>
+                      <polygon
+                        points={toSvgPoly(octTop)}
+                        fill={thermal?.id === 'therm-silver-fep' ? 'url(#fepHatch)' : '#5FF3FF12'}
+                        stroke={strokeMain}
+                        strokeWidth="1.2"
+                      />
+                      <polygon points={toSvgPoly(octBot)} fill="#5FF3FF08" stroke={strokeMain} strokeWidth="1.2" />
+                      {octTop.map((tPt, i) => (
+                        <line
+                          key={`oct-edge-${i}`}
+                          x1={tPt.x}
+                          y1={tPt.y}
+                          x2={octBot[i].x}
+                          y2={octBot[i].y}
+                          stroke={strokeMain}
+                          strokeOpacity="0.7"
+                          strokeWidth="1.1"
+                        />
+                      ))}
 
-                {/* Octagonal Prism Body */}
-                <polygon
-                  points="226,128 274,128 296,150 296,194 274,216 226,216 204,194 204,150"
-                  fill={
-                    thermal?.id === 'therm-silver-fep'
-                      ? 'url(#fepHatch)'
-                      : '#5FF3FF10'
-                  }
-                  stroke={strokeMain}
-                  strokeWidth="1.3"
-                />
-                <line x1="226" y1="128" x2="226" y2="216" stroke={strokeMain} strokeOpacity="0.45" />
-                <line x1="274" y1="128" x2="274" y2="216" stroke={strokeMain} strokeOpacity="0.45" />
-                <line x1="204" y1="172" x2="296" y2="172" stroke={strokeMain} strokeOpacity="0.4" />
+                      {/* 4 Radial EFI Wire Booms */}
+                      {[0, 90, 180, 270].map((ang) => {
+                        const rad = (ang * Math.PI) / 180;
+                        const inner = p(Math.cos(rad) * 44, 0, Math.sin(rad) * 44);
+                        const outer = p(Math.cos(rad) * 134, 0, Math.sin(rad) * 134);
+                        return (
+                          <g key={`efi3d-${ang}`}>
+                            <line
+                              x1={inner.x}
+                              y1={inner.y}
+                              x2={outer.x}
+                              y2={outer.y}
+                              stroke="#FFC15E"
+                              strokeDasharray="4 2"
+                              strokeWidth="1.1"
+                            />
+                            <circle cx={outer.x} cy={outer.y} r="3.4" fill="#FFC15E" />
+                          </g>
+                        );
+                      })}
 
-                {/* Axial Magnetometer Boom (MAG Boom) */}
-                <line x1="250" y1="128" x2="250" y2="62" stroke="#5FF3FF" strokeWidth="1.5" />
-                <rect x="242" y="50" width="16" height="12" fill="#04080F" stroke="#FFC15E" strokeWidth="1.1" />
-
-                <g className="font-mono text-[8px]">
-                  <text x="272" y="59" fill="#FFC15E">FLUXGATE MAG BOOM</text>
-                  <text x="58" y="160" fill="#FFC15E">EFI WIRE BOOMS (10 RPM)</text>
-                  <text x="305" y="138" fill="#5FF3FF">OCTAGONAL Ø1.32×0.95 m</text>
-                </g>
+                      {/* Axial Fluxgate MAG Boom */}
+                      <line x1={magBase.x} y1={magBase.y} x2={magTop.x} y2={magTop.y} stroke="#5FF3FF" strokeWidth="1.5" />
+                      <circle cx={magTop.x} cy={magTop.y} r="4" fill="#04080F" stroke="#FFC15E" strokeWidth="1.2" />
+                    </>
+                  );
+                })()}
               </g>
             ) : isMroArch ? (
-              /* ARCH 3: MRO CLASS — Box Bus (3.0x2.1x2.1m) + Ø3.0m Gimbaled HGA + 10m SHARAD Boom */
+              /* ARCH 3: 3D MRO BUS + Ø3.0m HGA PARABOLIC DISH + 10m SHARAD BOOM */
               <g filter="url(#holoGlow)">
-                <polygon
-                  points="250,115 302,138 250,161 198,138"
-                  fill="#5FF3FF12"
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                <polygon
-                  points="198,138 250,161 250,224 198,201"
-                  fill="#5FF3FF0A"
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                <polygon
-                  points="302,138 250,161 250,224 302,201"
-                  fill="#5FF3FF08"
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                {/* Ø3.0m Parabolic High-Gain Dish on Gimbal Mast */}
-                <line x1="250" y1="138" x2="250" y2="96" stroke="#5FF3FF" strokeWidth="1.5" />
-                <ellipse
-                  cx="250"
-                  cy="86"
-                  rx="42"
-                  ry="14"
-                  fill="#5FF3FF12"
-                  stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'}
-                  strokeWidth="1.3"
-                />
-                <line x1="250" y1="86" x2="250" y2="68" stroke="#FFC15E" strokeWidth="1.2" />
-                <circle cx="250" cy="68" r="3" fill="#FFC15E" />
-                {/* 10.0m SHARAD Dielectric Dipole Boom */}
-                <line x1="120" y1="234" x2="380" y2="234" stroke="#FFC15E" strokeWidth="1.8" />
-                <line x1="250" y1="224" x2="250" y2="234" stroke="#FFC15E" strokeWidth="1.2" />
-                <g className="font-mono text-[8px]">
-                  <text x="300" y="84" fill="#5FF3FF">HGA DISH Ø3.0 m</text>
-                  <text x="292" y="248" fill="#FFC15E">SHARAD SAR BOOM 10.0 m</text>
-                </g>
+                <polygon points={mroBox.topFace} fill="#5FF3FF14" stroke={strokeMain} strokeWidth="1.2" />
+                <polygon points={mroBox.botFace} fill="#5FF3FF08" stroke={strokeMain} strokeWidth="1.2" />
+                {mroBox.edges.map(([a, b], i) => (
+                  <line key={`mro-e-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={strokeMain} strokeWidth="1.2" />
+                ))}
+                {(() => {
+                  const dishRing = projectRing3D(42, 34, -76, 20, yawDeg, pitchDeg, CX, CY);
+                  const mastBase = p(0, -36, 0);
+                  const mastMid = p(0, -76, 0);
+                  const feed = p(0, -96, 0);
+                  const shL = p(-132, 46, 0);
+                  const shR = p(132, 46, 0);
+                  const shCenter = p(0, 38, 0);
+                  const shMid = p(0, 46, 0);
+                  return (
+                    <>
+                      <line x1={mastBase.x} y1={mastBase.y} x2={mastMid.x} y2={mastMid.y} stroke="#5FF3FF" strokeWidth="1.5" />
+                      <polygon
+                        points={toSvgPoly(dishRing)}
+                        fill="#5FF3FF12"
+                        stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'}
+                        strokeWidth="1.3"
+                      />
+                      <line x1={mastMid.x} y1={mastMid.y} x2={feed.x} y2={feed.y} stroke="#FFC15E" strokeWidth="1.2" />
+                      <circle cx={feed.x} cy={feed.y} r="3" fill="#FFC15E" />
+                      <line x1={shL.x} y1={shL.y} x2={shR.x} y2={shR.y} stroke="#FFC15E" strokeWidth="1.8" />
+                      <line x1={shCenter.x} y1={shCenter.y} x2={shMid.x} y2={shMid.y} stroke="#FFC15E" strokeWidth="1.1" />
+                    </>
+                  );
+                })()}
               </g>
             ) : (
-              /* ARCH 4: STANDARD CUBESAT CDS (1.5U/2U/3U) OR LUNAR TRAILBLAZER BOX BUS */
-              <motion.g
-                key={cubesatFormFactor}
-                initial={reducedMotion ? false : { opacity: 0.4 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: dur }}
-                filter="url(#holoGlow)"
-              >
+              /* ARCH 4: 3D CUBESAT CDS PRISM + 1U RINGS */
+              <g filter="url(#holoGlow)">
+                <polygon points={cubeBox.topFace} fill="#5FF3FF10" stroke={strokeMain} strokeWidth="1.2" />
                 <polygon
-                  points={`250,${topY - 22} 296,${topY} 250,${topY + 22} 204,${topY}`}
-                  fill="#5FF3FF0E"
+                  points={cubeBox.botFace}
+                  fill={thermal?.id === 'therm-silver-fep' ? 'url(#fepHatch)' : '#5FF3FF08'}
                   stroke={strokeMain}
                   strokeWidth="1.2"
                 />
-                <polygon
-                  points={`204,${topY} 250,${topY + 22} 250,${botY + 22} 204,${botY}`}
-                  fill={
-                    thermal?.id === 'therm-silver-fep'
-                      ? 'url(#fepHatch)'
-                      : '#5FF3FF08'
-                  }
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                <polygon
-                  points={`296,${topY} 250,${topY + 22} 250,${botY + 22} 296,${botY}`}
-                  fill="#5FF3FF08"
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                <line
-                  x1="250"
-                  y1={topY + 22}
-                  x2="250"
-                  y2={botY + 22}
-                  stroke={strokeMain}
-                  strokeWidth="1.2"
-                />
-                {/* Modular 1U stack dividers */}
+                {cubeBox.edges.map(([tPt, bPt], i) => (
+                  <g key={`cube-edge-${i}`}>
+                    <line x1={tPt.x} y1={tPt.y} x2={bPt.x} y2={bPt.y} stroke={strokeMain} strokeWidth="1.2" />
+                    <circle cx={tPt.x} cy={tPt.y} r="2.2" fill="#FFC15E" />
+                    <circle cx={bPt.x} cy={bPt.y} r="2.2" fill="#FFC15E" />
+                  </g>
+                ))}
+                {/* Modular 1U stack divider rings in 3D */}
                 {Array.from({ length: units }).map((_, idx) => {
-                  const segY = topY + ((idx + 1) * (botY - topY)) / (units + 1);
+                  const ySeg = -halfH + ((idx + 1) * (halfH * 2)) / (units + 1);
+                  const segRing = [
+                    p(-boxW, ySeg, -boxW),
+                    p(boxW, ySeg, -boxW),
+                    p(boxW, ySeg, boxW),
+                    p(-boxW, ySeg, boxW),
+                  ];
                   return (
-                    <polyline
-                      key={`u-div-${idx}`}
-                      points={`204,${segY} 250,${segY + 22} 296,${segY}`}
+                    <polygon
+                      key={`cube-seg-${idx}`}
+                      points={toSvgPoly(segRing)}
                       fill="none"
                       stroke={strokeMain}
-                      strokeOpacity="0.6"
+                      strokeOpacity="0.52"
                       strokeWidth="0.9"
                     />
                   );
                 })}
-                {/* CDS Standoff Rail Highlights */}
-                <circle cx="204" cy={topY} r="2.2" fill="#FFC15E" />
-                <circle cx="296" cy={topY} r="2.2" fill="#FFC15E" />
-                <circle cx="204" cy={botY} r="2.2" fill="#FFC15E" />
-                <circle cx="296" cy={botY} r="2.2" fill="#FFC15E" />
-              </motion.g>
-            )}
-
-            {/* SSRI SoA SUBSYSTEM WIREFRAME OVERLAYS */}
-
-            {/* 1. THERMAL HARDWARE: Redwire Q-Store PCM Honeycomb Plate or Silvered FEP Badge */}
-            {thermal?.id === 'therm-redwire-pcm' && (
-              <g filter="url(#holoGlow)">
-                <rect x="206" y="150" width="22" height="32" fill="#FFC15E14" stroke="#FFC15E" strokeWidth="1" />
-                <circle cx="217" cy="160" r="3" fill="none" stroke="#FFC15E" strokeWidth="0.8" />
-                <circle cx="217" cy="171" r="3" fill="none" stroke="#FFC15E" strokeWidth="0.8" />
-                <text x="115" y="132" className="font-mono text-[8px]" fill="#FFC15E">
-                  Q-STORE PCM 0.5U (28°C)
-                </text>
               </g>
             )}
 
-            {/* 2. ADCS STAR TRACKER: Arcsec Sagitta Stepped Optical Baffle */}
-            {(adcs?.id === 'adcs-sagitta-star' || adcs?.id === 'adcs-3axis') && (
+            {/* 3D SUBSYSTEM WIREFRAME OVERLAYS */}
+            {(adcs?.id === 'adcs-sagitta-star' || adcs?.id === 'adcs-3axis') && !isJwstArch && (
               <g filter="url(#holoGlow)">
                 <polygon
-                  points="296,154 320,142 324,154 296,164"
+                  points={`${starRoot.x},${starRoot.y} ${starTipTop.x},${starTipTop.y} ${starTipBot.x},${starTipBot.y}`}
                   fill="#04080F"
                   stroke="#5FF3FF"
                   strokeWidth="1.1"
                 />
-                <ellipse cx="322" cy="148" rx="3" ry="6" fill="none" stroke="#FFC15E" strokeWidth="1" />
-                <text x="328" y="145" className="font-mono text-[7.5px]" fill="#5FF3FF">
-                  {adcs.id === 'adcs-sagitta-star'
-                    ? 'SAGITTA Ø25mm (0.0017°)'
-                    : 'STAR TRACKER 0.02°'}
-                </text>
+                <circle cx={starTipTop.x} cy={(starTipTop.y + starTipBot.y) / 2} r="2.8" fill="none" stroke="#FFC15E" strokeWidth="1" />
               </g>
             )}
 
-            {/* 3. TELECOM HARDWARE: CubeLCT 1550nm Laser FSM Head vs X/Ka Dish vs UHF Dipole */}
-            {(telecom?.id === 'telecom-cubelct-laser' ||
-              telecom?.id === 'telecom-laser') && (
+            {(telecom?.id === 'telecom-cubelct-laser' || telecom?.id === 'telecom-laser') && !isJwstArch && (
               <g filter="url(#holoGlow)">
-                <rect x="239" y="84" width="22" height="14" fill="#04080F" stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1.1" />
-                <circle cx="250" cy="91" r="4" fill="none" stroke="#FFC15E" strokeWidth="1" />
-                <line x1="250" y1="84" x2="250" y2="38" stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'} strokeDasharray="4 2" strokeWidth="1.4" />
-                <text x="268" y="82" className="font-mono text-[7.5px]" fill="#5FF3FF">
-                  1550nm FSM Ø20mm ({telecom.id === 'telecom-cubelct-laser' ? '0.3U' : 'LASER'})
-                </text>
+                <polygon points={laserBox.topFace} fill="#04080F" stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1.1" />
+                {laserBox.edges.map(([a, b], i) => (
+                  <line key={`ls-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#5FF3FF" strokeWidth="0.9" />
+                ))}
+                <line
+                  x1={laserOrigin.x}
+                  y1={laserOrigin.y}
+                  x2={laserBeamTip.x}
+                  y2={laserBeamTip.y}
+                  stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'}
+                  strokeDasharray="4 2"
+                  strokeWidth="1.4"
+                />
               </g>
             )}
+
             {telecom?.id === 'telecom-xka' && !isMroArch && !isJwstArch && (
               <g filter="url(#holoGlow)">
-                <path
-                  d={`M 232,${topY - 20} Q 250,${topY - 40} 268,${topY - 20}`}
+                <polygon
+                  points={toSvgPoly(projectRing3D(18, 18, subTopY - 22, 14, yawDeg, pitchDeg, CX, CY))}
                   fill="none"
                   stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'}
-                  strokeWidth="1.3"
+                  strokeWidth="1.2"
                 />
-                <line x1="250" y1={topY - 30} x2="250" y2={topY - 44} stroke="#FFC15E" strokeWidth="1" />
-              </g>
-            )}
-            {telecom?.id === 'telecom-uhf' && !isJwstArch && (
-              <g>
-                <line x1="238" y1={topY - 12} x2="218" y2={topY - 38} stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1.1" />
-                <line x1="262" y1={topY - 12} x2="282" y2={topY - 38} stroke={isRfAlarm ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1.1" />
+                <line
+                  x1={p(0, subTopY, 0).x}
+                  y1={p(0, subTopY, 0).y}
+                  x2={p(0, subTopY - 34, 0).x}
+                  y2={p(0, subTopY - 34, 0).y}
+                  stroke="#FFC15E"
+                  strokeWidth="1.1"
+                />
               </g>
             )}
 
-            {/* 4. PROPULSION HARDWARE: ThrustMe NPT30-I2 vs FPPT-1.7 vs Hall vs Chemical Bell */}
-            {prop?.id === 'prop-thrustme-npt30' ? (
-              <g filter="url(#holoGlow)">
-                <rect x="234" y="232" width="32" height="22" fill="#04080F" stroke="#5FF3FF" strokeWidth="1.1" />
-                <circle cx="250" cy="243" r="7" fill="none" stroke="#FFC15E" strokeWidth="1" />
-                <circle cx="250" cy="243" r="3.5" fill="none" stroke="#5FF3FF" strokeWidth="0.9" />
-                <line x1="246" y1="254" x2="244" y2="274" stroke="#5FF3FF" strokeDasharray="2 2" />
-                <line x1="254" y1="254" x2="256" y2="274" stroke="#5FF3FF" strokeDasharray="2 2" />
-                <text x="272" y="246" className="font-mono text-[7.5px]" fill="#FFC15E">
-                  NPT30-I2 1U · GRID Ø60mm
-                </text>
-              </g>
-            ) : prop?.id === 'prop-fppt-17' ? (
-              <g filter="url(#holoGlow)">
-                <rect x="233" y="230" width="34" height="26" fill="#04080F" stroke="#5FF3FF" strokeWidth="1.1" />
-                <ellipse cx="250" cy="242" rx="9" ry="5" fill="none" stroke="#FFC15E" strokeDasharray="2 1" strokeWidth="1" />
-                <polygon points="244,256 256,256 260,268 240,268" fill="none" stroke="#FFC15E" strokeWidth="1" />
-                <text x="272" y="248" className="font-mono text-[7.5px]" fill="#FFC15E">
-                  FPPT 1.7U · PTFE SPOOL (3200s)
-                </text>
-              </g>
-            ) : (
+            {!isJwstArch && (
               <g>
-                <polygon
-                  points={`240,${botY + 20} 260,${botY + 20} 268,${botY + 38} 232,${botY + 38}`}
-                  fill="none"
-                  stroke="#5FF3FF"
-                  strokeWidth="1.1"
-                />
-                {prop?.propulsionType === 'ELECTRIC_HALL' && (
-                  <ellipse cx="250" cy={botY + 38} rx="14" ry="4" fill="none" stroke="#FFC15E" strokeWidth="1" />
-                )}
+                <polygon points={toSvgPoly(nozzleTop)} fill="none" stroke="#5FF3FF" strokeWidth="1" />
+                <polygon points={toSvgPoly(nozzleBot)} fill="none" stroke="#FFC15E" strokeWidth="1" />
+                <line x1={nozzleTop[0].x} y1={nozzleTop[0].y} x2={nozzleBot[0].x} y2={nozzleBot[0].y} stroke="#5FF3FF" strokeWidth="1" />
+                <line x1={nozzleTop[6].x} y1={nozzleTop[6].y} x2={nozzleBot[6].x} y2={nozzleBot[6].y} stroke="#5FF3FF" strokeWidth="1" />
               </g>
             )}
 
             {/* Telemetry Summary Callouts */}
             <g className="font-mono text-[8.5px]" fill="#FFC15E">
-              <text x="22" y="274">
+              <text x="18" y="274">
                 {eps?.isRTG ? 'RTG' : 'EPS'}: {metrics.power.generatedAtDestination_W.toFixed(0)}W ({metrics.power.marginPercent.toFixed(0)}%)
               </text>
-              <text x="478" y="274" textAnchor="end" fill="#5FF3FF">
+              <text x="482" y="274" textAnchor="end" fill="#5FF3FF">
                 {isEs ? 'VOLUMEN:' : 'VOL:'} {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
               </text>
-              <text x="250" y="330" textAnchor="middle" fill="#5FF3FF" opacity="0.9">
-                {isEs ? 'MASA HÚMEDA' : 'WET MASS'} {metrics.wetMass_kg.toFixed(1)} KG · ISP {prop?.isp_s ?? 68} S · {telecom?.freqGHz ?? 0.4} GHZ
+              <text x="250" y="332" textAnchor="middle" fill="#5FF3FF" opacity="0.9">
+                {isEs ? 'MASA HÚMEDA' : 'WET MASS'} {metrics.wetMass_kg.toFixed(1)} KG · ISP {prop?.isp_s ?? 68} S · {telecom?.freqGHz ?? 0.4} GHZ · YAW {Math.round(yawDeg)}°
               </text>
             </g>
           </g>
         )}
 
-        {/* LEVEL 05: LASER SCAN & 4 CAD INSPECTION PINS (NASA-STD-5001B / GSFC-STD-1000) */}
+        {/* LEVEL 05: LASER SCAN & 3D BILLBOARD CAD INSPECTION PINS */}
         {phase === 'CML_5' && laserScanActive && (
           <motion.g
             animate={reducedMotion ? {} : { y: [48, 288, 48] }}
@@ -816,31 +907,35 @@ export function HoloSpacecraftWireframe() {
 
         {phase === 'CML_5' &&
           CAD_PINS.map((pin) => {
+            const pt = p(pin.pos3D.x, pin.pos3D.y, pin.pos3D.z);
             const isOk = pin.ok(pinContext);
             const active = selectedPin === pin.id;
             const color = isOk ? '#5FF3FF' : '#FFC15E';
+            const behind = pt.depth < -10;
             return (
               <g
                 key={pin.id}
-                onClick={() => {
+                opacity={behind && !active ? 0.58 : 1}
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSelectedPin(pin.id);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className="cursor-pointer"
               >
                 <circle
-                  cx={pin.x}
-                  cy={pin.y}
-                  r={active ? 10 : 7.5}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={active ? 9.5 : 7}
                   fill="#04080F"
                   stroke={color}
                   strokeWidth={active ? 2 : 1.2}
                 />
-                <circle cx={pin.x} cy={pin.y} r="2.8" fill={color} />
+                <circle cx={pt.x} cy={pt.y} r="2.6" fill={color} />
                 <text
-                  x={pin.x + 12}
-                  y={pin.y + 3}
-                  className="font-mono text-[8.5px]"
+                  x={pt.x + 11}
+                  y={pt.y + 3}
+                  className="font-mono text-[8px]"
                   fill={color}
                   fontWeight={active ? 'bold' : 'normal'}
                 >
@@ -850,6 +945,67 @@ export function HoloSpacecraftWireframe() {
             );
           })}
       </svg>
+
+      {/* Lightweight 3D CAD Turntable Controls */}
+      <div className="mt-1.5 flex w-full max-w-[540px] flex-wrap items-center justify-between gap-2 border border-[#5FF3FF]/25 bg-[#04080F]/90 px-2.5 py-1.5 font-mono text-[9px]">
+        <div className="flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setAutoSpin((s) => !s)}
+            className={`border px-2 py-0.5 transition ${
+              autoSpin
+                ? 'border-[#5FF3FF]/50 bg-[#5FF3FF]/15 text-[#5FF3FF]'
+                : 'border-[#FFC15E]/50 bg-[#FFC15E]/15 text-[#FFC15E]'
+            }`}
+          >
+            {autoSpin
+              ? isEs
+                ? '⏸ PAUSAR 360°'
+                : '⏸ PAUSE 360°'
+              : isEs
+                ? '▶ GIRO 360°'
+                : '▶ SPIN 360°'}
+          </button>
+
+          {(
+            [
+              ['ISO', 'ISO 3D'],
+              ['FRONT', 'FRONT +X'],
+              ['SIDE', 'SIDE +Y'],
+              ['TOP', 'TOP +Z'],
+            ] as const
+          ).map(([viewKey, label]) => (
+            <button
+              key={viewKey}
+              type="button"
+              onClick={() => handleSelectView(viewKey)}
+              className={`border px-1.5 py-0.5 transition ${
+                cadView === viewKey
+                  ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 text-[#5FF3FF]'
+                  : 'border-[#5FF3FF]/20 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="range"
+            min={0}
+            max={359}
+            value={Math.round(yawDeg)}
+            onChange={(e) => {
+              setAutoSpin(false);
+              setYawDeg(Number(e.target.value));
+            }}
+            aria-label={isEs ? 'Rotación 3D del holograma' : 'Hologram 3D Yaw Rotation'}
+            className="w-24 accent-[#5FF3FF]"
+          />
+          <span className="w-8 text-right text-[#5FF3FF]">{Math.round(yawDeg)}°</span>
+        </div>
+      </div>
 
       {/* Interactive CAD Inspection Readout Card in CML_5 */}
       {phase === 'CML_5' && (
