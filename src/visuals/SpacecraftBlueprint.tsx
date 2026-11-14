@@ -3,9 +3,10 @@ import type { Language, VolumeMetrics } from '../types/mission';
 interface Props {
   volume: VolumeMetrics;
   lang?: Language;
+  className?: string;
 }
 
-export default function SpacecraftBlueprint({ volume, lang = 'en' }: Props) {
+export default function SpacecraftBlueprint({ volume, lang = 'en', className = 'max-w-sm' }: Props) {
   const { used_U, maxFairing_U, isCompliant } = volume;
   const ratio = maxFairing_U > 0 ? used_U / maxFairing_U : 0;
   const bodyH = Math.max(30, Math.min(ratio, 1.3) * 160);
@@ -21,7 +22,7 @@ export default function SpacecraftBlueprint({ volume, lang = 'en' }: Props) {
   ];
 
   return (
-    <div className="w-full max-w-sm">
+    <div className={`w-full ${className}`}>
       <style>{`
         @keyframes fairingPulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
         .fairing-alert { animation: fairingPulse 0.8s infinite; }

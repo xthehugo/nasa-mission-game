@@ -4,6 +4,8 @@ import type { Language, OrbitalDestination } from '../types/mission';
 interface Props {
   destination: OrbitalDestination | null;
   lang?: Language;
+  className?: string;
+  progress?: number | null;
 }
 
 const CX = 200;
@@ -12,7 +14,7 @@ const CY = 200;
 const fmtLight = (s: number) =>
   s < 60 ? `${s.toFixed(1)} s` : `${(s / 60).toFixed(1)} min`;
 
-export default function OrbitalMapVisualizer({ destination, lang = 'en' }: Props) {
+export default function OrbitalMapVisualizer({ destination, lang = 'en', className = 'max-w-md', progress = null }: Props) {
   const [t, setT] = useState(0);
 
   useEffect(() => {
@@ -58,6 +60,25 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en' }: Props
   const earthMode = !destination || (au < 1.05 && dKm < 1_000_000);
   const name = destination ? destination.name[lang] : '—';
 
+    const rocket = (pos: (p: number) => [number, number], p: number) => {
+    const [x, y] = pos(p);
+    const [x0, y0] = pos(Math.max(0, p - 0.02));
+    const deg = (Math.atan2(y - y0, x - x0) * 180) / Math.PI;
+    return (
+      <>
+        {Array.from({ length: 12 }, (_, k) => {
+          const [tx, ty] = pos(Math.max(0, p - (k + 1) * 0.025));
+          return <circle key={k} cx={tx} cy={ty} r={2} fill="#fdba74" opacity={0.5 - k * 0.04} />;
+        })}
+        <g transform={`translate(${x} ${y}) rotate(${deg})`} filter="url(#glow)">
+          {p < 1 && <path d="M-6 -2 L-14 0 L-6 2 Z" fill="#f97316" />}
+          <path d="M9 0 L-6 -4 L-6 4 Z" fill="#f8fafc" />
+          <circle cx="1" cy="0" r="1.6" fill="#38bdf8" />
+        </g>
+      </>
+    );
+  };
+
   let content;
   if (earthMode) {
     const r = Math.min(185, Math.max(80, 60 + 22 * Math.log10(Math.max(dKm, 100))));
@@ -77,6 +98,12 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en' }: Props
           fill={satColor}
           filter="url(#glow)"
         />
+                {progress !== null &&
+          rocket((p) => {
+            const rr = 50 + (r - 50) * p;
+            const aa = a - (1 - p) * 1.4;
+            return [CX + rr * Math.cos(aa), CY + rr * Math.sin(aa)];
+          }, progress)}
         <text x={CX} y={CY + 4} textAnchor="middle" fill="#fff" fontSize="11">
           {lang === 'es' ? 'Tierra' : 'Earth'}
         </text>
@@ -102,6 +129,17 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en' }: Props
         {trail(destR, destA, 0.05, '#ef4444', 8)}
         <circle cx={CX + earthR * Math.cos(earthA)} cy={CY + earthR * Math.sin(earthA)} r={5} fill="#3b82f6" />
         <circle cx={dx} cy={dy} r={8} fill="#ef4444" filter="url(#glow)" />
+                {progress !== null &&
+          rocket((p) => {
+            const ex = CX + earthR * Math.cos(earthA);
+            const ey = CY + earthR * Math.sin(earthA);
+            const len = Math.hypot(dx - ex, dy - ey) || 1;
+            const bulge = Math.sin(Math.PI * p) * 40;
+            return [
+              ex + (dx - ex) * p - ((dy - ey) / len) * bulge,
+              ey + (dy - ey) * p + ((dx - ex) / len) * bulge,
+            ];
+          }, progress)}
         <text x={dx} y={dy - 13} textAnchor="middle" fill="#fca5a5" fontSize="11">
           {name}
         </text>
@@ -118,7 +156,7 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en' }: Props
   const tile = 'rounded-lg bg-slate-800/70 px-2 py-1';
 
   return (
-    <div className="w-full max-w-md">
+    <div className={`w-full ${className}`}>
       <svg viewBox="0 0 400 400" width="100%" style={{ background: '#020617', borderRadius: 12 }}>
         <defs>
           <radialGradient id="earthGrad" cx="35%" cy="35%">
