@@ -162,6 +162,35 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
     },
   },
   {
+    id: 'obj-geo-goes-weather',
+    discipline: 'HELIOPHYSICS',
+    title: {
+      en: 'GEO Space Weather & Magnetospheric Sentinel',
+      es: 'Centinela de Clima Espacial y Magnetósfera en GEO',
+    },
+    question: {
+      en: 'How do solar storms and magnetospheric reconnection events in geostationary orbit (35,786 km) impact satellite infrastructure and Earth grids?',
+      es: '¿Cómo impactan las tormentas solares y la reconexión magnética en órbita GEO (35,786 km) a los satélites y redes eléctricas?',
+    },
+    targetDestinationId: 'dest-geo',
+    requiredPayloadIds: ['pay-magnetometer', 'pay-multispectral'],
+    minDataRateKbps: 256,
+    baseBudgetMillions: 185,
+    targetDurationYears: 3,
+    realWorldBenchmark: {
+      missionName: 'NOAA/NASA GOES-U & NASA TRACERS (GEO / SSO)',
+      launchYear: 2024,
+      actualMass_kg: 2900,
+      actualPower_W: 4000,
+      actualCost_MillionsUSD: 520,
+      keyTakeaway: {
+        en: 'Continuous geostationary space-weather monitoring requires high-Delta-V insertion (3,673 m/s GMAT Hohmann benchmark), magnetometers, and Near Space Network Ka-band downlinks.',
+        es: 'El monitoreo continuo en GEO exige alto Delta-V de inserción (3,673 m/s validado en GMAT), magnetómetros y enlace Near Space Network.',
+      },
+      nasaReferenceUrl: 'https://assets.science.nasa.gov/content/dam/science/missions/tracer/TRACERS%20Press%20Kit.pdf',
+    },
+  },
+  {
     id: 'obj-helio-lunar-trailblazer',
     discipline: 'HELIOPHYSICS',
     title: {
@@ -281,6 +310,34 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     mgaContingencyFactor: mga(9),
   },
   {
+    id: 'pay-magnetometer',
+    category: 'PAYLOAD',
+    name: {
+      en: 'Fluxgate Magnetometer & Plasma Analyzer',
+      es: 'Magnetómetro Fluxgate y Analizador de Plasma',
+    },
+    description: {
+      en: 'Dual boom-mounted magnetic field and solar-wind ion spectrometer (NASA TRACERS & GOES-U heritage, SSRI SoA).',
+      es: 'Espectrómetro de iones y magnetómetro en mástil desplegable (herencia NASA TRACERS y GOES-U, SSRI SoA).',
+    },
+    tradeOffNote: {
+      en: 'Compact (2.2 kg, 4 W) with TRL 9 heritage; pairs with optical imagers for space-weather diagnostics.',
+      es: 'Compacto (2.2 kg, 4 W) con herencia TRL 9; ideal junto a cámaras ópticas para clima espacial.',
+    },
+    analogyTooltip: {
+      en: 'A hypersensitive space compass that feels invisible solar magnetic storms before they hit Earth.',
+      es: 'Una brújula espacial hipersensible que detecta tormentas magnéticas solares invisibles.',
+    },
+    massCBE_kg: 2.2,
+    powerDrawNominal_W: 4,
+    powerDrawPeak_W: 9,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 5.5,
+    volume_U: 2,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+  },
+  {
     id: 'pay-ir-spectrometer',
     category: 'PAYLOAD',
     name: {
@@ -367,6 +424,36 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     mgaContingencyFactor: mga(9),
     isp_s: 68,
     propulsionType: 'COLD_GAS',
+  },
+  {
+    id: 'prop-han-green',
+    category: 'PROPULSION',
+    name: {
+      en: 'HAN Green Monopropellant Thruster (AF-M315E)',
+      es: 'Propulsor Monopropelente Verde HAN (AF-M315E)',
+    },
+    description: {
+      en: 'High-density hydroxylammonium nitrate (HAN) green monopropellant system (NASA SSRI SoA Ch. 4).',
+      es: 'Sistema monopropelente verde de nitrato de hidroxilamonio (HAN) de alta densidad volumétrica (NASA SSRI SoA Cap. 4).',
+    },
+    tradeOffNote: {
+      en: 'Isp = 250 s bridges Cold-Gas (68 s) and Biprop (315 s) with lower toxicity and $4.8M cost.',
+      es: 'Isp = 250 s cubre la brecha entre Gas Frío (68 s) y Bipropelente (315 s) sin toxicidad hipergólica ($4.8M).',
+    },
+    analogyTooltip: {
+      en: 'Clean high-octane eco-fuel: much stronger than compressed air without toxic chemical handling.',
+      es: 'Combustible ecológico de alta densidad: mucho más potente que el gas frío y sin químicos tóxicos.',
+    },
+    massCBE_kg: 9.5,
+    powerDrawNominal_W: 4,
+    powerDrawPeak_W: 15,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 4.8,
+    volume_U: 18,
+    trl: 8,
+    mgaContingencyFactor: mga(8),
+    isp_s: 250,
+    propulsionType: 'MONOPROP',
   },
   {
     id: 'prop-biprop',
@@ -978,6 +1065,18 @@ export const PRESET_MISSION_SELECTIONS: Record<string, MissionSelection> = {
     adcsId: 'adcs-gravity',
     launchVehicleId: 'lv-rideshare',
     groundStationId: 'gs-commercial',
+  },
+  'obj-geo-goes-weather': {
+    objectiveId: 'obj-geo-goes-weather',
+    destinationId: 'dest-geo',
+    payloadIds: ['pay-magnetometer', 'pay-multispectral'],
+    propulsionId: 'prop-biprop',
+    epsId: 'eps-megaflex',
+    telecomId: 'telecom-xka',
+    thermalId: 'therm-active',
+    adcsId: 'adcs-3axis',
+    launchVehicleId: 'lv-falcon9',
+    groundStationId: 'gs-near-earth',
   },
   'obj-helio-lunar-trailblazer': {
     objectiveId: 'obj-helio-lunar-trailblazer',

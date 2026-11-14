@@ -1,7 +1,57 @@
 import { useState } from 'react';
-import { Check, CheckCircle2, Copy, Play, X, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Copy, ExternalLink, Play, X, XCircle } from 'lucide-react';
 import { runEngineTestSuite, type EngineTestReport } from '../engine';
 import { useMissionStore } from '../store';
+
+const VERIFIED_SOURCE_GROUPS = [
+  {
+    id: 'ssri-standards',
+    title: {
+      en: '1. NASA SSRI SoA 2024 & Systems Standards (NASA/SP-2016-6105, GSFC-STD-1000 GOLD Rules, NASA-STD-5001)',
+      es: '1. NASA SSRI SoA 2024 y Estándares de Sistemas (NASA/SP-2016-6105, GSFC-STD-1000 GOLD Rules, NASA-STD-5001)',
+    },
+    links: [
+      { label: 'SSRI SmallSat SoA 2024 — Thermal Control (Ch. 7)', url: 'https://www.nasa.gov/wp-content/uploads/2025/02/7-soa-thermal-2024.pdf' },
+      { label: 'SSRI SmallSat SoA 2024 — Power / EPS (Ch. 3)', url: 'https://www.nasa.gov/wp-content/uploads/2025/02/3-soa-power-2024.pdf' },
+      { label: 'SSRI SmallSat SoA 2024 — GNC / ADCS (Ch. 5)', url: 'https://www.nasa.gov/wp-content/uploads/2025/02/5-soa-gnc-2024.pdf' },
+      { label: 'SSRI SmallSat SoA 2024 — Communications (Ch. 9)', url: 'https://www.nasa.gov/wp-content/uploads/2025/02/9-soa-communications-2024.pdf' },
+      { label: 'SSRI SmallSat SoA 2023 — Launch Integration (Ch. 10)', url: 'https://www.nasa.gov/wp-content/uploads/2024/02/10.soa-launch-2023.pdf' },
+      { label: 'NASA Systems Engineering Handbook (NASA/SP-2016-6105 Rev 2)', url: 'https://explorers.larc.nasa.gov/2023APPROBE/pdf_files/NASA04.%20SysEng%20Handbook%20(NASA_SP-2016-6105%20Rev%202).pdf' },
+      { label: 'GSFC-STD-1000 Rev H — Rules for Design, Development & Flight (GOLD)', url: 'https://standards.nasa.gov/sites/default/files/standards/GSFC/H/0/GSFC-STD-1000RevH_Approved.pdf' },
+      { label: 'NASA-STD-5001 — Structural Design & Test Factors of Safety', url: 'https://standards.nasa.gov/sites/default/files/standards/NASA/B-w/CHANGE-2/2/Historical/nasa-std-5001.pdf' },
+    ],
+  },
+  {
+    id: 'dsn-gmat',
+    title: {
+      en: '2. DSN 810-005 (101H/104O), NSN 2025 & GMAT (GSC-19468-1)',
+      es: '2. DSN 810-005 (101H/104O), NSN 2025 y GMAT (GSC-19468-1)',
+    },
+    links: [
+      { label: 'JPL DSN 810-005 Module 101H — 70m Deep Space Antenna Performance', url: 'https://deepspace.jpl.nasa.gov/dsndocs/810-005/101/101H.pdf' },
+      { label: 'JPL DSN 810-005 Module 104O — 34m Beam Waveguide Antennas', url: 'https://deepspace.jpl.nasa.gov/dsndocs/810-005/104/104O.pdf' },
+      { label: 'NASA Near Space Network (NSN) Services Brochure (2025)', url: 'https://www.nasa.gov/wp-content/uploads/2025/08/nsn-services-brochure.pdf' },
+      { label: 'NASA General Mission Analysis Tool (GMAT) Software — GSC-19468-1', url: 'https://software.nasa.gov/software/GSC-19468-1' },
+    ],
+  },
+  {
+    id: 'mission-kits',
+    title: {
+      en: '3. Mission Press Kits & NTRS / CSA Benchmarks (BioNutrients-2, Lunar Trailblazer, TRACERS, MRO, PUNCH, CSA JWST FGS)',
+      es: '3. Press Kits Oficiales y Benchmarks NTRS / CSA (BioNutrients-2, Lunar Trailblazer, TRACERS, MRO, PUNCH, CSA JWST FGS)',
+    },
+    links: [
+      { label: 'NASA Lunar Trailblazer Launch Press Kit (SIMPLEx)', url: 'https://assets.science.nasa.gov/content/dam/science/missions/lunar-trailblazer/pdfs/LTB_PressKit_finalR.pdf' },
+      { label: 'NASA TRACERS Heliophysics Press Kit (Magnetometer / Sun-Sync)', url: 'https://assets.science.nasa.gov/content/dam/science/missions/tracer/TRACERS%20Press%20Kit.pdf' },
+      { label: 'Canadian Space Agency (CSA) — JWST Fine Guidance Sensor (FGS #16972)', url: 'https://www.asc-csa.gc.ca/eng/multimedia/search/image/16972' },
+      { label: 'NASA NTRS 20250009253 — Space Microbial Biotechnology (BioNutrients-2)', url: 'https://ntrs.nasa.gov/api/citations/20250009253/downloads/2025-09_SpaceMicrobialBiotechnology_Settles.pdf' },
+      { label: 'NASA Mars Reconnaissance Orbiter (MRO) Launch Press Kit', url: 'https://science.nasa.gov/resource/mars-reconnaissance-orbiter-launch-press-kit/' },
+      { label: 'NASA PUNCH Solar Corona & Heliosphere Mission', url: 'https://science.nasa.gov/mission/punch/' },
+    ],
+  },
+];
+
+const NOTEBOOKLM_URL_BLOCK = VERIFIED_SOURCE_GROUPS.flatMap((g) => g.links.map((l) => l.url)).join('\n');
 
 const SUMMARY_EN =
   "ORBITAL FORGE is an interactive, bilingual (EN/ES) space mission design game turning NASA JPL's Concept Maturity Levels (CML 1-5) and real SWaP-C trade-offs into an accessible engineering sandbox with Dual Mode (Cadet & JPL Engineer), GMAT R2026a cross-validated physics, and live in-flight crises.";
@@ -12,7 +62,7 @@ Open Data & AI Disclosure: Grounded in NASA JPL CML, SmallSat Institute, CubeSat
 
 export function NarrativePitchModal() {
   const { language, isPitchModalOpen, setPitchModalOpen } = useMissionStore();
-  const [tab, setTab] = useState<'STORY' | 'MATH' | 'PITCH'>('STORY');
+  const [tab, setTab] = useState<'STORY' | 'MATH' | 'SOURCES' | 'PITCH'>('STORY');
   const [copied, setCopied] = useState<string | null>(null);
   const [testReport, setTestReport] = useState<EngineTestReport | null>(null);
 
@@ -54,6 +104,7 @@ export function NarrativePitchModal() {
             [
               ['STORY', isEs ? 'Narrativa y Datos Abiertos' : 'Story & Open Data'],
               ['MATH', isEs ? 'Fórmulas & Tests Motor (11/11)' : 'Scoring Math & Engine Tests'],
+              ['SOURCES', isEs ? '18 Fuentes Verificadas' : '18 Verified Sources'],
               ['PITCH', isEs ? 'Pitch Oficial (EN)' : 'Official Pitch (EN)'],
             ] as const
           ).map(([id, label]) => (
@@ -129,6 +180,56 @@ export function NarrativePitchModal() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {tab === 'SOURCES' && (
+          <div className="mt-4 space-y-3 text-xs text-slate-300">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan-500/30 bg-cyan-950/25 p-3">
+              <div>
+                <div className="font-mono text-[11px] font-bold text-cyan-200">
+                  {isEs
+                    ? 'Trazabilidad Oficial (18 URLs Verificadas: .gov / .gc.ca / JPL / NTRS)'
+                    : 'Official Data Provenance (18 Verified .gov / .gc.ca / JPL / NTRS URLs)'}
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  {isEs
+                    ? 'Incluye límites HAN Monoprop (250s), estándares GSFC GOLD Rules / NASA-STD-5001, DSN 810-005, NSN 2025, GMAT R2026a y Press Kits reales.'
+                    : 'Covers HAN Green Monoprop (250s), GSFC GOLD Rules / NASA-STD-5001, DSN 810-005, NSN 2025, GMAT R2026a & mission press kits.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyText('urls', NOTEBOOKLM_URL_BLOCK)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-1.5 font-mono text-[11px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+              >
+                {copied === 'urls' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied === 'urls' ? (isEs ? '18 URLs Copiadas' : '18 URLs Copied') : (isEs ? 'Copiar 18 URLs' : 'Copy 18 URLs')}</span>
+              </button>
+            </div>
+
+            {VERIFIED_SOURCE_GROUPS.map((group) => (
+              <div key={group.id} className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+                <div className="font-mono text-[11px] font-bold text-amber-300">
+                  {group.title[language]}
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {group.links.map((link) => (
+                    <li key={link.url}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-300 underline decoration-slate-600 hover:text-cyan-300 hover:decoration-cyan-400"
+                      >
+                        <ExternalLink className="h-3 w-3 shrink-0 text-cyan-400" />
+                        <span>{link.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
 

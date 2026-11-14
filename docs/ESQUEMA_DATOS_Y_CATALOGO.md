@@ -36,23 +36,25 @@ erDiagram
 
 ---
 
-## 3. Objetivos Científicos (`SCIENCE_OBJECTIVES` — 4 misiones)
+## 3. Objetivos Científicos (`SCIENCE_OBJECTIVES` — 5 misiones)
 
-| ID | Disciplina | Destino Base | Payload(s) Requerido(s) | Min Rate | Presupuesto | Duración | Benchmark Real NASA/CSA |
+| ID | Disciplina | Destino Base | Payload(s) Requerido(s) | Min Rate | Presupuesto | Duración | Benchmark Real NASA/NOAA/CSA |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
 | `'obj-earth-bionutrients'` | `EARTH_SCIENCE` | `'dest-leo'` | `['pay-multispectral']` | `64 kbps` | `$25M` | `2 años` | NASA BioNutrients-2 & PACE (LEO) (`26 kg`, `45 W`, `$18M`) |
+| `'obj-geo-goes-weather'` | `HELIOPHYSICS` | `'dest-geo'` | `['pay-magnetometer', 'pay-multispectral']` | `256 kbps` | `$185M` | `3 años` | NOAA/NASA GOES-U & NASA TRACERS (`2,900 kg`, `4,000 W`, `$520M`) |
 | `'obj-helio-lunar-trailblazer'` | `HELIOPHYSICS` | `'dest-moon'` | `['pay-ir-spectrometer']` | `256 kbps` | `$95M` | `2 años` | NASA Lunar Trailblazer & PUNCH (`210 kg`, `280 W`, `$72M`) |
 | `'obj-mars-reconnaissance'` | `PLANETARY_SCIENCE` | `'dest-mars'` | `['pay-sar-radar']` | `128 kbps` | `$280M` | `3 años` | NASA Mars Reconnaissance Orbiter (MRO) (`2,180 kg`, `1,500 W`, `$720M`) |
 | `'obj-jupiter-clipper'` | `ASTROPHYSICS` | `'dest-jupiter'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `32 kbps` | `$320M` | `5 años` | NASA Europa Clipper & JWST / CSA FGS (`3,240 kg`, `700 W`, `$1,200M`) |
 
 ---
 
-## 4. Catálogo Completo de Subsistemas (`SUBSYSTEM_CATALOG` — 22 ítems en 7 categorías)
+## 4. Catálogo Completo de Subsistemas (`SUBSYSTEM_CATALOG` — 24 ítems en 7 categorías)
 
 ### 1. Carga Útil (`PAYLOAD`)
 | ID | Nombre (`en`) | Masa CBE | Potencia (Nom / Pico) | Costo | Volumen | TRL (MGA) |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | `'pay-multispectral'` | Optical Multispectral Imager | `3.5 kg` | `6 W / 12 W` | `$4.2M` | `3U` | `TRL 9 (8%)` |
+| `'pay-magnetometer'` | Fluxgate Magnetometer & Plasma Analyzer | `2.2 kg` | `4 W / 9 W` | `$5.5M` | `2U` | `TRL 9 (8%)` |
 | `'pay-ir-spectrometer'` | Cryogenic IR Spectrometer | `18 kg` | `20 W / 45 W` | `$22M` | `16U` | `TRL 6 (18%)` |
 | `'pay-sar-radar'` | Active L-Band SAR Radar | `120 kg` | `95 W / 850 W` | `$95M` | `650U` | `TRL 5 (32%)` |
 
@@ -60,6 +62,7 @@ erDiagram
 | ID | Nombre (`en`) | Tipo / $I_{sp}$ | Masa CBE | Potencia (Nom / Pico) | Costo | Volumen | TRL (MGA) |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | `'prop-cold-gas'` | N2 Cold-Gas Micro-Thrusters | `COLD_GAS` (`68 s`) | `2.8 kg` | `2 W / 5 W` | `$0.8M` | `1.5U` | `TRL 9 (8%)` |
+| `'prop-han-green'` | HAN Green Monopropellant Thruster (AF-M315E) | `MONOPROP` (`250 s`) | `9.5 kg` | `4 W / 15 W` | `$4.8M` | `18U` | `TRL 8 (8%)` |
 | `'prop-biprop'` | MMH / NTO Bipropellant Engine | `BIPROP` (`315 s`) | `24 kg` | `6 W / 25 W` | `$12M` | `80U` | `TRL 8 (8%)` |
 | `'prop-hall'` | Xenon Hall Electric Thruster (BHT-600) | `ELECTRIC_HALL` (`1750 s`) | `14.5 kg` | `120 W / 600 W` | `$16.5M` | `40U` | `TRL 6 (18%)` |
 
@@ -112,13 +115,14 @@ erDiagram
 
 ---
 
-## 6. Los 4 Presets Oficiales (`PRESET_MISSION_SELECTIONS`)
+## 6. Los 5 Presets Oficiales (`PRESET_MISSION_SELECTIONS`)
 
-Cada uno de los 4 presets aprueba el **MCR completo en Verde ($\ge 35\%$ de margen)** y puede cargarse con un clic desde la interfaz:
+Cada uno de los 5 presets aprueba el **MCR completo en Verde ($\ge 35\%$ de margen)** y puede cargarse con un clic desde la interfaz:
 
 | Preset Key (`objectiveId`) | Destino | Payload(s) | Propulsión | EPS | Telecom | Thermal | ADCS | Lanzador | Antena Tierra |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `'obj-earth-bionutrients'` | `'dest-leo'` | `['pay-multispectral']` | `'prop-cold-gas'` | `'eps-deployable'` | `'telecom-uhf'` | `'therm-passive'` | `'adcs-gravity'` | `'lv-rideshare'` | `'gs-commercial'` |
+| `'obj-geo-goes-weather'` | `'dest-geo'` | `['pay-magnetometer', 'pay-multispectral']` | `'prop-biprop'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-near-earth'` |
 | `'obj-helio-lunar-trailblazer'` | `'dest-moon'` | `['pay-ir-spectrometer']` | `'prop-hall'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-electron'` | `'gs-near-earth'` |
 | `'obj-mars-reconnaissance'` | `'dest-mars'` | `['pay-sar-radar']` | `'prop-biprop'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-cryo'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-dsn-34m'` |
 | `'obj-jupiter-clipper'` | `'dest-jupiter'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `'prop-biprop'` | `'eps-rtg'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-dsn-70m'` |
