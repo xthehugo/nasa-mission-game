@@ -24,6 +24,7 @@ import { findDestinationById } from './engine';
 import { useMissionStore } from './store';
 import type { CMLPhase } from './types/mission';
 import { MissionStage } from './visuals';
+import type { FailureMode } from './visuals/SpacecraftBlueprint';
 
 const LEVELS: { id: CMLPhase; num: string; label: { en: string; es: string } }[] = [
   { id: 'CML_1', num: '01', label: { en: 'NAPKIN', es: 'SERVILLETA' } },
@@ -53,8 +54,43 @@ export function App() {
     reducedMotion,
     soundEnabled,
     setPhase,
+    setSubsystem,
+    setGroundStation,
     launchSimulation,
   } = useMissionStore();
+
+  const handleQuickFixFailure = (mode: FailureMode) => {
+    const destId = selection.destinationId;
+    const isDeepSpace =
+      destId === 'dest-jupiter' || destId === 'dest-mars' || destId === 'dest-l2';
+
+    switch (mode) {
+      case 'FAIRING_COLLISION':
+      case 'MASS_BUCKLING':
+        setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+        break;
+      case 'DELTAV_DEPLETION':
+        setSubsystem('PROPULSION', 'prop-biprop');
+        if (destId !== 'dest-leo') {
+          setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+        }
+        break;
+      case 'POWER_FREEZE':
+        setSubsystem('EPS', destId === 'dest-jupiter' ? 'eps-rtg' : 'eps-megaflex');
+        setSubsystem('THERMAL', 'therm-active');
+        break;
+      case 'TELECOM_TUMBLE':
+        setSubsystem('TELECOM', 'telecom-xka');
+        setSubsystem('ADCS', 'adcs-sagitta-star');
+        setGroundStation(
+          isDeepSpace ? 'gs-dsn-70m' : destId === 'dest-leo' ? 'gs-commercial' : 'gs-near-earth',
+        );
+        break;
+      default:
+        break;
+    }
+    launchSimulation();
+  };
 
   const isEs = language === 'es';
   const nextPhase = NEXT_PHASE[phase];
@@ -123,6 +159,7 @@ export function App() {
                     volume={metrics.volume}
                     metrics={metrics}
                     lang={language}
+                    onQuickFix={handleQuickFixFailure}
                     embedded
                   />
                 </div>
