@@ -69,6 +69,32 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             <span>{isGeocentric ? 'LEO 250 KM' : 'ORBIT 100 KM'}</span>
             <span>{isGeocentric ? 'GEO 35,786 KM' : 'APO 2,000 KM'}</span>
           </div>
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            {(isGeocentric
+              ? [
+                  { km: 400, label: '400 LEO' },
+                  { km: 550, label: '550 SSO' },
+                  { km: 35786, label: '35.8k GEO' },
+                ]
+              : [
+                  { km: 100, label: '100 LOW' },
+                  { km: 500, label: '500 SCI' },
+                  { km: 2000, label: '2.0k APO' },
+                ]
+            ).map((preset) => (
+              <button
+                key={preset.km}
+                type="button"
+                onClick={() => {
+                  setOrbitParams(preset.km, orbitInclinationDeg);
+                  playHoloTone('STEP', soundEnabled);
+                }}
+                className="border border-[#5FF3FF]/25 py-1 font-mono text-[9px] text-slate-300 hover:border-[#5FF3FF] hover:text-white"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="border border-[#5FF3FF]/25 p-3">
