@@ -57,7 +57,7 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en', classNa
 
   const au = destination?.heliocentricDistanceAU ?? 1;
   const dKm = destination?.distanceFromEarthKm ?? 0;
-  const earthMode = !destination || (au < 1.05 && dKm < 1_000_000);
+  const earthMode = !destination || (au < 1.05 && dKm <= 2_000_000);
   const name = destination ? destination.name[lang] : '—';
 
     const rocket = (pos: (p: number) => [number, number], p: number) => {

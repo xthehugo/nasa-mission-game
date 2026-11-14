@@ -16,9 +16,10 @@ const TABS: { id: SubsystemCategory; label: { en: string; es: string } }[] = [
 ];
 
 const DEST_PICKS: Record<string, Set<string>> = {
-  'dest-leo': new Set(['prop-cold-gas', 'eps-deployable', 'telecom-uhf', 'therm-passive', 'adcs-gravity', 'lv-rideshare']),
-  'dest-geo': new Set(['prop-hall', 'eps-megaflex', 'telecom-xka', 'therm-active', 'adcs-3axis', 'lv-electron']),
+  'dest-leo': new Set(['prop-cold-gas', 'prop-thrustme-npt30', 'eps-deployable', 'eps-lilt-array', 'telecom-uhf', 'therm-passive', 'therm-silver-fep', 'adcs-gravity', 'adcs-sagitta-star', 'lv-rideshare', 'lv-vadr-rideshare']),
+  'dest-geo': new Set(['prop-hall', 'eps-megaflex', 'telecom-xka', 'therm-active', 'adcs-3axis', 'lv-electron', 'lv-falcon9']),
   'dest-moon': new Set(['prop-hall', 'eps-megaflex', 'telecom-xka', 'therm-active', 'adcs-3axis', 'lv-electron']),
+  'dest-l2': new Set(['prop-biprop', 'eps-megaflex', 'telecom-cubelct-laser', 'therm-cryo', 'adcs-sagitta-star', 'lv-falcon9']),
   'dest-mars': new Set(['prop-biprop', 'eps-megaflex', 'telecom-xka', 'therm-cryo', 'adcs-3axis', 'lv-falcon9']),
   'dest-jupiter': new Set(['prop-biprop', 'eps-rtg', 'telecom-xka', 'therm-active', 'adcs-3axis', 'lv-falcon9']),
 };

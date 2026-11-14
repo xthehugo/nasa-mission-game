@@ -183,15 +183,33 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   <p className="text-[10.5px] leading-snug text-slate-400">
                     {obj.question[language]}
                   </p>
+                  {active && obj.cadetChallenge && (
+                    <div className="border-l-2 border-[#5FF3FF] bg-[#5FF3FF]/5 pl-2 py-1 text-[10px] leading-snug text-slate-200">
+                      <span className="font-mono text-[8.5px] tracking-wider text-[#5FF3FF] uppercase">
+                        {isEs ? '🎓 RETO FÍSICO CADETE: ' : '🎓 CADET CHALLENGE: '}
+                      </span>
+                      {obj.cadetChallenge[language]}
+                    </div>
+                  )}
                   {active && (
-                    <p className="border-l-2 border-[#5FF3FF]/50 pl-2 text-[10px] leading-snug text-[#5FF3FF]">
+                    <p className="border-l-2 border-[#5FF3FF]/40 pl-2 text-[10px] leading-snug text-[#5FF3FF]">
                       💡 {obj.realWorldBenchmark.keyTakeaway[language]}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="mt-1.5 font-mono text-[9px] text-slate-400">
-                  TARGET {obj.targetDestinationId.toUpperCase()} · ≥{obj.minDataRateKbps} KBPS · {obj.targetDurationYears}Y · REF: {obj.realWorldBenchmark.actualMass_kg}kg / {obj.realWorldBenchmark.actualPower_W}W / ${obj.realWorldBenchmark.actualCost_MillionsUSD}M
+                <div className="mt-1.5 space-y-1">
+                  <div className="font-mono text-[9px] text-slate-400">
+                    TARGET {obj.targetDestinationId.toUpperCase()} · ≥{obj.minDataRateKbps} KBPS · {obj.targetDurationYears}Y · REF: {obj.realWorldBenchmark.actualMass_kg}kg / {obj.realWorldBenchmark.actualPower_W}W / ${obj.realWorldBenchmark.actualCost_MillionsUSD}M
+                  </div>
+                  {active && obj.jplConstraints && (
+                    <div className="border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 pl-2 py-1 text-[10px] leading-snug text-slate-200">
+                      <span className="font-mono text-[8.5px] tracking-wider text-[#FFC15E] uppercase">
+                        {isEs ? '🛰️ RESTRICCIÓN JPL: ' : '🛰️ JPL CONSTRAINT: '}
+                      </span>
+                      {obj.jplConstraints[language]}
+                    </div>
+                  )}
                 </div>
               )}
             </button>

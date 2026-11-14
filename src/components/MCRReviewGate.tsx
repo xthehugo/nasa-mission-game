@@ -56,6 +56,68 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
 
         <VVTestingCard />
 
+        {/* GSFC-STD-1000 GOLD Rules & NASA-STD-5001B Quantitative CML 5 Checks */}
+        <div className="border border-[#5FF3FF]/30 bg-[#04080F]/80 p-2.5 space-y-2">
+          <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.14em] uppercase">
+            <span className="text-[#5FF3FF]">
+              {isEs ? 'REGLAS GSFC-STD-1000 & NASA-STD-5001B' : 'GSFC-STD-1000 & NASA-STD-5001B RULES'}
+            </span>
+            <span className="text-[#FFC15E]">CML 5</span>
+          </div>
+
+          <div className="space-y-1.5 text-[10px] leading-snug">
+            <div className="border border-[#5FF3FF]/20 p-2">
+              <div className="flex items-center justify-between font-mono text-[9px] text-white">
+                <span>GSFC Rule 1.05 · SPF / FMEA</span>
+                <span className="text-[#5FF3FF]">
+                  {isEs ? 'REDUNDANCIA OK' : 'REDUNDANCY OK'}
+                </span>
+              </div>
+              <p className="mt-1 text-slate-300">
+                {isJpl
+                  ? isEs
+                    ? 'Cero Fallas de Punto Único (SPF) en bus crítico; FMEA/FMECA completo para aviónica, calentadores y válvulas.'
+                    : 'Zero credible Single Point Failures (SPF) in critical bus; FMEA/FMECA closed on avionics, heaters, and valves.'
+                  : isEs
+                    ? 'Ninguna falla en un solo cable puede apagar la nave: todo sistema vital tiene respaldo gemelo.'
+                    : 'No single broken wire can turn off the whole spacecraft: every critical part carries a backup twin.'}
+              </p>
+            </div>
+
+            <div className="border border-[#5FF3FF]/20 p-2">
+              <div className="flex items-center justify-between font-mono text-[9px] text-white">
+                <span>GSFC Rule 2.13 · Spare Pins</span>
+                <span className="text-[#5FF3FF]">≥ 30% PDR</span>
+              </div>
+              <p className="mt-1 text-slate-300">
+                {isJpl
+                  ? isEs
+                    ? 'Conectores con ≥30% de pines de reserva en PDR, ≥10% de contactos extra en I&T y cero blind-mating sin llaves mecánicas.'
+                    : '≥30% spare connector pins frozen at PDR, ≥10% I&T contact margin, and zero unkeyed blind-mating.'
+                  : isEs
+                    ? 'Los enchufes internos dejan al menos 30% de clavijas libres y formas únicas anti-error como USB.'
+                    : 'Internal harness plugs keep ≥30% extra spare pins plus unique keyed shapes so cables never plug in backwards.'}
+              </p>
+            </div>
+
+            <div className="border border-[#5FF3FF]/20 p-2">
+              <div className="flex items-center justify-between font-mono text-[9px] text-white">
+                <span>NASA-STD-5001B Sec. 4.2.1</span>
+                <span className="text-[#FFC15E]">1.40× ULT / 1.25× YLD</span>
+              </div>
+              <p className="mt-1 text-slate-300">
+                {isJpl
+                  ? isEs
+                    ? 'Factores estructurales: FS Último 1.40, FS Fluencia 1.25 y prueba de presión en tanques COPV 1.05×–1.20× MDP.'
+                    : 'Structural FoS: Ultimate 1.40, Yield 1.25, and COPV/propellant tank proof pressure 1.05×–1.20× MDP.'
+                  : isEs
+                    ? 'El chasis y tanque resisten 1.40 veces la vibración máxima del cohete antes de siquiera deformarse.'
+                    : 'Spacecraft frame and propellant tanks survive 1.40× the hardest rocket shaking without bending or cracking.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {(metrics.dryMass.status !== 'GREEN' || metrics.power.status !== 'GREEN' || metrics.telecom.status !== 'GREEN') && (
           <div className="border border-[#FFC15E]/40 p-2.5 space-y-1.5">
             <div className="font-mono text-[9px] text-[#FFC15E] uppercase">

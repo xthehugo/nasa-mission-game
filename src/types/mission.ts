@@ -84,6 +84,8 @@ export interface ScienceObjective {
   discipline: ScienceDiscipline;
   title: LocalizedText;
   question: LocalizedText;
+  cadetChallenge?: LocalizedText;
+  jplConstraints?: LocalizedText;
   targetDestinationId: string;
   requiredPayloadIds: string[];
   minDataRateKbps: number;
@@ -140,6 +142,7 @@ export interface SubsystemOption {
   pointingAccuracy_deg?: number;
   maxPayloadMass_kg?: number;
   fairingVolume_U?: number;
+  sourceCitation?: string;
 }
 
 export interface GroundStationOption {

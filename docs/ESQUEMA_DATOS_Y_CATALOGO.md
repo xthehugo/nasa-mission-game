@@ -24,31 +24,34 @@ erDiagram
 
 ---
 
-## 2. Destinos Orbitales (`ORBITAL_DESTINATIONS` — 5 destinos)
+## 2. Destinos Orbitales (`ORBITAL_DESTINATIONS` — 6 destinos)
 
 | ID | Nombre (`en` / `es`) | Dist. Heliocéntrica | Dist. Tierra | $\Delta V$ Requerido | Irradiancia $S$ | Eclipse | Retardo 1-vía | Red Requerida (`Link >= dB`) |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | `'dest-leo'` | Low Earth Orbit (LEO · 500 km) / Órbita Baja Terrestre | `1.0 AU` | `1,200 km` | `150 m/s` | `1,361 W/m²` | `0.37` | `0.005 s` | `COMMERCIAL_GN` (`6 dB`) |
 | `'dest-geo'` | **Geostationary Orbit (GEO · 35,786 km)** *(GMAT R2026a)* | `1.0 AU` | `35,786 km` | **`3,673 m/s`** | `1,361 W/m²` | `0.05` | `0.12 s` | `NEAR_EARTH_NETWORK` (`6 dB`) |
 | `'dest-moon'` | Lunar Polar Orbit (100 km) / Órbita Polar Lunar | `1.0 AU` | `384,400 km` | `3,950 m/s` | `1,361 W/m²` | `0.25` | `1.28 s` | `NEAR_EARTH_NETWORK` (`6 dB`) |
+| `'dest-l2'` | **Sun-Earth L2 Halo Orbit (1,500,000 km)** *(JWST/FGS)* | `1.01 AU` | `1,500,000 km` | `3,400 m/s` | `1,334 W/m²` | `0.00` | `5.0 s` | `DSN_34M` (`3 dB`) |
 | `'dest-mars'` | Mars Science Orbit (1.52 AU) / Órbita de Marte | `1.52 AU` | `225,000,000 km` | `4,500 m/s` | `589 W/m²` | `0.15` | `750 s` | `DSN_34M` (`3 dB`) |
 | `'dest-jupiter'` | Jupiter / Jovian System (5.20 AU) / Júpiter | `5.20 AU` | `778,000,000 km` | `6,800 m/s` | `50.3 W/m²` | `0.12` | `2,595 s` | `DSN_70M` (`3 dB`) |
 
 ---
 
-## 3. Objetivos Científicos (`SCIENCE_OBJECTIVES` — 5 misiones)
+## 3. Objetivos Científicos (`SCIENCE_OBJECTIVES` — 7 misiones con campos Modo Dual)
 
 | ID | Disciplina | Destino Base | Payload(s) Requerido(s) | Min Rate | Presupuesto | Duración | Benchmark Real NASA/NOAA/CSA |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
 | `'obj-earth-bionutrients'` | `EARTH_SCIENCE` | `'dest-leo'` | `['pay-multispectral']` | `64 kbps` | `$25M` | `2 años` | NASA BioNutrients-2 & PACE (LEO) (`26 kg`, `45 W`, `$18M`) |
 | `'obj-geo-goes-weather'` | `HELIOPHYSICS` | `'dest-geo'` | `['pay-magnetometer', 'pay-multispectral']` | `256 kbps` | `$185M` | `3 años` | NOAA/NASA GOES-U & NASA TRACERS (`2,900 kg`, `4,000 W`, `$520M`) |
+| `'obj-sso-tracers'` | `HELIOPHYSICS` | `'dest-leo'` | `['pay-magnetometer']` | `256 kbps` | `$115M` | `1 año` | **NASA TRACERS T1/T2 Tandem** (`<200 kg`, `590 km SSO`, Falcon 9 VADR) |
+| `'obj-l2-jwst-fgs'` | `ASTROPHYSICS` | `'dest-l2'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `28,000 kbps` | `$380M` | `10 años` | **NASA/ESA/CSA JWST & FGS** (`6,500 kg`, `2,000 W`, `>$10,000M`) |
 | `'obj-helio-lunar-trailblazer'` | `HELIOPHYSICS` | `'dest-moon'` | `['pay-ir-spectrometer']` | `256 kbps` | `$95M` | `2 años` | NASA Lunar Trailblazer & PUNCH (`210 kg`, `280 W`, `$72M`) |
 | `'obj-mars-reconnaissance'` | `PLANETARY_SCIENCE` | `'dest-mars'` | `['pay-sar-radar']` | `128 kbps` | `$280M` | `3 años` | NASA Mars Reconnaissance Orbiter (MRO) (`2,180 kg`, `1,500 W`, `$720M`) |
 | `'obj-jupiter-clipper'` | `ASTROPHYSICS` | `'dest-jupiter'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `32 kbps` | `$320M` | `5 años` | NASA Europa Clipper & JWST / CSA FGS (`3,240 kg`, `700 W`, `$1,200M`) |
 
 ---
 
-## 4. Catálogo Completo de Subsistemas (`SUBSYSTEM_CATALOG` — 24 ítems en 7 categorías)
+## 4. Catálogo Completo de Subsistemas (`SUBSYSTEM_CATALOG` — 32 ítems en 7 categorías)
 
 ### 1. Carga Útil (`PAYLOAD`)
 | ID | Nombre (`en`) | Masa CBE | Potencia (Nom / Pico) | Costo | Volumen | TRL (MGA) |
@@ -65,12 +68,15 @@ erDiagram
 | `'prop-han-green'` | HAN Green Monopropellant Thruster (AF-M315E) | `MONOPROP` (`250 s`) | `9.5 kg` | `4 W / 15 W` | `$4.8M` | `18U` | `TRL 8 (8%)` |
 | `'prop-biprop'` | MMH / NTO Bipropellant Engine | `BIPROP` (`315 s`) | `24 kg` | `6 W / 25 W` | `$12M` | `80U` | `TRL 8 (8%)` |
 | `'prop-hall'` | Xenon Hall Electric Thruster (BHT-600) | `ELECTRIC_HALL` (`1750 s`) | `14.5 kg` | `120 W / 600 W` | `$16.5M` | `40U` | `TRL 6 (18%)` |
+| `'prop-fppt-17'` | Fiber-Fed Pulsed Plasma Thruster (FPPT-1.7) | `ELECTRIC_HALL` (`3200 s`) | `3.0 kg` | `0 W / 96 W` | `$1.45M` | `1.7U` | `TRL 5 (32%)` |
+| `'prop-thrustme-npt30'` | Solid Iodine Gridded-Ion Thruster (ThrustMe NPT30-I2 1U) | `ELECTRIC_HALL` (`2400 s`) | `1.3 kg` | `45 W / 65 W` | `$1.85M` | `1.0U` | `TRL 9 (8%)` |
 
 ### 3. Potencia Eléctrica (`EPS`)
 | ID | Nombre (`en`) | Generación @ 1 AU | Masa CBE | Consumo (Nom / Pico) | Costo | Volumen | TRL (MGA) |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | `'eps-body-mounted'` | Body-Mounted Solar Panels | `28 W` (`0.08 m²`) | `1.2 kg` | `0 W / 0 W` | `$0.4M` | `0.5U` | `TRL 9 (8%)` |
 | `'eps-deployable'` | 2-Axis Deployable Solar Wings | `350 W` (`1.0 m²`) | `7.5 kg` | `2 W / 4 W` | `$3.5M` | `4U` | `TRL 7 (18%)` |
+| `'eps-lilt-array'` | Deep Space LILT Triple-Junction Solar Array | `420 W` (`1.25 m²`) | `14.5 kg` | `0 W / 0 W` | `$4.8M` | `8U` | `TRL 8 (8%)` |
 | `'eps-megaflex'` | Mega-Flex High-Power Solar Array | `4,200 W` (`12.0 m²`) | `28 kg` | `5 W / 10 W` | `$18M` | `16U` | `TRL 8 (8%)` |
 | `'eps-rtg'` | Dual Next-Gen RTG (`isRTG: true`) | `240 W` constante | `52 kg` | `0 W / 0 W` | `$85M` | `250U` | `TRL 6 (18%)` |
 
@@ -80,6 +86,7 @@ erDiagram
 | `'telecom-uhf'` | UHF / S-Band COTS Transponder | `0.437 GHz` / `2 W` / `3 dBi` | `128 kbps` / `<= 15°` | `0.9 kg` | `3 W / 12 W` | `$0.3M` / `0.5U` | `TRL 9 (8%)` |
 | `'telecom-xka'` | X/Ka-Band High-Gain Dish (1.8 m) | `8.4 GHz` / `35 W` / `47 dBi` | `512 kbps` / `<= 0.5°` | `12 kg` | `15 W / 85 W` | `$9.5M` / `12U` | `TRL 8 (8%)` |
 | `'telecom-laser'` | Deep-Space Optical Laser Terminal | `32.0 GHz` / `50 W` / `54 dBi` | `4096 kbps` / `<= 0.1°` | `14 kg` | `20 W / 110 W` | `$28M` / `35U` | `TRL 5 (32%)` |
+| `'telecom-cubelct-laser'` | 1550 nm Free-Space Laser Terminal (Tesat CubeLCT) | `32.0 GHz` / `25 W` / `52 dBi` | `100000 kbps` / `<= 0.05°` | `0.4 kg` | `8 W / 12 W` | `$2.2M` / `0.3U` | `TRL 9 (8%)` |
 
 ### 5. Control Térmico (`THERMAL`)
 | ID | Nombre (`en`) | Masa CBE | Potencia (Nom / Pico) | Costo | Volumen | TRL (MGA) |
@@ -87,6 +94,8 @@ erDiagram
 | `'therm-passive'` | Passive MLI Blankets & Radiators | `2.1 kg` | `0 W / 0 W` | `$0.2M` | `1U` | `TRL 9 (8%)` |
 | `'therm-active'` | Active Loop Heaters & Thermostats | `4.5 kg` | `10 W / 35 W` | `$1.1M` | `2U` | `TRL 8 (8%)` |
 | `'therm-cryo'` | Pumped Fluid Loop & Cryocooler | `22 kg` | `55 W / 140 W` | `$15M` | `60U` | `TRL 6 (18%)` |
+| `'therm-redwire-pcm'` | Phase Change Material Thermal Panel (Redwire Q-Store PCM) | `0.65 kg` | `0 W / 0 W` | `$0.22M` | `0.5U` | `TRL 7 (18%)` |
+| `'therm-silver-fep'` | Second-Surface Silvered FEP Radiator Tape | `0.12 kg` | `0 W / 0 W` | `$0.04M` | `0.01U` | `TRL 9 (8%)` |
 
 ### 6. Control de Actitud (`ADCS`)
 | ID | Nombre (`en`) | Precisión Apuntamiento | Masa CBE | Potencia (Nom / Pico) | Costo | Volumen | TRL (MGA) |
@@ -94,11 +103,13 @@ erDiagram
 | `'adcs-gravity'` | Gravity-Gradient & Magnetorquers | `5.0°` | `1.5 kg` | `2 W / 3 W` | `$0.5M` | `1U` | `TRL 9 (8%)` |
 | `'adcs-3axis'` | 3-Axis Reaction Wheels + Star Tracker | `0.02°` | `5.8 kg` | `14 W / 18 W` | `$3.8M` | `2.5U` | `TRL 8 (8%)` |
 | `'adcs-rcs'` | Agile Cold-Gas RCS Attitude Control | `0.25°` | `8 kg` | `5 W / 8 W` | `$2.2M` | `3U` | `TRL 9 (8%)` |
+| `'adcs-sagitta-star'` | Sub-Arcsecond Miniature Star Tracker (Arcsec Sagitta) | `0.00167°` | `0.275 kg` | `1.4 W / 2.2 W` | `$0.38M` | `0.35U` | `TRL 9 (8%)` |
 
 ### 7. Vehículos de Lanzamiento (`LAUNCH_VEHICLE`)
 | ID | Nombre (`en`) | Cap. Masa Húmeda Máx. | Volumen Cofia (*Fairing*) | Costo | TRL (MGA) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | `'lv-rideshare'` | LEO CubeSat Rideshare Dispenser | `45 kg` | `24U` | `$0.35M` | `TRL 9 (8%)` |
+| `'lv-vadr-rideshare'` | NASA VADR Multi-Payload Rideshare Adapter (SpaceX Falcon 9) | `450 kg` | `500U` | `$0.45M` | `TRL 9 (8%)` |
 | `'lv-electron'` | Dedicated Small Launcher (Electron-class) | `300 kg` | `350U` | `$7.5M` | `TRL 9 (8%)` |
 | `'lv-falcon9'` | Medium/Heavy Launcher (Falcon 9 / Atlas-class) | `4,500 kg` | `4,000U` | `$65M` | `TRL 9 (8%)` |
 
@@ -115,21 +126,23 @@ erDiagram
 
 ---
 
-## 6. Los 5 Presets Oficiales (`PRESET_MISSION_SELECTIONS`)
+## 6. Los 7 Presets Oficiales (`PRESET_MISSION_SELECTIONS`)
 
-Cada uno de los 5 presets aprueba el **MCR completo en Verde ($\ge 35\%$ de margen)** y puede cargarse con un clic desde la interfaz:
+Cada uno de los 7 presets aprueba el **MCR completo en Verde ($\ge 35\%$ de margen)** y puede cargarse con un clic desde la interfaz:
 
 | Preset Key (`objectiveId`) | Destino | Payload(s) | Propulsión | EPS | Telecom | Thermal | ADCS | Lanzador | Antena Tierra |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `'obj-earth-bionutrients'` | `'dest-leo'` | `['pay-multispectral']` | `'prop-cold-gas'` | `'eps-deployable'` | `'telecom-uhf'` | `'therm-passive'` | `'adcs-gravity'` | `'lv-rideshare'` | `'gs-commercial'` |
 | `'obj-geo-goes-weather'` | `'dest-geo'` | `['pay-magnetometer', 'pay-multispectral']` | `'prop-biprop'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-near-earth'` |
+| `'obj-sso-tracers'` | `'dest-leo'` | `['pay-magnetometer']` | `'prop-thrustme-npt30'` | `'eps-lilt-array'` | `'telecom-xka'` | `'therm-silver-fep'` | `'adcs-sagitta-star'` | `'lv-vadr-rideshare'` | `'gs-near-earth'` |
+| `'obj-l2-jwst-fgs'` | `'dest-l2'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `'prop-biprop'` | `'eps-megaflex'` | `'telecom-cubelct-laser'` | `'therm-cryo'` | `'adcs-sagitta-star'` | `'lv-falcon9'` | `'gs-dsn-34m'` |
 | `'obj-helio-lunar-trailblazer'` | `'dest-moon'` | `['pay-ir-spectrometer']` | `'prop-hall'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-electron'` | `'gs-near-earth'` |
 | `'obj-mars-reconnaissance'` | `'dest-mars'` | `['pay-sar-radar']` | `'prop-biprop'` | `'eps-megaflex'` | `'telecom-xka'` | `'therm-cryo'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-dsn-34m'` |
 | `'obj-jupiter-clipper'` | `'dest-jupiter'` | `['pay-ir-spectrometer', 'pay-multispectral']` | `'prop-biprop'` | `'eps-rtg'` | `'telecom-xka'` | `'therm-active'` | `'adcs-3axis'` | `'lv-falcon9'` | `'gs-dsn-70m'` |
 
 ---
 
-## 7. Dilemas Interactivos de Crisis en Vuelo (`InteractiveCrisisDilemma`)
+## 7. Dilemas Interactivos de Crisis en Vuelo (`InteractiveCrisisDilemma` — 5 Crisis)
 
 Generados dinámicamente por `runMissionSimulation()` en las Fases 3, 4 y 5:
 
@@ -138,3 +151,5 @@ Generados dinámicamente por `runMissionSimulation()` en las Fases 3, 4 y 5:
 | `'crisis-solar-cme'` | `CRUISE_SPACE_WEATHER` | Tormenta solar Clase X (CME) | `'opt-safe-mode'` (`+12` score) | `'opt-push-science'` (`-18` score) |
 | `'crisis-eclipse-thermal'` | `SCIENCE_OPERATIONS` | Enfriamiento en eclipse / pico térmico ADCS | `'opt-duty-cycle'` (`+14` score) | `'opt-overdrive'` (`-14` score) |
 | `'crisis-downlink-rain'` | `DATA_DOWNLINK` | Atenuación atmosférica `-3.5 dB` en antena | `'opt-adaptive-rate'` (`+14` score) | `'opt-max-bitrate'` (`-16` score) |
+| `'crisis-kapton-heater'` | `SCIENCE_OPERATIONS` | Fallo calentador Kapton post-eclipse (`-15°C`) | `'opt-sun-soak-slew'` (`+12` score) | `'opt-subzero-charge'` (`-32` score) |
+| `'crisis-laser-cloud'` | `DATA_DOWNLINK` | Interrupción enlace óptico láser por nubes | `'opt-rf-fallback'` (`+12` score) | `'opt-edfa-overdrive'` (`-28` score) |

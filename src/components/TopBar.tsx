@@ -16,8 +16,10 @@ const LEVEL_META: Record<
 
 const PRESET_LIST = [
   { key: 'obj-earth-bionutrients', label: { en: 'BioNutrients-2 (LEO)', es: 'BioNutrients-2 (LEO)' } },
+  { key: 'obj-sso-tracers', label: { en: 'TRACERS Tandem (590 km SSO)', es: 'TRACERS Tándem (590 km SSO)' } },
   { key: 'preset-gmat-geo', label: { en: 'GMAT GEO (3,673 m/s)', es: 'GMAT GEO (3,673 m/s)' } },
   { key: 'obj-geo-goes-weather', label: { en: 'GOES-U / TRACERS (GEO)', es: 'GOES-U / TRACERS (GEO)' } },
+  { key: 'obj-l2-jwst-fgs', label: { en: 'JWST / CSA FGS (SE-L2)', es: 'JWST / CSA FGS (SE-L2)' } },
   { key: 'obj-helio-lunar-trailblazer', label: { en: 'Lunar Trailblazer', es: 'Lunar Trailblazer' } },
   { key: 'obj-mars-reconnaissance', label: { en: 'Mars MRO (1.52 AU)', es: 'Marte MRO (1.52 AU)' } },
   { key: 'obj-jupiter-clipper', label: { en: 'Jupiter RTG (5.2 AU)', es: 'Júpiter RTG (5.2 AU)' } },

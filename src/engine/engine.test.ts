@@ -66,7 +66,9 @@ const TEST_CASES: Array<{ name: string; run: () => string }> = [
         assertCondition(
           hasBothLanguages(obj.title) &&
             hasBothLanguages(obj.question) &&
-            hasBothLanguages(obj.realWorldBenchmark.keyTakeaway),
+            hasBothLanguages(obj.realWorldBenchmark.keyTakeaway) &&
+            (!obj.cadetChallenge || hasBothLanguages(obj.cadetChallenge)) &&
+            (!obj.jplConstraints || hasBothLanguages(obj.jplConstraints)),
           `Missing EN/ES text in objective ${obj.id}`,
         );
       }
@@ -106,7 +108,7 @@ const TEST_CASES: Array<{ name: string; run: () => string }> = [
     },
   },
   {
-    name: '2. All 4 Official NASA Presets Pass MCR GREEN (>=35%)',
+    name: '2. All 7 Official NASA Presets Pass MCR GREEN (>=35%)',
     run: () => {
       const summaries: string[] = [];
       for (const [objId, sel] of Object.entries(PRESET_MISSION_SELECTIONS)) {

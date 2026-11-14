@@ -84,6 +84,29 @@ export const ORBITAL_DESTINATIONS: OrbitalDestination[] = [
     },
   },
   {
+    id: 'dest-l2',
+    name: {
+      en: 'Sun-Earth L2 Halo Orbit (1,500,000 km)',
+      es: 'Órbita Halo Sol-Tierra L2 (1,500,000 km)',
+    },
+    description: {
+      en: 'Libration halo orbit around Sun-Earth L2 at 1.01 AU with zero Earth-shadow eclipses and cryogenic thermal stability.',
+      es: 'Órbita de libración Halo alrededor de L2 Sol-Tierra (1.01 AU) libre de eclipses terrestres, ideal para telescopios criogénicos.',
+    },
+    heliocentricDistanceAU: 1.01,
+    requiredDeltaV_ms: 3400,
+    solarIrradiance_Wm2: 1334,
+    eclipseFraction: 0.0,
+    oneWayLightTimeSec: 5.0,
+    distanceFromEarthKm: 1500000,
+    requiredGroundNetwork: 'DSN_34M',
+    linkMarginThreshold_dB: 3,
+    environmentHazard: {
+      en: 'Continuously sunlit halo orbit (0% eclipse) requiring ~20–40 m/s/yr station-keeping & strict sunshield stray-light isolation.',
+      es: 'Órbita halo sin eclipses (0% sombra) que exige ~20–40 m/s/año de station-keeping y parasol criogénico.',
+    },
+  },
+  {
     id: 'dest-mars',
     name: {
       en: 'Mars Science Orbit (1.52 AU)',
@@ -143,6 +166,14 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
       en: 'How can multispectral coastal imagery and orbital telemetry track ocean ecosystems and rapid environmental shifts?',
       es: '¿Cómo monitorear ecosistemas costeros y cambios ambientales rápidos mediante sensores multiespectrales en LEO?',
     },
+    cadetChallenge: {
+      en: 'Imagine packing an entire biology lab inside a shoebox satellite that circles Earth every 95 minutes!',
+      es: '¡Imagina meter un laboratorio biológico entero dentro de un satélite del tamaño de una caja de zapatos que rodea la Tierra cada 95 minutos!',
+    },
+    jplConstraints: {
+      en: 'LEO 500 km SSO thermal cycling (~16 eclipses/day, eclipseFraction 0.37), atomic oxygen erosion, and 24U CubeSat rideshare deployer volumetric envelope.',
+      es: 'Ciclado térmico en LEO 500 km (~16 eclipses/día, eclipseFraction 0.37), erosión por oxígeno atómico y envolvente de dispensador rideshare 24U.',
+    },
     targetDestinationId: 'dest-leo',
     requiredPayloadIds: ['pay-multispectral'],
     minDataRateKbps: 64,
@@ -172,6 +203,14 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
       en: 'How do solar storms and magnetospheric reconnection events in geostationary orbit (35,786 km) impact satellite infrastructure and Earth grids?',
       es: '¿Cómo impactan las tormentas solares y la reconexión magnética en órbita GEO (35,786 km) a los satélites y redes eléctricas?',
     },
+    cadetChallenge: {
+      en: 'Park a storm-watching satellite 35,786 km high so it hovers over the exact same spot on Earth day and night!',
+      es: '¡Estaciona un satélite cazador de tormentas a 35,786 km para que flote siempre sobre el mismo punto de la Tierra día y noche!',
+    },
+    jplConstraints: {
+      en: 'GMAT R2026a Hohmann TOI+GOI transfer budget (3,673 m/s), Van Allen outer belt TID/SEE radiation hardening, and continuous NSN Ka-band weather telemetry.',
+      es: 'Presupuesto Hohmann GMAT R2026a TOI+GOI (3,673 m/s), endurecimiento contra radiación Van Allen y enlace continuo NSN Banda Ka.',
+    },
     targetDestinationId: 'dest-geo',
     requiredPayloadIds: ['pay-magnetometer', 'pay-multispectral'],
     minDataRateKbps: 256,
@@ -191,6 +230,80 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
     },
   },
   {
+    id: 'obj-sso-tracers',
+    discipline: 'HELIOPHYSICS',
+    title: {
+      en: 'Polar Cusp Magnetic Reconnection (NASA TRACERS)',
+      es: 'Reconexión Magnética en Cúspide Polar (NASA TRACERS)',
+    },
+    question: {
+      en: 'How does Earth’s magnetic shield connect with solar wind storms over the magnetic poles?',
+      es: '¿Cómo se conecta el escudo magnético de la Tierra con las tormentas solares sobre los polos?',
+    },
+    cadetChallenge: {
+      en: 'Two twin satellites fly one right behind the other like cars on an invisible train just 10 to 120 seconds apart, snapping rapid magnetic pictures before the solar storm shifts!',
+      es: 'Los dos satélites vuelan uno detrás del otro como vagones de un tren invisible separados por apenas 10 a 120 segundos, tomando fotos magnéticas rápidas antes de que la tormenta solar cambie.',
+    },
+    jplConstraints: {
+      en: 'Along-track formation flying separation (10–120 s) in 590 km SSO (~150 m/s de-orbit/station-keeping); strict DC/AC magnetic cleanliness with 10 rpm spin-stabilized wire booms; differential atmospheric drag management.',
+      es: 'Control de formación en pista (along-track separation de 10 s a 120 s) en SSO 590 km (~150 m/s); limpieza magnética estricta del bus (DC/AC magnetic cleanliness) con booms a 10 rpm y mitigación de arrastre diferencial.',
+    },
+    targetDestinationId: 'dest-leo',
+    requiredPayloadIds: ['pay-magnetometer'],
+    minDataRateKbps: 256,
+    baseBudgetMillions: 115,
+    targetDurationYears: 1,
+    realWorldBenchmark: {
+      missionName: 'NASA TRACERS T1/T2 Tandem (<200 kg, 590 km SSO, Falcon 9 VADR)',
+      launchYear: 2025,
+      actualMass_kg: 198,
+      actualPower_W: 240,
+      actualCost_MillionsUSD: 115,
+      keyTakeaway: {
+        en: 'Twin octagonal SmallSats (<200 kg each) execute 3,000+ polar cusp passes in 590 km SSO via Falcon 9 VADR rideshare.',
+        es: 'Dos satélites gemelos octogonales (<200 kg c/u) realizan +3,000 cruces polares en SSO 590 km lanzados vía rideshare Falcon 9 VADR.',
+      },
+      nasaReferenceUrl: 'https://assets.science.nasa.gov/content/dam/science/missions/tracer/TRACERS%20Press%20Kit.pdf',
+    },
+  },
+  {
+    id: 'obj-l2-jwst-fgs',
+    discipline: 'ASTROPHYSICS',
+    title: {
+      en: 'Early Universe Infrared Observatory (JWST / CSA FGS)',
+      es: 'Observatorio Infrarrojo del Universo Temprano (JWST / CSA FGS)',
+    },
+    question: {
+      en: 'How can we capture light from the universe’s first galaxies without taking blurry pictures?',
+      es: '¿Cómo podemos captar la luz de las primeras galaxias del universo sin que las imágenes salgan borrosas?',
+    },
+    cadetChallenge: {
+      en: 'The Canadian FGS sensor is so sharp it could spot the thickness of a human hair from 1 km away, or catch someone blinking in Toronto all the way from Montreal!',
+      es: 'El sensor canadiense FGS es tan asombrosamente preciso que puede ver el grosor de un cabello humano a 1 kilómetro de distancia, o notar si alguien parpadea en Montreal mirándolo desde Toronto.',
+    },
+    jplConstraints: {
+      en: 'Sub-arcsecond line-of-sight stabilization at 16 Hz against a ~1B star catalog; 1,500,000 km SE-L2 Halo orbit (0% eclipse, >=28 Mbps Ka/Optical to DSN); micro-vibration mitigation, stray light per GSFC Rule 5.15, and NASA-STD-5001B glass/ceramic non-fracture factors.',
+      es: 'Estabilidad optomecánica y apuntamiento sub-arcosegundo a 16 Hz contra catálogo de ~1,000 millones de estrellas guía en Halo L2 (1.5M km, 0% eclipse, >=28 Mbps Ka/Óptico a DSN); supresión stray light GSFC Rule 5.15 y factores sin fractura NASA-STD-5001B.',
+    },
+    targetDestinationId: 'dest-l2',
+    requiredPayloadIds: ['pay-ir-spectrometer', 'pay-multispectral'],
+    minDataRateKbps: 28000,
+    baseBudgetMillions: 380,
+    targetDurationYears: 10,
+    realWorldBenchmark: {
+      missionName: 'NASA/ESA/CSA JWST & Fine Guidance Sensor ($10,000M Flagship)',
+      launchYear: 2021,
+      actualMass_kg: 6500,
+      actualPower_W: 2000,
+      actualCost_MillionsUSD: 10000,
+      keyTakeaway: {
+        en: 'Sun-Earth L2 eliminates Earth eclipses for passive cryogenic cooling while requiring >=28 Mbps Ka/Optical DSN downlinks and sub-arcsecond ADCS.',
+        es: 'La órbita Halo Sol-Tierra L2 elimina eclipses terrestres para enfriamiento criogénico y exige enlaces >=28 Mbps hacia DSN con apuntamiento sub-arcosegundo.',
+      },
+      nasaReferenceUrl: 'https://science.nasa.gov/mission/webb/',
+    },
+  },
+  {
     id: 'obj-helio-lunar-trailblazer',
     discipline: 'HELIOPHYSICS',
     title: {
@@ -200,6 +313,14 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
     question: {
       en: 'Where is water ice trapped in permanently shadowed lunar craters, and how does solar wind weather the surface?',
       es: '¿Dónde se concentra el hielo de agua en cráteres lunares y cómo interactúa con el viento solar?',
+    },
+    cadetChallenge: {
+      en: 'Fly low over icy Moon craters that have not seen sunlight in billions of years without letting your batteries freeze!',
+      es: '¡Vuela rasante sobre cráteres lunares helados que llevan miles de millones de años a oscuras sin que se congelen tus baterías!',
+    },
+    jplConstraints: {
+      en: '3,950 m/s TLI+LOI capture Delta-V, 25% lunar shadow eclipse cycling requiring active survival heaters, and 256 kbps NSN Ka/X downlink.',
+      es: '3,950 m/s de Delta-V (TLI+LOI), 25% de eclipse lunar que exige calentadores de supervivencia y >=256 kbps hacia NSN.',
     },
     targetDestinationId: 'dest-moon',
     requiredPayloadIds: ['pay-ir-spectrometer'],
@@ -230,6 +351,14 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
       en: 'Can active L-band radar map buried Martian water-ice aquifers beneath global dust storms?',
       es: '¿Puede un radar activo en Banda L cartografiar acuíferos de hielo subterráneo bajo tormentas de polvo en Marte?',
     },
+    cadetChallenge: {
+      en: 'Carry a heavy underground X-ray radar all the way to Mars, where sunlight is less than half as strong as on Earth!',
+      es: '¡Lleva un pesado radar capaz de ver bajo el suelo hasta Marte, donde la luz solar cae a menos de la mitad que en la Tierra!',
+    },
+    jplConstraints: {
+      en: '1/R² solar flux drop to 589 W/m² at 1.52 AU, 850 W L-band SAR peak duty cycling, 4,500 m/s MOI Delta-V, and DSN 34m link closure across 225M km.',
+      es: 'Caída solar 1/R² a 589 W/m² en 1.52 AU, picos de 850 W del radar SAR, 4,500 m/s de inserción MOI y enlace DSN 34 m a 225M km.',
+    },
     targetDestinationId: 'dest-mars',
     requiredPayloadIds: ['pay-sar-radar'],
     minDataRateKbps: 128,
@@ -258,6 +387,14 @@ export const SCIENCE_OBJECTIVES: ScienceObjective[] = [
     question: {
       en: 'Do subsurface oceans on Europa and Ganymede exhibit thermal plumes and mineral signatures detectable from orbit?',
       es: '¿Presentan los océanos subterráneos de Europa y Ganímedes columnas térmicas detectables mediante espectroscopía IR?',
+    },
+    cadetChallenge: {
+      en: 'Travel 5x farther from the Sun where solar panels barely whisper—you need a nuclear heat battery and giant Earth dishes to phone home!',
+      es: '¡Viaja 5 veces más lejos del Sol donde los paneles solares casi no producen luz: necesitarás una batería nuclear RTG y antenas gigantes de 70 m!',
+    },
+    jplConstraints: {
+      en: '3.7% solar irradiance (50.3 W/m² at 5.20 AU) forcing Pu-238 RTG EPS, 6,800 m/s JOI Delta-V, Jovian radiation belt survival, and 70m DSN link closure.',
+      es: 'Irradiancia del 3.7% (50.3 W/m² a 5.20 AU) obligando EPS nuclear RTG, 6,800 m/s Delta-V JOI, cinturón de radiación y red DSN 70 m.',
     },
     targetDestinationId: 'dest-jupiter',
     requiredPayloadIds: ['pay-ir-spectrometer', 'pay-multispectral'],
@@ -515,6 +652,68 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     isp_s: 1750,
     propulsionType: 'ELECTRIC_HALL',
   },
+  {
+    id: 'prop-fppt-17',
+    category: 'PROPULSION',
+    name: {
+      en: 'Fiber-Fed Pulsed Plasma Thruster (CU Aerospace FPPT-1.7)',
+      es: 'Propulsor de Plasma Pulsado por Fibra PTFE (FPPT-1.7)',
+    },
+    description: {
+      en: 'Solid PTFE Teflon pulsed plasma thruster eliminating pressurized tanks and valves (NASA SSRI SoA Table 4-6).',
+      es: 'Propulsor de plasma pulsado de teflón sólido PTFE que elimina tanques presurizados y válvulas (NASA SSRI SoA Table 4-6).',
+    },
+    tradeOffNote: {
+      en: 'Ultra-high Isp (3,200 s) with inert solid propellant (TRL 5, 32% MGA), requires 96 W peak bus bursts and 1.7U.',
+      es: 'Isp altísimo (3,200 s) con propelente sólido inerte (TRL 5, 32% MGA), exige ráfagas pico de 96 W y 1.7U.',
+    },
+    analogyTooltip: {
+      en: 'Runs on solid plastic thread that vaporizes into electric sparks—zero liquid leaks and super fuel-efficient!',
+      es: 'Usa un hilo de plástico sólido que se evapora en chispas eléctricas: cero fugas líquidas y rendimiento altísimo.',
+    },
+    massCBE_kg: 3.0,
+    powerDrawNominal_W: 0,
+    powerDrawPeak_W: 96,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 1.45,
+    volume_U: 1.7,
+    trl: 5,
+    mgaContingencyFactor: mga(5),
+    isp_s: 3200,
+    propulsionType: 'ELECTRIC_HALL',
+    sourceCitation: 'NASA/TP-20240001342, Table 4-6 (SSRI SoA 2024)',
+  },
+  {
+    id: 'prop-thrustme-npt30',
+    category: 'PROPULSION',
+    name: {
+      en: 'Solid Iodine Gridded-Ion Thruster (ThrustMe NPT30-I2 1U)',
+      es: 'Propulsor Iónico de Yodo Sólido (ThrustMe NPT30-I2 1U)',
+    },
+    description: {
+      en: 'Flight-proven 1U solid iodine gridded ion thruster for high-Delta-V CubeSat & SmallSat maneuvering.',
+      es: 'Motor iónico compacto 1U de yodo sólido probado en vuelo para maniobras de alto Delta-V en SmallSats.',
+    },
+    tradeOffNote: {
+      en: 'Isp = 2,400 s, TRL 9 (8% MGA), and compact 1.3 kg / 1.0U envelope; draws 45–65 W electrical power.',
+      es: 'Isp = 2,400 s, TRL 9 (8% MGA) y empaque mínimo de 1.3 kg / 1.0U; consume 45–65 W eléctricos.',
+    },
+    analogyTooltip: {
+      en: 'Fits in your palm (1U cube) and shoots violet iodine ions instead of toxic pressurized gas—flight-proven in orbit!',
+      es: 'Cabe en la palma de la mano (1U) y dispara iones de yodo sólido sin tanques de alta presión, ¡ya probado en órbita!',
+    },
+    massCBE_kg: 1.3,
+    powerDrawNominal_W: 45,
+    powerDrawPeak_W: 65,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 1.85,
+    volume_U: 1.0,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+    isp_s: 2400,
+    propulsionType: 'ELECTRIC_HALL',
+    sourceCitation: 'NASA/TP-20240001342, Sec. 4.4.4 / Table 4-6',
+  },
 
   // 3. EPS (POWER)
   {
@@ -606,6 +805,37 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     mgaContingencyFactor: mga(8),
     solarPanelArea_m2: 12.0,
     isRTG: false,
+  },
+  {
+    id: 'eps-lilt-array',
+    category: 'EPS',
+    name: {
+      en: 'Deep Space LILT Triple-Junction Solar Array (420 W @ 1 AU)',
+      es: 'Panel Solar Triple Unión LILT Espacio Profundo (420 W @ 1 AU)',
+    },
+    description: {
+      en: 'Low-Intensity Low-Temperature (LILT) solar cells engineered to resist efficiency loss far from the Sun (SSRI SoA Sec. 3.2.1).',
+      es: 'Celdas solares LILT de triple unión diseñadas para mantener eficiencia bajo baja luz y temperaturas extremas (SSRI SoA Sec. 3.2.1).',
+    },
+    tradeOffNote: {
+      en: 'Delivers 420 W at 1 AU (TRL 8, 8% MGA) across 1.25 m² while resisting LILT degradation.',
+      es: 'Entrega 420 W a 1 AU (TRL 8, 8% MGA) en 1.25 m² resistiendo degradación LILT.',
+    },
+    analogyTooltip: {
+      en: 'Special cold-weather solar wings that stay productive even in chilly dim sunlight far from Earth.',
+      es: 'Alas solares especiales para clima helado que siguen rindiendo con luz débil lejos de la Tierra.',
+    },
+    massCBE_kg: 14.5,
+    powerDrawNominal_W: 0,
+    powerDrawPeak_W: 0,
+    powerGenerated1AU_W: 420,
+    cost_MillionsUSD: 4.8,
+    volume_U: 8.0,
+    trl: 8,
+    mgaContingencyFactor: mga(8),
+    solarPanelArea_m2: 1.25,
+    isRTG: false,
+    sourceCitation: 'NASA/TP-20240001342, Sec. 3.2.1 & 3.3.2',
   },
   {
     id: 'eps-rtg',
@@ -737,6 +967,40 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     maxDataRate_kbps: 4096,
     pointingAccuracy_deg: 0.1,
   },
+  {
+    id: 'telecom-cubelct-laser',
+    category: 'TELECOM',
+    name: {
+      en: '1550 nm Free-Space Laser Terminal (Tesat CubeLCT / OSIRIS4CubeSat)',
+      es: 'Terminal Óptico Láser 1550 nm (Tesat CubeLCT / OSIRIS4CubeSat)',
+    },
+    description: {
+      en: 'Flight-proven compact 0.4 kg optical laser terminal delivering up to 100 Mbps downlink at only 12 W peak (SSRI SoA Table 9-1).',
+      es: 'Terminal láser compacto de 0.4 kg probado en vuelo con descargas de hasta 100 Mbps consumiendo solo 12 W pico (SSRI SoA Table 9-1).',
+    },
+    tradeOffNote: {
+      en: '100,000 kbps throughput in 0.3U / 0.4 kg (TRL 9); requires fine ADCS pointing <= 0.05° and clear sky/cloud backup.',
+      es: 'Hasta 100,000 kbps en solo 0.3U y 0.4 kg (TRL 9); exige puntería fina ADCS <= 0.05° y respaldo ante nubes.',
+    },
+    analogyTooltip: {
+      en: 'A pocket-sized laser modem that downloads gigabytes of telescope movies in seconds—just keep it steady and watch out for clouds!',
+      es: 'Un módem láser de bolsillo que baja gigabytes de ciencia en segundos: solo cuida que no tiemble ni haya nubes.',
+    },
+    massCBE_kg: 0.4,
+    powerDrawNominal_W: 8,
+    powerDrawPeak_W: 12,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 2.2,
+    volume_U: 0.3,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+    freqGHz: 32.0,
+    txPower_W: 25,
+    antennaGain_dBi: 52,
+    maxDataRate_kbps: 100000,
+    pointingAccuracy_deg: 0.05,
+    sourceCitation: 'NASA/TP-20240001342, Table 9-1',
+  },
 
   // 5. THERMAL
   {
@@ -822,6 +1086,64 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     volume_U: 60,
     trl: 6,
     mgaContingencyFactor: mga(6),
+  },
+  {
+    id: 'therm-redwire-pcm',
+    category: 'THERMAL',
+    name: {
+      en: 'Phase Change Material Thermal Panel (Redwire Q-Store PCM)',
+      es: 'Panel Térmico de Cambio de Fase (Redwire Q-Store PCM)',
+    },
+    description: {
+      en: 'Compact thermal capacitor using paraffin-wax phase change to absorb heat spikes and stabilize avionics passively (SSRI SoA Table 7-3).',
+      es: 'Capacitor térmico compacto que almacena calor por cambio de fase sin consumir electricidad (SSRI SoA Table 7-3).',
+    },
+    tradeOffNote: {
+      en: 'TRL 7 (18% MGA), zero electrical draw, 0.65 kg / 0.5U thermal buffer for high-burst electronics.',
+      es: 'TRL 7 (18% MGA), consumo eléctrico cero y 0.65 kg / 0.5U para amortiguar picos térmicos.',
+    },
+    analogyTooltip: {
+      en: 'A high-tech reusable thermal gel pack inside the satellite that soaks up heat during busy radar passes and releases it when freezing!',
+      es: 'Una bolsa de gel térmico espacial: absorbe calor cuando trabajan los instrumentos y lo libera durante la sombra.',
+    },
+    massCBE_kg: 0.65,
+    powerDrawNominal_W: 0,
+    powerDrawPeak_W: 0,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 0.22,
+    volume_U: 0.5,
+    trl: 7,
+    mgaContingencyFactor: mga(7),
+    sourceCitation: 'NASA/TP-20240001342, Table 7-3',
+  },
+  {
+    id: 'therm-silver-fep',
+    category: 'THERMAL',
+    name: {
+      en: 'Second-Surface Silvered FEP Radiator Tape (Sheldahl)',
+      es: 'Cinta Radiadora Óptica FEP Plateada (Sheldahl Silvered Teflon)',
+    },
+    description: {
+      en: 'Ultra-thin silvered fluoropolymer optical radiator coating rejecting solar heat while radiating infrared thermal energy (SSRI SoA Sec. 7.3.4).',
+      es: 'Recubrimiento radiativo plateado FEP de bajísima absortividad solar y alta emisividad IR (SSRI SoA Sec. 7.3.4).',
+    },
+    tradeOffNote: {
+      en: 'Negligible 0.12 kg mass, 0.01U volume, TRL 9 heritage, and $0.04M cost; passive heat rejection only.',
+      es: 'Solo 0.12 kg, 0.01U y $0.04M (TRL 9); rechazo pasivo de calor sin consumo eléctrico.',
+    },
+    analogyTooltip: {
+      en: 'A silvery heat mirror sticker that bounces away scorching sunlight while letting internal heat escape.',
+      es: 'Un espejo térmico autoadhesivo que rebota el calor del Sol y expulsa el calor interno al vacío.',
+    },
+    massCBE_kg: 0.12,
+    powerDrawNominal_W: 0,
+    powerDrawPeak_W: 0,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 0.04,
+    volume_U: 0.01,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+    sourceCitation: 'NASA/TP-20240001342, Sec. 7.3.4',
   },
 
   // 6. ADCS
@@ -911,6 +1233,36 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     trl: 9,
     mgaContingencyFactor: mga(9),
     pointingAccuracy_deg: 0.25,
+  },
+  {
+    id: 'adcs-sagitta-star',
+    category: 'ADCS',
+    name: {
+      en: 'Sub-Arcsecond Miniature Star Tracker (Arcsec Sagitta)',
+      es: 'Rastreador Estelar Miniatura Sub-Arcosegundo (Arcsec Sagitta)',
+    },
+    description: {
+      en: 'Compact 0.275 kg optical star tracker delivering 0.00167° (6 arcsec) attitude knowledge for laser telecom & astrophysics.',
+      es: 'Rastreador estelar compacto de 0.275 kg con precisión de 0.00167° (6 arcosegundos) para enlaces láser y astrofísica.',
+    },
+    tradeOffNote: {
+      en: '12x finer accuracy than legacy 3-axis assemblies at only 275 g and 1.4–2.2 W (TRL 9, 8% MGA).',
+      es: 'Precisión 12x superior al ADCS clásico pesando apenas 275 g y consumiendo 1.4–2.2 W (TRL 9).',
+    },
+    analogyTooltip: {
+      en: 'A tiny matchbox telescope that recognizes star constellations like an eagle eye so laser beams never miss Earth!',
+      es: 'Una camarita del tamaño de una caja de fósforos que lee las estrellas para que el láser apunte al milímetro.',
+    },
+    massCBE_kg: 0.275,
+    powerDrawNominal_W: 1.4,
+    powerDrawPeak_W: 2.2,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 0.38,
+    volume_U: 0.35,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+    pointingAccuracy_deg: 0.00167,
+    sourceCitation: 'NASA/TP-20240001342, Table 5-4',
   },
 
   // 7. LAUNCH VEHICLES
@@ -1004,6 +1356,37 @@ export const SUBSYSTEM_CATALOG: SubsystemOption[] = [
     maxPayloadMass_kg: 4500,
     fairingVolume_U: 4000,
   },
+  {
+    id: 'lv-vadr-rideshare',
+    category: 'LAUNCH_VEHICLE',
+    name: {
+      en: 'NASA VADR Multi-Payload Rideshare Adapter (SpaceX Falcon 9)',
+      es: 'Adaptador Secundario NASA VADR (SpaceX Falcon 9 Rideshare)',
+    },
+    description: {
+      en: 'Venture-Class Acquisition of Dedicated and Rideshare (VADR) port supporting up to 450 kg & 500U for SmallSat science missions (NASA TRACERS heritage).',
+      es: 'Puerto secundario NASA VADR (herencia NASA TRACERS) de hasta 450 kg húmedos y 500U a fracción del costo dedicado.',
+    },
+    tradeOffNote: {
+      en: 'Bridges 24U CubeSat rideshare ($0.35M) and Falcon 9 dedicated ($65M) with 450 kg / 500U capacity for only $0.45M.',
+      es: 'Cierra la brecha entre rideshare 24U ($0.35M) y Falcon 9 dedicado ($65M) dando 450 kg / 500U por solo $0.45M.',
+    },
+    analogyTooltip: {
+      en: 'Sharing the big cargo bay of a SpaceX Falcon 9 rocket with other NASA satellites to launch medium explorers for pennies on the dollar!',
+      es: 'Compartir la enorme bodega de un Falcon 9 con otros satélites NASA para lanzar exploradores medianos pagando una fracción mínima.',
+    },
+    massCBE_kg: 0,
+    powerDrawNominal_W: 0,
+    powerDrawPeak_W: 0,
+    powerGenerated1AU_W: 0,
+    cost_MillionsUSD: 0.45,
+    volume_U: 0,
+    trl: 9,
+    mgaContingencyFactor: mga(9),
+    maxPayloadMass_kg: 450,
+    fairingVolume_U: 500,
+    sourceCitation: 'NASA/TP-20240001342, Sec. 12.3.1 & NASA TRACERS Press Kit',
+  },
 ];
 
 export const GROUND_STATIONS: GroundStationOption[] = [
@@ -1077,6 +1460,30 @@ export const PRESET_MISSION_SELECTIONS: Record<string, MissionSelection> = {
     adcsId: 'adcs-3axis',
     launchVehicleId: 'lv-falcon9',
     groundStationId: 'gs-near-earth',
+  },
+  'obj-sso-tracers': {
+    objectiveId: 'obj-sso-tracers',
+    destinationId: 'dest-leo',
+    payloadIds: ['pay-magnetometer'],
+    propulsionId: 'prop-thrustme-npt30',
+    epsId: 'eps-lilt-array',
+    telecomId: 'telecom-xka',
+    thermalId: 'therm-silver-fep',
+    adcsId: 'adcs-sagitta-star',
+    launchVehicleId: 'lv-vadr-rideshare',
+    groundStationId: 'gs-near-earth',
+  },
+  'obj-l2-jwst-fgs': {
+    objectiveId: 'obj-l2-jwst-fgs',
+    destinationId: 'dest-l2',
+    payloadIds: ['pay-ir-spectrometer', 'pay-multispectral'],
+    propulsionId: 'prop-biprop',
+    epsId: 'eps-megaflex',
+    telecomId: 'telecom-cubelct-laser',
+    thermalId: 'therm-cryo',
+    adcsId: 'adcs-sagitta-star',
+    launchVehicleId: 'lv-falcon9',
+    groundStationId: 'gs-dsn-34m',
   },
   'obj-helio-lunar-trailblazer': {
     objectiveId: 'obj-helio-lunar-trailblazer',

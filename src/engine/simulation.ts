@@ -191,7 +191,123 @@ function buildMissionDilemmas(
     ],
   };
 
-  return [solarStormDilemma, thermalEclipseDilemma, downlinkDilemma];
+  const kaptonHeaterDilemma: InteractiveCrisisDilemma = {
+    id: 'crisis-kapton-heater',
+    phase: 'SCIENCE_OPERATIONS',
+    missionDay: isDeepSpace ? 255 : 62,
+    title: {
+      en: 'Active Kapton Heater Fault & Post-Eclipse Thermal Shift (-15°C)',
+      es: 'Fallo en Calentador Activo de Kapton y Transición Post-Eclipse (-15°C)',
+    },
+    situation: {
+      en: 'Primary heater string A failed after eclipse exit while Li-ion cells sit at -15°C. Charging below 0°C risks irreversible lithium plating.',
+      es: 'La línea primaria A del calentador de película de Kapton falló al salir del eclipse con baterías a -15°C. Cargar bajo 0°C arriesga metalización irreversible de litio.',
+    },
+    triggeredBySubsystem: 'THERMAL',
+    options: [
+      {
+        id: 'opt-sun-soak-slew',
+        label: {
+          en: 'Execute ADCS "Sun-Soak Slew" & Switch to Redundant Heater String B',
+          es: 'Ejecutar Maniobra "Sun-Soak Slew" y Activar Línea Redundante B',
+        },
+        engineeringJustification: {
+          en: 'Uses warm chassis attitude soak and SPF-compliant redundant heater rail until battery cells cross +5°C prior to full charge (GSFC Rule 1.05).',
+          es: 'Aprovecha la radiación solar en el bus y la línea redundante B (GSFC Rule 1.05) hasta superar +5°C antes de recargar.',
+        },
+        powerImpact_W: 6,
+        propellantImpact_pct: -2,
+        scienceScoreImpact: 12,
+        isOptimal: true,
+        outcomeNarrative: {
+          en: 'Battery pack warmed cleanly above +5°C before charge enable; zero capacity loss.',
+          es: 'Las baterías superaron +5°C antes de la recarga sin pérdida de capacidad útil.',
+        },
+      },
+      {
+        id: 'opt-subzero-charge',
+        label: {
+          en: 'Force High-Current Battery Recharge at -15°C for Internal Heating',
+          es: 'Forzar Carga Rápida a -15°C para Calentamiento Óhmico Interno',
+        },
+        engineeringJustification: {
+          en: 'Avoids interrupting science slew, but sub-zero Li-ion charging triggers lithium plating and permanent -60% cell degradation.',
+          es: 'Evita maniobras ADCS, pero cargar litio bajo cero induce lithium plating y pérdida permanente del 60% de capacidad.',
+        },
+        powerImpact_W: -18,
+        propellantImpact_pct: 0,
+        scienceScoreImpact: -32,
+        isOptimal: false,
+        outcomeNarrative: {
+          en: 'Lithium plating permanently crippled 60% of battery capacity during subsequent eclipses.',
+          es: 'El lithium plating degradó permanentemente el 60% de la capacidad de las baterías en los eclipses siguientes.',
+        },
+      },
+    ],
+  };
+
+  const laserCloudDilemma: InteractiveCrisisDilemma = {
+    id: 'crisis-laser-cloud',
+    phase: 'DATA_DOWNLINK',
+    missionDay: isDeepSpace ? 360 : 98,
+    title: {
+      en: 'Optical Laser Link Fade from Cloud Cover & Atmospheric Turbulence',
+      es: 'Interrupción de Enlace Láser 1550 nm por Nubes y Turbulencia',
+    },
+    situation: {
+      en: 'Thick tropospheric cloud deck occluded the 1550 nm optical ground telescope right before primary science dump.',
+      es: 'Una densa capa nubosa bloqueó el receptor óptico terrestre de 1550 nm justo antes de la descarga principal de ciencia.',
+    },
+    triggeredBySubsystem: 'TELECOM',
+    options: [
+      {
+        id: 'opt-rf-fallback',
+        label: {
+          en: 'Failover to X/S-Band RF Link & Buffer Telemetry in Flash Memory',
+          es: 'Conmutar a Enlace RF de Respaldo y Guardar en Memoria Flash',
+        },
+        engineeringJustification: {
+          en: 'Applies SSRI Ch. 9 optical/RF hybrid mitigation: buffers science packets onboard and passes critical SOH telemetry over weather-immune X/S-band RF.',
+          es: 'Aplica mitigación híbrida SSRI Cap. 9: almacena ciencia en memoria flash y baja telemetría crítica por RF inmune a nubes.',
+        },
+        powerImpact_W: 4,
+        propellantImpact_pct: 0,
+        scienceScoreImpact: 12,
+        isOptimal: true,
+        outcomeNarrative: {
+          en: 'Zero science packets dropped; full high-rate optical burst succeeded on clear pass T+95 min.',
+          es: 'Cero pérdida de paquetes; toda la ráfaga óptica de alta tasa completó con éxito en el paso despejado.',
+        },
+      },
+      {
+        id: 'opt-edfa-overdrive',
+        label: {
+          en: 'Overdrive Optical EDFA Amplifier to 200% (+35 W) to Pierce Clouds',
+          es: 'Forzar Amplificador Óptico EDFA al 200% (+35 W) Contra las Nubes',
+        },
+        engineeringJustification: {
+          en: 'Attempts brute-force optical power boost; cloud Mie scattering still blocks 1550 nm photons while overheating avionics.',
+          es: 'Intenta atravesar nubes a fuerza bruta; la dispersión Mie bloquea el láser igual mientras sobrecalienta el bus.',
+        },
+        powerImpact_W: -35,
+        propellantImpact_pct: 0,
+        scienceScoreImpact: -28,
+        isOptimal: false,
+        outcomeNarrative: {
+          en: 'EDFA overheated and drained +35 W for zero optical throughput through dense clouds.',
+          es: 'El amplificador EDFA se sobrecalentó consumiendo +35 W sin lograr cruzar la cobertura nubosa.',
+        },
+      },
+    ],
+  };
+
+  return [
+    solarStormDilemma,
+    thermalEclipseDilemma,
+    downlinkDilemma,
+    kaptonHeaterDilemma,
+    laserCloudDilemma,
+  ];
 }
 
 function gradeFromScore(score: number, success: boolean): MissionGrade {
@@ -306,7 +422,13 @@ export const runMissionSimulation: RunMissionSimulationFn = (
   });
 
   // Apply crisis decisions across Phases 3, 4, 5
-  const [cmeDilemma, thermalDilemma, downlinkDilemma] = dilemmas;
+  const [
+    cmeDilemma,
+    thermalDilemma,
+    downlinkDilemma,
+    kaptonDilemma,
+    laserDilemma,
+  ] = dilemmas;
 
   const resolveOption = (dilemma: typeof cmeDilemma) => {
     const choiceId = resolvedChoices[dilemma.id];
@@ -348,6 +470,17 @@ export const runMissionSimulation: RunMissionSimulationFn = (
   score += resolvedChoices[thermalDilemma.id]
     ? thermalChoice.scienceScoreImpact
     : 0;
+
+  if (kaptonDilemma && resolvedChoices[kaptonDilemma.id]) {
+    const kaptonChoice = resolveOption(kaptonDilemma);
+    runningPowerW += kaptonChoice.powerImpact_W;
+    runningFuelPct = Math.max(
+      0,
+      runningFuelPct + kaptonChoice.propellantImpact_pct,
+    );
+    if (!kaptonChoice.isOptimal) thermalC = -15;
+    score += kaptonChoice.scienceScoreImpact;
+  }
 
   const powerCollapse = runningPowerW < -20 || metrics.power.marginPercent < 0;
   totalDataGB += powerCollapse
@@ -392,8 +525,18 @@ export const runMissionSimulation: RunMissionSimulationFn = (
   score += resolvedChoices[downlinkDilemma.id]
     ? downlinkChoice.scienceScoreImpact
     : 0;
+  let extraLinkPenalty = 0;
+  if (laserDilemma && resolvedChoices[laserDilemma.id]) {
+    const laserChoice = resolveOption(laserDilemma);
+    runningPowerW += laserChoice.powerImpact_W;
+    score += laserChoice.scienceScoreImpact;
+    if (!laserChoice.isOptimal) extraLinkPenalty = -2.0;
+  }
   const linkBroken =
-    metrics.telecom.linkMargin_dB + (downlinkChoice.isOptimal ? 3 : -3.5) < 0;
+    metrics.telecom.linkMargin_dB +
+      (downlinkChoice.isOptimal ? 3 : -3.5) +
+      extraLinkPenalty <
+    0;
   if (linkBroken) score -= 20;
   totalDataGB += linkBroken ? 0.2 : (telecom?.maxDataRate_kbps ?? 64) * 0.14;
 
