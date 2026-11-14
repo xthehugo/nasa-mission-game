@@ -1,0 +1,196 @@
+import { findDestinationById, PRESET_MISSION_SELECTIONS } from '../engine';
+import { useMissionStore } from '../store';
+import type { CMLPhase } from '../types/mission';
+import { computeLevelStars, playHoloTone } from './holoAudio';
+
+const LEVEL_META: Record<
+  CMLPhase,
+  { num: string; code: string; title: { en: string; es: string } }
+> = {
+  CML_1: { num: '01', code: 'CML 1', title: { en: 'Napkin', es: 'Servilleta' } },
+  CML_2: { num: '02', code: 'CML 2', title: { en: 'Orbit', es: 'Órbita' } },
+  CML_3: { num: '03', code: 'CML 3', title: { en: 'Trade Space', es: 'Trade Space' } },
+  CML_4: { num: '04', code: 'CML 4', title: { en: 'Point Design', es: 'Punto' } },
+  CML_5: { num: '05', code: 'CML 5', title: { en: 'V&V / MCR', es: 'V&V / MCR' } },
+  SIMULATION: { num: '06', code: 'PHASE E', title: { en: 'Launch & Sim', es: 'Simulación' } },
+};
+
+const PRESET_LIST = [
+  { key: 'obj-earth-bionutrients', label: { en: 'BioNutrients-2 (LEO)', es: 'BioNutrients-2 (LEO)' } },
+  { key: 'preset-gmat-geo', label: { en: 'GMAT GEO (3,673 m/s)', es: 'GMAT GEO (3,673 m/s)' } },
+  { key: 'obj-helio-lunar-trailblazer', label: { en: 'Lunar Trailblazer', es: 'Lunar Trailblazer' } },
+  { key: 'obj-mars-reconnaissance', label: { en: 'Mars MRO (1.52 AU)', es: 'Marte MRO (1.52 AU)' } },
+  { key: 'obj-jupiter-clipper', label: { en: 'Jupiter RTG (5.2 AU)', es: 'Júpiter RTG (5.2 AU)' } },
+  { key: 'preset-fairing-overflow', label: { en: 'Fairing NO-GO Demo', es: 'Demo Exceso Cofia' } },
+];
+
+export function TopBar() {
+  const {
+    language,
+    experienceMode,
+    phase,
+    commanderName,
+    missionCustomName,
+    metrics,
+    concurrentConflicts,
+    activeRandomEvent,
+    tankFillPercent,
+    oxidizerFillPercent,
+    reducedMotion,
+    soundEnabled,
+    setLanguage,
+    setExperienceMode,
+    reopenOnboarding,
+    setTelemetryOpen,
+    setPitchModalOpen,
+    loadPreset,
+    unlockAllLevels,
+    triggerRandomEvent,
+    toggleReducedMotion,
+    toggleSound,
+    resetAllMission,
+    setOrbitParams,
+  } = useMissionStore();
+
+  const isEs = language === 'es';
+  const meta = LEVEL_META[phase];
+  const extraKg =
+    phase === 'CML_4'
+      ? ((tankFillPercent + oxidizerFillPercent - 160) / 100) *
+        Math.max(2, metrics.propellantMass_kg * 0.25)
+      : 0;
+  const starInfo = computeLevelStars(
+    metrics,
+    concurrentConflicts.length,
+    experienceMode,
+    activeRandomEvent,
+    extraKg,
+  );
+
+  return (
+    <header className="border-b border-[#5FF3FF]/20 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
+            {isEs ? `NIVEL ${meta.num} DE 06 · ${meta.code}` : `LEVEL ${meta.num} OF 06 · ${meta.code}`} · CMDR {commanderName} // {missionCustomName}
+          </div>
+          <h1 className="mt-0.5 text-2xl font-light tracking-tight text-white sm:text-3xl">
+            {meta.title[language]}
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] uppercase">
+          <div className="border border-[#FFC15E]/40 px-2.5 py-1 text-[#FFC15E]">
+            {isEs ? 'ESTRELLAS' : 'STARS'} {'★'.repeat(starInfo.stars)}{'☆'.repeat(3 - starInfo.stars)}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerRandomEvent();
+              playHoloTone('ALARM', soundEnabled);
+            }}
+            className={`border px-2.5 py-1 transition ${
+              activeRandomEvent === 'NONE'
+                ? 'border-[#5FF3FF]/25 text-slate-400 hover:border-[#FFC15E] hover:text-[#FFC15E]'
+                : 'border-[#FFC15E] bg-[#FFC15E]/15 text-[#FFC15E]'
+            }`}
+          >
+            {isEs ? 'EVENTO' : 'EVENT'}: {activeRandomEvent}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setExperienceMode(experienceMode === 'CADET' ? 'JPL_ENGINEER' : 'CADET');
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2.5 py-1 text-[#5FF3FF]"
+          >
+            {experienceMode === 'CADET' ? 'CADETE' : 'JPL HARDCORE'}
+          </button>
+
+          <select
+            aria-label={isEs ? 'Presets NASA' : 'NASA Presets'}
+            defaultValue=""
+            onChange={(e) => {
+              const key = e.target.value;
+              if (!key) return;
+              loadPreset(key);
+              unlockAllLevels();
+              const preset = PRESET_MISSION_SELECTIONS[key];
+              if (preset) {
+                const d = findDestinationById(preset.destinationId);
+                setOrbitParams(d.id === 'dest-geo' ? 35786 : 500, d.id === 'dest-geo' ? 0 : 51.6);
+              }
+              playHoloTone('STEP', soundEnabled);
+              e.target.value = '';
+            }}
+            className="border border-[#5FF3FF]/25 bg-[#04080F] px-2 py-1 text-slate-300 outline-none"
+          >
+            <option value="">{isEs ? 'PRESETS NASA' : 'NASA PRESETS'}</option>
+            {PRESET_LIST.map((p) => (
+              <option key={p.key} value={p.key}>{p.label[language]}</option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => setTelemetryOpen(true)}
+            className="border border-[#5FF3FF]/25 px-2.5 py-1 text-slate-300 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
+          >
+            RECHARTS
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleReducedMotion}
+            className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-400 hover:text-white"
+          >
+            FX:{reducedMotion ? 'OFF' : 'ON'}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleSound}
+            className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-400 hover:text-white"
+          >
+            SFX:{soundEnabled ? 'ON' : 'OFF'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setLanguage(isEs ? 'en' : 'es')}
+            className="border border-[#5FF3FF]/25 px-2 py-1 text-[#5FF3FF]"
+          >
+            {language.toUpperCase()}
+          </button>
+
+          <button
+            type="button"
+            onClick={reopenOnboarding}
+            className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-300 hover:border-[#5FF3FF]"
+          >
+            {isEs ? 'PERFIL' : 'PROFILE'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPitchModalOpen(true)}
+            className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-300 hover:border-[#5FF3FF]"
+          >
+            PITCH
+          </button>
+
+          <button
+            type="button"
+            onClick={resetAllMission}
+            className="border border-[#FF4D6D]/40 px-2 py-1 text-[#FF4D6D] hover:bg-[#FF4D6D]/10"
+          >
+            RESET
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
