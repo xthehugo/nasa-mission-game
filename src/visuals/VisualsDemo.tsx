@@ -1,99 +1,84 @@
 import { useState } from 'react';
+import {
+  DEFAULT_MISSION_SELECTION,
+  evaluateMissionPhysics,
+  findDestinationById,
+  ORBITAL_DESTINATIONS,
+  PRESET_MISSION_SELECTIONS,
+} from '../engine';
+import type { Language, MissionSelection } from '../types/mission';
 import MissionStage from './MissionStage';
-import type { OrbitalDestination } from '../types/mission';
 
-const base = {
-  description: { en: '', es: '' },
-  solarIrradiance_Wm2: 1361,
-  environmentHazard: { en: '', es: '' },
+const GEO_GMAT_BENCHMARK_SELECTION: MissionSelection = {
+  ...PRESET_MISSION_SELECTIONS['obj-helio-lunar-trailblazer'],
+  destinationId: 'dest-geo',
 };
 
-const DESTS: OrbitalDestination[] = [
-  {
-    ...base,
-    id: 'leo',
-    name: { en: 'Low Earth Orbit', es: 'Órbita Terrestre Baja' },
-    heliocentricDistanceAU: 1,
-    requiredDeltaV_ms: 150,
-    eclipseFraction: 0.35,
-    oneWayLightTimeSec: 0.002,
-    distanceFromEarthKm: 400,
-    requiredGroundNetwork: 'NEAR_EARTH_NETWORK',
-    linkMarginThreshold_dB: 6,
-  },
-  {
-    ...base,
-    id: 'moon',
-    name: { en: 'Moon', es: 'Luna' },
-    heliocentricDistanceAU: 1,
-    requiredDeltaV_ms: 3950,
-    eclipseFraction: 0.1,
-    oneWayLightTimeSec: 1.28,
-    distanceFromEarthKm: 384_400,
-    requiredGroundNetwork: 'NEAR_EARTH_NETWORK',
-    linkMarginThreshold_dB: 3,
-  },
-  {
-    ...base,
-    id: 'mars',
-    name: { en: 'Mars', es: 'Marte' },
-    heliocentricDistanceAU: 1.52,
-    requiredDeltaV_ms: 4500,
-    eclipseFraction: 0.4,
-    oneWayLightTimeSec: 750,
-    distanceFromEarthKm: 225_000_000,
-    requiredGroundNetwork: 'DSN_34M',
-    linkMarginThreshold_dB: 3,
-  },
-  {
-    ...base,
-    id: 'jupiter',
-    name: { en: 'Jupiter', es: 'Júpiter' },
-    heliocentricDistanceAU: 5.2,
-    requiredDeltaV_ms: 6800,
-    eclipseFraction: 0.05,
-    oneWayLightTimeSec: 2700,
-    distanceFromEarthKm: 628_000_000,
-    requiredGroundNetwork: 'DSN_70M',
-    linkMarginThreshold_dB: 3,
-  },
-];
+const FAIRING_OVERFLOW_TEST_SELECTION: MissionSelection = {
+  ...PRESET_MISSION_SELECTIONS['obj-earth-bionutrients'],
+  payloadIds: ['pay-sar-radar', 'pay-multispectral'],
+  launchVehicleId: 'lv-rideshare',
+};
 
 export default function VisualsDemo() {
-  const [i, setI] = useState(0);
-  const [used, setUsed] = useState(4);
-  const [lang, setLang] = useState<'en' | 'es'>('es');
-  const max = 6;
+  const [selection, setSelection] = useState<MissionSelection>(
+    DEFAULT_MISSION_SELECTION,
+  );
+  const [lang, setLang] = useState<Language>('en');
+
+  const destination = findDestinationById(selection.destinationId);
+  const metrics = evaluateMissionPhysics(selection);
 
   return (
     <MissionStage
-      destination={DESTS[i]}
-      volume={{ used_U: used, maxFairing_U: max, isCompliant: used <= max }}
+      destination={destination}
+      volume={metrics.volume}
+      metrics={metrics}
       lang={lang}
       controls={
         <>
-          {DESTS.map((d, k) => (
-            <button
-              key={d.id}
-              onClick={() => setI(k)}
-              className={`px-3 py-1 rounded ${k === i ? 'bg-sky-600' : 'bg-slate-700'}`}
-            >
-              {d.name[lang]}
-            </button>
-          ))}
-          <label className="text-xs text-slate-300 flex items-center gap-2">
-            <input
-              type="range"
-              min={1}
-              max={8}
-              step={0.5}
-              value={used}
-              onChange={(e) => setUsed(Number(e.target.value))}
-            />
-            {used}U
-          </label>
+          {ORBITAL_DESTINATIONS.map((dest) => {
+            const isSelected = dest.id === destination.id;
+            return (
+              <button
+                key={dest.id}
+                onClick={() =>
+                  setSelection((prev) => ({ ...prev, destinationId: dest.id }))
+                }
+                className={`px-3 py-1 rounded text-xs font-medium ${
+                  isSelected ? 'bg-sky-600 text-white' : 'bg-slate-700 text-slate-200'
+                }`}
+              >
+                {dest.name[lang]}
+              </button>
+            );
+          })}
+
           <button
-            className="px-3 py-1 rounded bg-slate-700"
+            onClick={() => setSelection(GEO_GMAT_BENCHMARK_SELECTION)}
+            className="px-3 py-1 rounded text-xs font-semibold bg-cyan-800 hover:bg-cyan-700 text-cyan-100"
+          >
+            {lang === 'es' ? 'Preset GMAT GEO' : 'GMAT GEO Preset'}
+          </button>
+
+          <button
+            onClick={() =>
+              setSelection(PRESET_MISSION_SELECTIONS['obj-jupiter-clipper'])
+            }
+            className="px-3 py-1 rounded text-xs font-semibold bg-emerald-800 hover:bg-emerald-700 text-emerald-100"
+          >
+            {lang === 'es' ? 'Preset Júpiter RTG' : 'Jupiter RTG Preset'}
+          </button>
+
+          <button
+            onClick={() => setSelection(FAIRING_OVERFLOW_TEST_SELECTION)}
+            className="px-3 py-1 rounded text-xs font-semibold bg-rose-900 hover:bg-rose-800 text-rose-100"
+          >
+            {lang === 'es' ? '⚠ Test Exceso Cofia' : '⚠ Fairing NO-GO Test'}
+          </button>
+
+          <button
+            className="px-3 py-1 rounded text-xs font-semibold bg-slate-700 hover:bg-slate-600"
             onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
           >
             {lang.toUpperCase()}

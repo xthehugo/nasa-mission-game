@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import type { Language, OrbitalDestination, VolumeMetrics } from '../types/mission';
+import type { Language, OrbitalDestination, PhysicsMetrics, VolumeMetrics } from '../types/mission';
 import OrbitalMapVisualizer from './OrbitalMapVisualizer';
 import SpacecraftBlueprint from './SpacecraftBlueprint';
 
 interface Props {
   destination: OrbitalDestination | null;
   volume: VolumeMetrics;
+  metrics?: PhysicsMetrics;
   lang?: Language;
   controls?: ReactNode;
+  embedded?: boolean;
 }
 
 type Stage = 'IDLE' | 'COUNTDOWN' | 'LAUNCH_ASCENT' | 'FAILURE' | 'CRUISE' | 'ORBIT_INSERTION';
@@ -25,12 +27,17 @@ const T = {
     alt: 'Altitude',
     vel: 'Velocity',
     dv: 'ΔV used / required',
+    mass: 'Wet Mass / Rocket',
+    link: 'Link Margin / MCR',
     light: 'Light time',
     clock: 'Mission clock',
     orbitOk: 'ORBIT ACHIEVED ✓',
-    nogo: 'NO-GO: FAIRING OVERFLOW',
-    anomaly: 'ASCENT ANOMALY: MISSION LOST',
-    lesson: 'Lesson: reduce the used volume or choose a launch vehicle with a larger fairing.',
+    nogoFairing: 'NO-GO: FAIRING OVERFLOW',
+    nogoMass: 'NO-GO: ROCKET PAYLOAD OVERLOAD',
+    anomalyFairing: 'ASCENT ANOMALY: FAIRING STRUCTURAL FAILURE',
+    anomalyMass: 'ASCENT ANOMALY: INSUFFICIENT THRUST-TO-WEIGHT',
+    lessonFairing: 'Lesson: reduce payload/subsystem volume or select a launch vehicle with a larger fairing.',
+    lessonMass: 'Lesson: reduce dry mass, switch to higher-Isp propulsion, or pick a heavier rocket.',
     phases: {
       IDLE: 'READY ON PAD',
       COUNTDOWN: 'COUNTDOWN',
@@ -47,12 +54,17 @@ const T = {
     alt: 'Altitud',
     vel: 'Velocidad',
     dv: 'ΔV usado / requerido',
+    mass: 'Masa Húmeda / Cohete',
+    link: 'Enlace / Estado MCR',
     light: 'Tiempo de luz',
     clock: 'Reloj de misión',
     orbitOk: 'ÓRBITA ALCANZADA ✓',
-    nogo: 'NO-GO: EXCEDE LA COFIA',
-    anomaly: 'ANOMALÍA EN EL ASCENSO: MISIÓN PERDIDA',
-    lesson: 'Lección: reduce el volumen usado o elige un lanzador con cofia más grande.',
+    nogoFairing: 'NO-GO: EXCEDE LA COFIA',
+    nogoMass: 'NO-GO: SOBREPESO EN LANZADOR',
+    anomalyFairing: 'ANOMALÍA EN ASCENSO: FALLO ESTRUCTURAL DE COFIA',
+    anomalyMass: 'ANOMALÍA EN ASCENSO: EMPUJE INSUFICIENTE POR SOBREPESO',
+    lessonFairing: 'Lección: reduce el volumen usado o elige un lanzador con cofia más grande.',
+    lessonMass: 'Lección: reduce masa seca, usa propulsión de mayor Isp o un lanzador más potente.',
     phases: {
       IDLE: 'LISTO EN PLATAFORMA',
       COUNTDOWN: 'CUENTA REGRESIVA',
@@ -101,9 +113,25 @@ const css = `
 
 const fmtLight = (s: number) => (s < 60 ? `${s.toFixed(1)} s` : `${(s / 60).toFixed(1)} min`);
 
-export default function MissionStage({ destination, volume, lang = 'en', controls }: Props) {
+export default function MissionStage({
+  destination,
+  volume,
+  metrics,
+  lang = 'en',
+  controls,
+  embedded = false,
+}: Props) {
   const t = T[lang];
-  const failed = !volume.isCompliant;
+  const fairingOverflow = !volume.isCompliant;
+  const massOverload = Boolean(
+    metrics && metrics.wetMass_kg > metrics.launchCapacity_kg,
+  );
+  const failed = fairingOverflow || massOverload;
+  const nogoMessage = fairingOverflow
+    ? `${t.nogoFairing} (${volume.used_U.toFixed(1)}U / ${volume.maxFairing_U}U)`
+    : `${t.nogoMass} (${metrics?.wetMass_kg} kg / ${metrics?.launchCapacity_kg} kg)`;
+  const anomalyHeadline = fairingOverflow ? t.anomalyFairing : t.anomalyMass;
+  const anomalyLesson = fairingOverflow ? t.lessonFairing : t.lessonMass;
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
 
@@ -156,7 +184,8 @@ export default function MissionStage({ destination, volume, lang = 'en', control
   const cruiseEased = cruise * cruise * (3 - 2 * cruise);
   const destKm = destination?.distanceFromEarthKm ?? 400;
   const altitudeKm = Math.round(400 * eased + Math.max(0, destKm - 400) * cruiseEased);
-  const dvUsed = Math.round((destination?.requiredDeltaV_ms ?? 0) * cruiseEased);
+  const targetDeltaV = metrics?.deltaV_required_ms ?? destination?.requiredDeltaV_ms ?? 0;
+  const dvUsed = Math.round(targetDeltaV * cruiseEased);
   const velocity = (7.67 * eased).toFixed(2);
   const dim = stage === 'COUNTDOWN' || stage === 'LAUNCH_ASCENT' || stage === 'FAILURE';
 
@@ -173,9 +202,15 @@ export default function MissionStage({ destination, volume, lang = 'en', control
     [
       t.dv,
       destination
-        ? `${dvUsed.toLocaleString()} / ${destination.requiredDeltaV_ms.toLocaleString()} m/s`
+        ? `${dvUsed.toLocaleString()} / ${targetDeltaV.toLocaleString()} m/s`
         : '—',
     ],
+    ...(metrics
+      ? ([
+          [t.mass, `${metrics.wetMass_kg.toLocaleString()} / ${metrics.launchCapacity_kg.toLocaleString()} kg`],
+          [t.link, `${metrics.telecom.linkMargin_dB} dB (${metrics.overallMCRStatus})`],
+        ] as [string, string][])
+      : []),
     [t.light, destination ? fmtLight(destination.oneWayLightTimeSec) : '—'],
     [t.clock, clock],
   ];
@@ -206,7 +241,7 @@ export default function MissionStage({ destination, volume, lang = 'en', control
     <div
       style={{
         position: 'relative',
-        minHeight: '100vh',
+        minHeight: embedded ? '100%' : '100vh',
         overflow: 'hidden',
         background: 'radial-gradient(ellipse at 50% 0%, #0b1a3a 0%, #020617 70%)',
         color: '#fff',
@@ -237,7 +272,7 @@ export default function MissionStage({ destination, volume, lang = 'en', control
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
+          minHeight: embedded ? '100%' : '100vh',
           padding: 16,
           gap: 16,
         }}
@@ -250,7 +285,7 @@ export default function MissionStage({ destination, volume, lang = 'en', control
             {stage === 'ORBIT_INSERTION' && <div style={{ fontSize: 12, color: '#4ade80' }}>{t.orbitOk}</div>}
             {stage === 'IDLE' && failed && (
               <div style={{ fontSize: 13, fontWeight: 700, color: '#f87171' }}>
-                {t.nogo} ({volume.used_U.toFixed(1)}U / {volume.maxFairing_U}U)
+                {nogoMessage}
               </div>
             )}
           </div>
@@ -412,8 +447,8 @@ export default function MissionStage({ destination, volume, lang = 'en', control
             animation: 'pop .6s ease-out',
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{t.anomaly}</div>
-          <div style={{ fontSize: 13, marginTop: 4, color: '#fecaca' }}>{t.lesson}</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{anomalyHeadline}</div>
+          <div style={{ fontSize: 13, marginTop: 4, color: '#fecaca' }}>{anomalyLesson}</div>
         </div>
       )}
 

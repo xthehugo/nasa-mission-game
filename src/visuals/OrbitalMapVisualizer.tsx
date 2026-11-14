@@ -84,11 +84,40 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en', classNa
     const r = Math.min(185, Math.max(80, 60 + 22 * Math.log10(Math.max(dKm, 100))));
     const a = t * 1.5 * (60 / r);
     const isMoon = dKm > 100_000;
-    const satColor = isMoon ? '#cbd5e1' : '#ffb703';
+    const isGeo = destination?.id === 'dest-geo';
+    const rLeo = 72;
+    const hohmannRx = (rLeo + r) / 2;
+    const hohmannRy = Math.sqrt(rLeo * r);
+    const hohmannCx = CX - (r - rLeo) / 2;
+    const satColor = isMoon ? '#cbd5e1' : isGeo ? '#38bdf8' : '#ffb703';
     content = (
       <>
         <circle cx={CX} cy={CY} r={58} fill="none" stroke="#60a5fa" strokeWidth={6} opacity={0.2} />
         <circle cx={CX} cy={CY} r={50} fill="url(#earthGrad)" />
+        {isGeo && (
+          <>
+            <circle cx={CX} cy={CY} r={rLeo} fill="none" stroke="#334155" strokeDasharray="3 3" />
+            <path
+              d={`M ${CX + rLeo} ${CY} A ${hohmannRx} ${hohmannRy} 0 0 0 ${CX - r} ${CY}`}
+              fill="none"
+              stroke="#38bdf8"
+              strokeWidth="1.8"
+              strokeDasharray="5 3"
+              opacity={0.85}
+            />
+            <circle cx={CX + rLeo} cy={CY} r={4} fill="#f97316" filter="url(#glow)" />
+            <text x={CX + rLeo + 6} y={CY + 12} fill="#fdba74" fontSize="8" fontWeight="bold">
+              TOI +2,240 m/s
+            </text>
+            <circle cx={CX - r} cy={CY} r={4} fill="#22c55e" filter="url(#glow)" />
+            <text x={CX - r + 6} y={CY - 8} fill="#86efac" fontSize="8" fontWeight="bold">
+              GOI +1,433 m/s
+            </text>
+            <text x={CX} y={CY + r + 14} textAnchor="middle" fill="#7dd3fc" fontSize="8">
+              GMAT R2026a Hohmann · 3,673 m/s
+            </text>
+          </>
+        )}
         <circle cx={CX} cy={CY} r={r} fill="none" stroke="#64748b" strokeDasharray="4 4" />
         {trail(r, a, 0.07, satColor, isMoon ? 8 : 6)}
         <circle
@@ -98,8 +127,15 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en', classNa
           fill={satColor}
           filter="url(#glow)"
         />
-                {progress !== null &&
+        {progress !== null &&
           rocket((p) => {
+            if (isGeo) {
+              const theta = -Math.PI * p;
+              return [
+                hohmannCx + hohmannRx * Math.cos(theta),
+                CY + hohmannRy * Math.sin(theta),
+              ];
+            }
             const rr = 50 + (r - 50) * p;
             const aa = a - (1 - p) * 1.4;
             return [CX + rr * Math.cos(aa), CY + rr * Math.sin(aa)];
