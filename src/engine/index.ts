@@ -11,5 +11,10 @@ export {
   SCIENCE_OBJECTIVES,
   SUBSYSTEM_CATALOG,
 } from './catalog';
+export {
+  runEngineTestSuite,
+  type EngineTestCaseResult,
+  type EngineTestReport,
+} from './engine.test';
 export { evaluateMissionPhysics } from './physics';
 export { runMissionSimulation } from './simulation';
