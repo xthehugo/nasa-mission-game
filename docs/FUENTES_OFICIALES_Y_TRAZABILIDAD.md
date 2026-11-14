@@ -58,3 +58,19 @@ https://ntrs.nasa.gov/api/citations/20250009253/downloads/2025-09_SpaceMicrobial
 https://science.nasa.gov/resource/mars-reconnaissance-orbiter-launch-press-kit/
 https://science.nasa.gov/mission/punch/
 ```
+
+---
+
+## 4. Trazabilidad CAD de Hologramas Evolutivos (`CML 1–5`)
+
+Implementado en `HoloSpacecraftWireframe.tsx`, `HoloOrbitStage.tsx` y `HoloPointTankStage.tsx`:
+
+| Plataforma / Etapa | Cotas CAD Reales Verificadas | Fuente Oficial |
+| :--- | :--- | :--- |
+| **CubeSat CDS (`CML 1/3`)** | `1.5U` (`100×100×170.2 mm`), `2U` (`227.0 mm`), `3U` (`340.5 mm`), `6U/12U` (`366.0 mm`), rieles con *standoff* $\ge 6.5\text{ mm}$ y volumen *Tuna Can* `-Z` (`Ø64×36 mm`). | `NASA SSRI SoA 2024 Ch. 6` & CubeSat CDS Rev. 14 |
+| **NASA TRACERS (`CML 3`)** | Bus octogonal simétrico `Ø1.32×0.95 m` (`<200 kg`), 4 mástiles radiales EFI (`10 rpm`) y brazo axial `MAG Boom`. | `NASA TRACERS Launch Press Kit` |
+| **JWST / CSA FGS (`CML 2/3`)** | Parasol romboidal de 5 capas `21.2×14.2 m` (`+85°C` / `<50 K`), espejo hexagonal `OTE Ø6.5 m` (`25.4 m²`), módulo trasero `ISIM / CSA FGS 16 Hz` en Halo `SE-L2 1.5M km` (`0%` eclipse). | CSA Infographic (`#16972`) & GSFC JWST MCR |
+| **MRO / Lunar Trailblazer (`CML 3`)** | Trailblazer: bus `1.0×1.0×1.2 m` y paneles `3.5 m`; MRO: bus `3.0×2.1×2.1 m`, envergadura `13.6 m`, plato `HGA Ø3.0 m` y antena radar `SHARAD 10.0 m`. | `MRO Press Kit` / DESCANSO 12 & `Lunar Trailblazer Press Kit` |
+| **Subsistemas SoA 2024 (`CML 3`)** | `ThrustMe NPT30-I2 1U` (rejilla `Ø60 mm`), `FPPT-1.7` (carrete `PTFE`), `Arcsec Sagitta 0.35U` (`Ø25 mm`), `Tesat CubeLCT 0.3U` (`1550 nm Ø20 mm FSM`), `Redwire Q-Store PCM 0.5U` (`28°C`) y `Silvered FEP`. | `NASA/TP-20240001342 Ch. 4, 5, 7, 9` |
+| **Envolventes Lanzamiento (`CML 4`)** | Dispensador `CSD/P-POD` (resorte `+Z`, inhibidores), anillo `ESPA/ESPAStar` (`Ø1.575 m × 0.61 m`, `6` puertos `0.71 m`), cofia `Falcon 9` (`Ø5.2 m` exterior / `Ø4.6×11.0 m` dinámico, holgura $\ge 50\text{ mm}$). | `ESPAStar Technical Description` & `SSRI SoA Ch. 10` |
+| **Inspección 4 Pines (`CML 5`)** | Pin 1 COPV (`1.05×–1.20× MDP` proof, `1.40×` ult), Pin 2 Pernos/Inserts (`1.40×` / `1.25×` / `2.00×`), Pin 3 Conector Micro-D (`Rule 2.13 ≥30% spares`, `≥50 mm`), Pin 4 ADCS (`Rule 1.05 SPF`, `1.17`). | `NASA-STD-5001B Sec. 4.2` & `GSFC-STD-1000` |

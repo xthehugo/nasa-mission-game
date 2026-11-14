@@ -5,6 +5,7 @@ import { useMissionStore } from '../store';
 const BODY_GRAVITY: Record<string, { muKm3S2: number; radiusKm: number }> = {
   'dest-leo': { muKm3S2: 398600.44, radiusKm: 6371 },
   'dest-geo': { muKm3S2: 398600.44, radiusKm: 6371 },
+  'dest-l2': { muKm3S2: 398600.44, radiusKm: 6371 },
   'dest-moon': { muKm3S2: 4902.8, radiusKm: 1737.4 },
   'dest-mars': { muKm3S2: 42828.37, radiusKm: 3389.5 },
   'dest-jupiter': { muKm3S2: 126686534, radiusKm: 69911 },
@@ -24,6 +25,7 @@ export function HoloOrbitStage() {
   const dest = findDestinationById(selection.destinationId);
   const gs = findGroundStationById(selection.groundStationId);
   const isGeo = selection.destinationId === 'dest-geo';
+  const isL2 = selection.destinationId === 'dest-l2';
   const body = BODY_GRAVITY[selection.destinationId] ?? BODY_GRAVITY['dest-leo'];
 
   const semiMajorKm = body.radiusKm + orbitAltitudeKm;
@@ -57,98 +59,168 @@ export function HoloOrbitStage() {
           </filter>
         </defs>
 
-        {/* Wireframe Target Body (Earth/Moon/Mars/Jupiter) */}
-        <g stroke="#5FF3FF" strokeWidth="1" fill="none" opacity="0.72" filter="url(#orbitGlow)">
-          <circle cx="250" cy="155" r="46" />
-          <ellipse cx="250" cy="155" rx="46" ry="15" />
-          <ellipse cx="250" cy="155" rx="46" ry="30" strokeOpacity="0.35" />
-          <ellipse cx="250" cy="155" rx="18" ry="46" strokeOpacity="0.45" />
-          <line x1="250" y1="95" x2="250" y2="215" strokeDasharray="2 3" strokeOpacity="0.4" />
-        </g>
+        {isL2 ? (
+          /* Sun -> Earth -> L2 Libration Halo Orbit (1,500,000 km, 0% Eclipse) */
+          <g filter="url(#orbitGlow)">
+            {/* Sun Direction & Rays */}
+            <circle cx="58" cy="155" r="24" fill="#FFC15E1F" stroke="#FFC15E" strokeWidth="1.2" />
+            <text x="58" y="195" textAnchor="middle" className="font-mono text-[8px]" fill="#FFC15E">
+              SOL (1.01 AU)
+            </text>
+            <line x1="88" y1="155" x2="365" y2="155" stroke="#FFC15E" strokeOpacity="0.28" strokeDasharray="4 4" />
 
-        {/* Inclined Dynamic Wireframe Orbit */}
-        <g transform={`rotate(${isGeo ? -8 : orbitInclinationDeg * 0.45 - 22} 250 155)`}>
-          {isGeo && (
-            <>
+            {/* Earth Wireframe + Umbra Cone */}
+            <polygon points="182,126 300,149 300,161 182,184" fill="#0f172a" opacity="0.65" />
+            <circle cx="182" cy="155" r="26" fill="#04080F" stroke="#5FF3FF" strokeWidth="1.2" />
+            <ellipse cx="182" cy="155" rx="26" ry="9" fill="none" stroke="#5FF3FF" strokeOpacity="0.45" />
+            <text x="182" y="196" textAnchor="middle" className="font-mono text-[8px]" fill="#5FF3FF">
+              {isEs ? 'TIERRA' : 'EARTH'}
+            </text>
+
+            {/* L2 Libration Crosshair & Halo Loop */}
+            <line x1="182" y1="120" x2="365" y2="120" stroke="#5FF3FF" strokeOpacity="0.35" />
+            <text x="274" y="114" textAnchor="middle" className="font-mono text-[8px]" fill="#5FF3FF">
+              1,500,000 KM (ANTI-SUN)
+            </text>
+
+            <ellipse
+              cx="365"
+              cy="155"
+              rx="42"
+              ry="72"
+              fill="none"
+              stroke="#5FF3FF"
+              strokeWidth="1.3"
+              strokeDasharray="5 3"
+            />
+            <circle cx="365" cy="155" r="3" fill="#FFC15E" />
+            <text x="365" y="242" textAnchor="middle" className="font-mono text-[8px]" fill="#FFC15E">
+              SE-L2 HALO · 0% ECLIPSE
+            </text>
+
+            {!reducedMotion ? (
+              <motion.circle
+                r="5"
+                fill="#FFC15E"
+                animate={{
+                  cx: [407, 365, 323, 365, 407],
+                  cy: [155, 227, 155, 83, 155],
+                }}
+                transition={{ repeat: Infinity, duration: 5.5, ease: 'linear' }}
+              />
+            ) : (
+              <circle cx="407" cy="155" r="5" fill="#FFC15E" />
+            )}
+
+            {/* Optical/Ka Downlink to Earth DSN 34m */}
+            <line
+              x1="196"
+              y1="145"
+              x2="388"
+              y2="112"
+              stroke={rfAlert ? '#FF4D6D' : '#FFC15E'}
+              strokeWidth="1"
+              strokeDasharray="3 4"
+            />
+          </g>
+        ) : (
+          <>
+            {/* Wireframe Target Body (Earth/Moon/Mars/Jupiter) */}
+            <g stroke="#5FF3FF" strokeWidth="1" fill="none" opacity="0.72" filter="url(#orbitGlow)">
+              <circle cx="250" cy="155" r="46" />
+              <ellipse cx="250" cy="155" rx="46" ry="15" />
+              <ellipse cx="250" cy="155" rx="46" ry="30" strokeOpacity="0.35" />
+              <ellipse cx="250" cy="155" rx="18" ry="46" strokeOpacity="0.45" />
+              <line x1="250" y1="95" x2="250" y2="215" strokeDasharray="2 3" strokeOpacity="0.4" />
+            </g>
+
+            {/* Inclined Dynamic Wireframe Orbit */}
+            <g transform={`rotate(${isGeo ? -8 : orbitInclinationDeg * 0.45 - 22} 250 155)`}>
+              {isGeo && (
+                <>
+                  <ellipse
+                    cx="250"
+                    cy="155"
+                    rx={rLeoPx}
+                    ry={rLeoPx * 0.42}
+                    fill="none"
+                    stroke="#5FF3FF"
+                    strokeOpacity="0.35"
+                    strokeDasharray="3 3"
+                  />
+                  <path
+                    d={`M ${250 + rLeoPx} 155 A ${hohmannRx} ${hohmannRy} 0 0 0 ${250 - rx} 155`}
+                    fill="none"
+                    stroke="#38bdf8"
+                    strokeWidth="1.4"
+                    strokeDasharray="5 3"
+                    opacity="0.9"
+                  />
+                  <circle cx={250 + rLeoPx} cy="155" r="4" fill="#f97316" filter="url(#orbitGlow)" />
+                  <text x={250 + rLeoPx + 6} y="168" className="font-mono text-[8px]" fill="#FFC15E">
+                    TOI +2,240 m/s
+                  </text>
+                  <circle cx={250 - rx} cy="155" r="4" fill="#22c55e" filter="url(#orbitGlow)" />
+                  <text x={250 - rx + 6} y="145" className="font-mono text-[8px]" fill="#86efac">
+                    GOI +1,433 m/s
+                  </text>
+                </>
+              )}
+
               <ellipse
                 cx="250"
                 cy="155"
-                rx={rLeoPx}
-                ry={rLeoPx * 0.42}
+                rx={rx}
+                ry={ry}
                 fill="none"
                 stroke="#5FF3FF"
-                strokeOpacity="0.35"
-                strokeDasharray="3 3"
+                strokeWidth="1.2"
+                strokeOpacity="0.8"
               />
-              <path
-                d={`M ${250 + rLeoPx} 155 A ${hohmannRx} ${hohmannRy} 0 0 0 ${250 - rx} 155`}
-                fill="none"
-                stroke="#38bdf8"
-                strokeWidth="1.4"
-                strokeDasharray="5 3"
-                opacity="0.9"
-              />
-              <circle cx={250 + rLeoPx} cy="155" r="4" fill="#f97316" filter="url(#orbitGlow)" />
-              <text x={250 + rLeoPx + 6} y="168" className="font-mono text-[8px]" fill="#FFC15E">
-                TOI +2,240 m/s
-              </text>
-              <circle cx={250 - rx} cy="155" r="4" fill="#22c55e" filter="url(#orbitGlow)" />
-              <text x={250 - rx + 6} y="145" className="font-mono text-[8px]" fill="#86efac">
-                GOI +1,433 m/s
-              </text>
-            </>
-          )}
+              {!reducedMotion ? (
+                <motion.circle
+                  r="4.5"
+                  fill="#FFC15E"
+                  filter="url(#orbitGlow)"
+                  animate={{
+                    cx: [250 + rx, 250, 250 - rx, 250, 250 + rx],
+                    cy: [155, 155 + ry, 155, 155 - ry, 155],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: Math.max(2.4, Math.min(8, periodMin / 35)),
+                    ease: 'linear',
+                  }}
+                />
+              ) : (
+                <circle cx={250 + rx} cy="155" r="4.5" fill="#FFC15E" />
+              )}
+            </g>
 
-          <ellipse
-            cx="250"
-            cy="155"
-            rx={rx}
-            ry={ry}
-            fill="none"
-            stroke="#5FF3FF"
-            strokeWidth="1.2"
-            strokeOpacity="0.8"
-          />
-          {!reducedMotion ? (
-            <motion.circle
-              r="4.5"
-              fill="#FFC15E"
-              filter="url(#orbitGlow)"
-              animate={{
-                cx: [250 + rx, 250, 250 - rx, 250, 250 + rx],
-                cy: [155, 155 + ry, 155, 155 - ry, 155],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: Math.max(2.4, Math.min(8, periodMin / 35)),
-                ease: 'linear',
-              }}
+            {/* Ground Station RF Link Beam */}
+            <line
+              x1="286"
+              y1="176"
+              x2={250 + rx * 0.72}
+              y2="132"
+              stroke={rfAlert ? '#FF4D6D' : '#FFC15E'}
+              strokeWidth="1"
+              strokeDasharray="3 4"
             />
-          ) : (
-            <circle cx={250 + rx} cy="155" r="4.5" fill="#FFC15E" />
-          )}
-        </g>
-
-        {/* Ground Station RF Link Beam */}
-        <line
-          x1="286"
-          y1="176"
-          x2={250 + rx * 0.72}
-          y2="132"
-          stroke={rfAlert ? '#FF4D6D' : '#FFC15E'}
-          strokeWidth="1"
-          strokeDasharray="3 4"
-        />
-        <polygon points="282,182 290,182 286,174" fill="none" stroke="#FFC15E" strokeWidth="1" />
+            <polygon points="282,182 290,182 286,174" fill="none" stroke="#FFC15E" strokeWidth="1" />
+          </>
+        )}
 
         <g className="font-mono text-[9.5px]" fill="#5FF3FF">
           <text x="250" y="294" textAnchor="middle">
             {dest.name[language].toUpperCase()} · {gs.name[language].toUpperCase()}
           </text>
           <text x="250" y="310" textAnchor="middle" fill={rfAlert ? '#FF4D6D' : '#FFC15E'}>
-            {isGeo
-              ? `GMAT R2026a HOHMANN · ΔV ${dest.requiredDeltaV_ms.toLocaleString()} M/S · PERIOD ${periodMin.toFixed(0)} MIN`
-              : `${isEs ? 'PERIODO' : 'PERIOD'} ${periodMin.toFixed(0)} MIN · ${velocityKms.toFixed(2)} KM/S · ΔV ${dest.requiredDeltaV_ms} M/S · ECLIPSE ${Math.round(dest.eclipseFraction * 100)}%`}
+            {isL2
+              ? `SE-L2 HALO · SUNSHIELD +85°C/<50K · τ 5.0S · ΔV ${dest.requiredDeltaV_ms} M/S · 0% ECLIPSE`
+              : isGeo
+                ? `GMAT R2026a HOHMANN · ΔV ${dest.requiredDeltaV_ms.toLocaleString()} M/S · PERIOD ${periodMin.toFixed(0)} MIN`
+                : `${isEs ? 'PERIODO' : 'PERIOD'} ${periodMin.toFixed(0)} MIN · ${velocityKms.toFixed(2)} KM/S · ΔV ${dest.requiredDeltaV_ms} M/S · ECLIPSE ${Math.round(dest.eclipseFraction * 100)}%`}
           </text>
         </g>
       </svg>
