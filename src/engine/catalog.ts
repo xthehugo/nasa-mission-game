@@ -38,6 +38,29 @@ export const ORBITAL_DESTINATIONS: OrbitalDestination[] = [
     },
   },
   {
+    id: 'dest-geo',
+    name: {
+      en: 'Geostationary Orbit (GEO · 35,786 km)',
+      es: 'Órbita Geoestacionaria (GEO · 35,786 km)',
+    },
+    description: {
+      en: 'GMAT R2026a Hohmann transfer benchmark from LEO parking orbit: TOI 2,240 m/s + GOI 1,433 m/s = 3,673 m/s total.',
+      es: 'Referencia de transferencia Hohmann validada en NASA GMAT R2026a desde LEO: encendido TOI 2,240 m/s + GOI 1,433 m/s = 3,673 m/s totales.',
+    },
+    heliocentricDistanceAU: 1.0,
+    requiredDeltaV_ms: 3673,
+    solarIrradiance_Wm2: 1361,
+    eclipseFraction: 0.05,
+    oneWayLightTimeSec: 0.12,
+    distanceFromEarthKm: 35786,
+    requiredGroundNetwork: 'NEAR_EARTH_NETWORK',
+    linkMarginThreshold_dB: 6,
+    environmentHazard: {
+      en: 'High Delta-V transfer (~71% fuel mass fraction at Isp 300s) & Van Allen outer electron belt exposure.',
+      es: 'Transferencia de alto Delta-V (~71% de fracción de combustible a Isp 300s) y radiación del cinturón exterior de Van Allen.',
+    },
+  },
+  {
     id: 'dest-moon',
     name: {
       en: 'Lunar Polar Orbit (100 km)',

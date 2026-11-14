@@ -328,6 +328,67 @@ const TEST_CASES: Array<{ name: string; run: () => string }> = [
       return `Broken design properly aborted (score=${sim.scienceScore}, grade=${sim.overallGrade})`;
     },
   },
+  {
+    name: '11. GMAT R2026a Hohmann Transfer Benchmark (LEO->GEO 3,673 m/s)',
+    run: () => {
+      const geo = ORBITAL_DESTINATIONS.find((d) => d.id === 'dest-geo');
+      if (!geo) {
+        throw new Error('Expected dest-geo in ORBITAL_DESTINATIONS');
+      }
+      assertCondition(
+        geo.requiredDeltaV_ms === 3673,
+        `Expected GMAT GEO Delta-V 3673 m/s, got ${geo.requiredDeltaV_ms}`,
+      );
+
+      // GMAT R2026a nominal burn Isp = 300 s -> ~71.3% propellant mass fraction
+      const gmatIsp = 300;
+      const gmatTheoreticalFuelFraction =
+        1 -
+        Math.exp(
+          -geo.requiredDeltaV_ms /
+            (gmatIsp * NASA_PHYSICS_CONSTANTS.STANDARD_GRAVITY_MS2),
+        );
+      assertCondition(
+        gmatTheoreticalFuelFraction > 0.71 &&
+          gmatTheoreticalFuelFraction < 0.716,
+        `Expected GMAT theoretical fuel fraction ~0.713, got ${gmatTheoreticalFuelFraction.toFixed(4)}`,
+      );
+
+      const biprop = SUBSYSTEM_CATALOG.find((s) => s.id === 'prop-biprop');
+      if (!biprop || typeof biprop.isp_s !== 'number') {
+        throw new Error('Expected prop-biprop with numeric isp_s');
+      }
+
+      const geoBipropSelection: MissionSelection = {
+        ...PRESET_MISSION_SELECTIONS['obj-helio-lunar-trailblazer'],
+        destinationId: 'dest-geo',
+        propulsionId: 'prop-biprop',
+        launchVehicleId: 'lv-falcon9',
+        groundStationId: 'gs-near-earth',
+      };
+      const m = evaluateMissionPhysics(geoBipropSelection);
+      assertFiniteNumber(m.wetMass_kg, 'geo.wetMass_kg');
+      assertFiniteNumber(m.propellantMass_kg, 'geo.propellantMass_kg');
+      assertCondition(
+        m.deltaV_required_ms === 3673,
+        `Expected deltaV_required_ms=3673, got ${m.deltaV_required_ms}`,
+      );
+
+      const engineFuelFraction = m.propellantMass_kg / m.wetMass_kg;
+      const expectedBipropFraction =
+        1 -
+        Math.exp(
+          -3673 /
+            (biprop.isp_s * NASA_PHYSICS_CONSTANTS.STANDARD_GRAVITY_MS2),
+        );
+      assertCondition(
+        Math.abs(engineFuelFraction - expectedBipropFraction) < 0.005,
+        `Expected engine fuel fraction ~${expectedBipropFraction.toFixed(4)}, got ${engineFuelFraction.toFixed(4)}`,
+      );
+
+      return `GEO Delta-V=3,673 m/s; GMAT(300s)=${(gmatTheoreticalFuelFraction * 100).toFixed(1)}%, Biprop(${biprop.isp_s}s)=${(engineFuelFraction * 100).toFixed(1)}%`;
+    },
+  },
 ];
 
 export function runEngineTestSuite(): EngineTestReport {

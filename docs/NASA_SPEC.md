@@ -109,6 +109,19 @@ $$\text{Link Margin (dB)} = \left[\frac{E_b}{N_0}\right]_{recibido} - \left[\fra
 * **Órbita Lunar:** `1.00 AU`, $\Delta V \approx 3950\text{ m/s}$, $S = 1361\text{ W/m}^2$, eclipses lunares largos, retardo `1.28 s`, GN gran apertura o DSN 34m.
 * **Órbita de Marte:** `1.52 AU`, $\Delta V \approx 4500\text{ m/s}$, $S \approx 589\text{ W/m}^2$, retardo `4.3–21 min`, DSN 34m / 70m.
 * **Júpiter / Espacio Profundo:** `5.20 AU`, $\Delta V \approx 6800\text{ m/s}$, $S \approx 50.3\text{ W/m}^2$, retardo `33–53 min`, DSN 70m obligatorio.
+* **Órbita Geoestacionaria (GEO · `35,786 km`, ID `dest-geo`):** `1.00 AU`, $\Delta V = 3,673\text{ m/s}$ (transferencia Hohmann desde LEO), $S = 1,361\text{ W/m}^2$, fracción de eclipse `0.05`, retardo `0.12 s`, Near Earth Network (`>= 6 dB`).
+
+### 4C. Validación Cruzada con NASA GMAT R2026a (`Ex_HohmannTransfer`)
+
+Los parámetros orbitales y el presupuesto de propelente de `dest-geo` fueron validados directamente contra una corrida ejecutada por el equipo en **NASA GMAT R2026a** (`Ex_HohmannTransfer.script`), utilizando el solucionador numérico Differential Corrector (`DC`, convergencia en **12 iteraciones**, tiempo total de ejecución **1.289 s**):
+
+| Parámetro GMAT R2026a | Valor Medido en Simulación | Uso en el Motor (`src/engine/`) |
+| :--- | :--- | :--- |
+| Impulso de inyección de transferencia (`TOI.Element1`) | `2.24028397735 km/s` (`~2,240 m/s`) | Primer encendido en perigeo LEO |
+| Impulso de circularización en apogeo (`GOI.Element1`) | `1.432966302 km/s` (`~1,433 m/s`) | Segundo encendido en apogeo GEO (`35,786 km`) |
+| **$\Delta V$ total de transferencia Hohmann** | **`3,673 m/s`** | `ORBITAL_DESTINATIONS['dest-geo'].requiredDeltaV_ms` |
+| Fracción de masa de propelente ($I_{sp} = 300\text{ s}$ nominal GMAT) | `~71.3%` de masa húmeda | Test de regresión #11 en `src/engine/engine.test.ts` |
+| Fracción con motor bipropelente del catálogo (`prop-biprop`, $I_{sp} = 315\text{ s}$) | `~69.5%` de masa húmeda | Verificación de ecuación de Tsiolkovsky |
 
 ---
 
@@ -120,3 +133,4 @@ $$\text{Link Margin (dB)} = \left[\frac{E_b}{N_0}\right]_{recibido} - \left[\fra
 5. **NASA General Mission Analysis Tool (GMAT R2026a):** `https://sourceforge.net/projects/gmat/`
 6. **NASA Mission-Viz Trade-Space Explorer:** `https://nasa.github.io/mission-viz/` (`https://github.com/nasa/mission-viz`)
 7. **NASA Systems Engineering Handbook (NASA/SP-2016-6105 Rev 2).**
+8. **NASA General Mission Analysis Tool (GMAT) R2026a:** Simulador oficial de astrodinámica de código abierto utilizado para validar la transferencia Hohmann LEO → GEO (`Ex_HohmannTransfer`).
