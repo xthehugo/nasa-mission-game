@@ -22,6 +22,7 @@ import {
   type PreFlightVerdict,
   type TestingCampaignState,
 } from './testingSlice';
+import type { CubeSatFormFactor } from './uiSlice';
 
 export interface DesignSlice {
   selection: MissionSelection;
@@ -73,11 +74,42 @@ export function resolvePresetSelection(presetKey: string): MissionSelection {
   );
 }
 
+export function deriveOrbitalDefaults(
+  destinationId: string,
+  volumeUsed_U: number,
+): { altitudeKm: number; inclinationDeg: number; formFactor: CubeSatFormFactor } {
+  const orbitMap: Record<string, { altitudeKm: number; inclinationDeg: number }> = {
+    'dest-leo': { altitudeKm: 550, inclinationDeg: 97.6 },
+    'dest-geo': { altitudeKm: 35786, inclinationDeg: 0.0 },
+    'dest-moon': { altitudeKm: 100, inclinationDeg: 90.0 },
+    'dest-mars': { altitudeKm: 400, inclinationDeg: 93.0 },
+    'dest-jupiter': { altitudeKm: 1800, inclinationDeg: 45.0 },
+  };
+  const orbit = orbitMap[destinationId] ?? orbitMap['dest-leo'];
+  const formFactor: CubeSatFormFactor =
+    volumeUsed_U <= 1.5
+      ? '1.5U'
+      : volumeUsed_U <= 2.5
+        ? '2U'
+        : volumeUsed_U <= 4.5
+          ? '3U'
+          : 'CUSTOM';
+
+  return {
+    altitudeKm: orbit.altitudeKm,
+    inclinationDeg: orbit.inclinationDeg,
+    formFactor,
+  };
+}
+
 type FullDesignDeps = DesignSlice & {
   testing: TestingCampaignState;
   preFlightVerdict: PreFlightVerdict;
   concurrentConflicts: ConcurrentConflict[];
   simulationResult: SimulationResult | null;
+  orbitAltitudeKm: number;
+  orbitInclinationDeg: number;
+  cubesatFormFactor: CubeSatFormFactor;
 };
 
 export const INITIAL_METRICS = evaluateMissionPhysics(DEFAULT_MISSION_SELECTION);
@@ -90,7 +122,10 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
   set,
   get,
 ) => {
-  const applySelection = (nextSelection: MissionSelection) => {
+  const applySelection = (
+    nextSelection: MissionSelection,
+    syncOptions?: { syncOrbit?: boolean; syncFormFactor?: boolean },
+  ) => {
     const nextMetrics = evaluateMissionPhysics(nextSelection);
     const nextScores = computeMissionScores(nextSelection, nextMetrics);
     const nextConflicts = computeConcurrentConflicts(nextSelection, nextMetrics);
@@ -98,6 +133,10 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
       nextMetrics,
       get().testing,
       nextScores.compositeGlobalScore,
+    );
+    const derived = deriveOrbitalDefaults(
+      nextSelection.destinationId,
+      nextMetrics.volume.used_U,
     );
 
     set({
@@ -107,6 +146,13 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
       concurrentConflicts: nextConflicts,
       preFlightVerdict: nextVerdict,
       simulationResult: null,
+      ...(syncOptions?.syncOrbit
+        ? {
+            orbitAltitudeKm: derived.altitudeKm,
+            orbitInclinationDeg: derived.inclinationDeg,
+          }
+        : {}),
+      ...(syncOptions?.syncFormFactor ? { cubesatFormFactor: derived.formFactor } : {}),
     });
   };
 
@@ -127,16 +173,19 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
               ? 'gs-near-earth'
               : 'gs-commercial';
 
-      applySelection({
-        ...get().selection,
-        objectiveId,
-        destinationId: dest.id,
-        groundStationId: gsId,
-      });
+      applySelection(
+        {
+          ...get().selection,
+          objectiveId,
+          destinationId: dest.id,
+          groundStationId: gsId,
+        },
+        { syncOrbit: true, syncFormFactor: true },
+      );
     },
 
     setDestination: (destinationId) => {
-      applySelection({ ...get().selection, destinationId });
+      applySelection({ ...get().selection, destinationId }, { syncOrbit: true });
     },
 
     setGroundStation: (groundStationId) => {
@@ -180,11 +229,17 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
     },
 
     loadPreset: (presetKey) => {
-      applySelection(resolvePresetSelection(presetKey));
+      applySelection(resolvePresetSelection(presetKey), {
+        syncOrbit: true,
+        syncFormFactor: true,
+      });
     },
 
     resetDesign: () => {
-      applySelection(DEFAULT_MISSION_SELECTION);
+      applySelection(DEFAULT_MISSION_SELECTION, {
+        syncOrbit: true,
+        syncFormFactor: true,
+      });
     },
   };
 };

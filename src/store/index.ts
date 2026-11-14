@@ -4,6 +4,7 @@ export {
   type ConcurrentConflict,
 } from './concurrencySlice';
 export {
+  deriveOrbitalDefaults,
   equippedIdForCategory,
   EXTRA_SCENARIO_PRESETS,
   resolvePresetSelection,
@@ -23,6 +24,8 @@ export {
 } from './testingSlice';
 export {
   DEFAULT_MISSION_STATEMENT,
+  DEFAULT_MISSION_STATEMENT_EN,
+  DEFAULT_MISSION_STATEMENT_ES,
   type CubeSatFormFactor,
   type DecisionLogEntry,
   type RandomEventType,

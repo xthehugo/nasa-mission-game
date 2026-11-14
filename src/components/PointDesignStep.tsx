@@ -1,5 +1,5 @@
 import { useMissionStore } from '../store';
-import { playHoloTone } from './holoAudio';
+import { computeTankExtraMassKg, playHoloTone } from './holoAudio';
 
 export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const {
@@ -25,7 +25,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
   const isCadet = experienceMode === 'CADET';
 
   const checkTankSound = (nextFuel: number, nextOx: number) => {
-    const extraKg = ((nextFuel + nextOx - 160) / 100) * Math.max(2, metrics.propellantMass_kg * 0.25);
+    const extraKg = computeTankExtraMassKg(metrics, nextFuel, nextOx);
     const over = metrics.wetMass_kg + extraKg > metrics.launchCapacity_kg;
     playHoloTone(over ? 'ALARM' : 'FILL', soundEnabled);
   };

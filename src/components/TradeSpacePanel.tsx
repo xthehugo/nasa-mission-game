@@ -67,7 +67,9 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 }`}
               >
                 <span>0{i + 1} · {tab.label[language]}</span>
-                <span className="text-[9px] text-[#5FF3FF]">{active ? 'ACTIVO' : ''}</span>
+                <span className="text-[9px] text-[#5FF3FF]">
+                  {active ? (isEs ? 'ACTIVO' : 'ACTIVE') : ''}
+                </span>
               </button>
             );
           })}
@@ -157,7 +159,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 ) : (
                   <>
                     <span>MAX {opt.maxPayloadMass_kg} KG</span>
-                    <span>COFIA {opt.fairingVolume_U}U</span>
+                    <span>{isEs ? 'COFIA' : 'FAIRING'} {opt.fairingVolume_U}U</span>
                   </>
                 )}
                 <span className="text-[#FFC15E]">${opt.cost_MillionsUSD}M</span>

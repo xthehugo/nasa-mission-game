@@ -70,7 +70,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
         <div className="border border-[#5FF3FF]/20 p-2.5 font-mono text-[9.5px] text-slate-300">
           <div className="text-[#FFC15E] uppercase">BENCHMARK: {objective.realWorldBenchmark.missionName}</div>
           <div className="mt-1">
-            MASA {metrics.dryMass.predicted.toFixed(1)} / {objective.realWorldBenchmark.actualMass_kg} KG · ${metrics.cost.totalMillionsUSD.toFixed(1)}M
+            {isEs ? 'MASA' : 'MASS'} {metrics.dryMass.predicted.toFixed(1)} / {objective.realWorldBenchmark.actualMass_kg} KG · ${metrics.cost.totalMillionsUSD.toFixed(1)}M
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
               <div className="flex items-center justify-between font-mono text-[9.5px]">
                 <span className="text-white">T+{dilemma.missionDay}D · {dilemma.title[language]}</span>
                 <span className={hasDecided ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
-                  {hasDecided ? 'OK' : 'ALERTA'}
+                  {hasDecided ? 'OK' : isEs ? 'ALERTA' : 'ALERT'}
                 </span>
               </div>
               <p className="mt-1 text-[11px] font-light text-slate-300">{dilemma.situation[language]}</p>
@@ -149,7 +149,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
         }}
         className="w-full border border-[#FFC15E] bg-[#FFC15E]/15 py-2.5 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase hover:bg-[#FFC15E]/25"
       >
-        {isEs ? 'VER CERTIFICADO NASA Y MEDALLAS' : 'OPEN NASA CERTIFICATE & MEDALS'}
+        {isEs ? 'VER CERTIFICADO ORBITAL FORGE Y MEDALLAS' : 'OPEN MISSION CERTIFICATE & MEDALS'}
       </button>
     </div>
   );

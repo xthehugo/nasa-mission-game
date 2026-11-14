@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { findSubsystemById } from '../engine';
 import { useMissionStore } from '../store';
+import { computeTankExtraMassKg } from './holoAudio';
 
 function WireTank({
   x,
@@ -66,7 +67,11 @@ export function HoloPointTankStage() {
   const isEs = language === 'es';
   const lv = findSubsystemById(selection.launchVehicleId);
 
-  const extraTankMassKg = ((tankFillPercent + oxidizerFillPercent - 160) / 100) * Math.max(2, metrics.propellantMass_kg * 0.25);
+  const extraTankMassKg = computeTankExtraMassKg(
+    metrics,
+    tankFillPercent,
+    oxidizerFillPercent,
+  );
   const liveWetMass = Math.max(1, metrics.wetMass_kg + extraTankMassKg);
   const overMass = liveWetMass > metrics.launchCapacity_kg;
 

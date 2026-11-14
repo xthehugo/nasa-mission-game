@@ -3,6 +3,7 @@ import {
   CommanderHudBanner,
   CommanderOnboardingModal,
   FlightSimulationPanel,
+  HOLO_ANIMATION_PRESETS,
   HoloOrbitStage,
   HoloPointTankStage,
   HoloSpacecraftWireframe,
@@ -96,7 +97,7 @@ export function App() {
               initial={reducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={reducedMotion ? undefined : { opacity: 0 }}
-              transition={{ duration: reducedMotion ? 0 : 0.35 }}
+              transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
               className="w-full"
             >
               {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (

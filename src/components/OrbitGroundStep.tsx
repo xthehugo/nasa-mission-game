@@ -6,10 +6,10 @@ import {
 import { useMissionStore } from '../store';
 import { playHoloTone } from './holoAudio';
 
-const PRESET_INCLINATIONS = [
-  { deg: 0, label: '0° ECU' },
-  { deg: 51.6, label: '51.6° ISS' },
-  { deg: 98, label: '98° SSO' },
+const PRESET_INCLINATIONS: { deg: number; label: { en: string; es: string } }[] = [
+  { deg: 0, label: { en: '0° EQU', es: '0° ECU' } },
+  { deg: 51.6, label: { en: '51.6° ISS', es: '51.6° ISS' } },
+  { deg: 98, label: { en: '98° SSO', es: '98° SSO' } },
 ];
 
 export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
@@ -26,6 +26,12 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
 
   const isEs = language === 'es';
   const objective = findObjectiveById(selection.objectiveId);
+  const isGeocentric =
+    selection.destinationId === 'dest-leo' || selection.destinationId === 'dest-geo';
+  const minAlt = isGeocentric ? 250 : 100;
+  const maxAlt = isGeocentric ? 35786 : 2000;
+  const stepAlt = isGeocentric ? 50 : 25;
+  const clampedAlt = Math.max(minAlt, Math.min(maxAlt, orbitAltitudeKm));
 
   if (zone === 'LEFT') {
     return (
@@ -36,21 +42,29 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
 
         <div className="border border-[#5FF3FF]/25 p-3">
           <div className="flex justify-between font-mono text-[10px] uppercase">
-            <span className="text-slate-400">{isEs ? 'ALTITUD' : 'ALTITUDE'}</span>
-            <span className="text-[#5FF3FF]">{orbitAltitudeKm} KM</span>
+            <span className="text-slate-400">
+              {isGeocentric
+                ? isEs
+                  ? 'ALTITUD'
+                  : 'ALTITUDE'
+                : isEs
+                  ? 'PERIAPSIS DESTINO'
+                  : 'TARGET ALTITUDE'}
+            </span>
+            <span className="text-[#5FF3FF]">{clampedAlt.toLocaleString()} KM</span>
           </div>
           <input
             type="range"
-            min={250}
-            max={35786}
-            step={50}
-            value={orbitAltitudeKm}
+            min={minAlt}
+            max={maxAlt}
+            step={stepAlt}
+            value={clampedAlt}
             onChange={(e) => setOrbitParams(Number(e.target.value), orbitInclinationDeg)}
             className="mt-2 w-full accent-[#5FF3FF]"
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-slate-500">
-            <span>LEO 250 KM</span>
-            <span>GEO 35,786 KM</span>
+            <span>{isGeocentric ? 'LEO 250 KM' : 'ORBIT 100 KM'}</span>
+            <span>{isGeocentric ? 'GEO 35,786 KM' : 'APO 2,000 KM'}</span>
           </div>
         </div>
 
@@ -65,7 +79,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             max={98}
             step={0.5}
             value={orbitInclinationDeg}
-            onChange={(e) => setOrbitParams(orbitAltitudeKm, Number(e.target.value))}
+            onChange={(e) => setOrbitParams(clampedAlt, Number(e.target.value))}
             className="mt-2 w-full accent-[#FFC15E]"
           />
           <div className="mt-2 grid grid-cols-3 gap-1.5">
@@ -74,16 +88,27 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 key={p.deg}
                 type="button"
                 onClick={() => {
-                  setOrbitParams(orbitAltitudeKm, p.deg);
+                  setOrbitParams(clampedAlt, p.deg);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className="border border-[#5FF3FF]/25 py-1 font-mono text-[9px] text-slate-300 hover:border-[#5FF3FF] hover:text-white"
               >
-                {p.label}
+                {p.label[language]}
               </button>
             ))}
           </div>
         </div>
+
+        {selection.destinationId === 'dest-geo' && (
+          <div className="border border-[#5FF3FF]/45 bg-[#5FF3FF]/8 p-3 font-mono text-[9.5px] leading-relaxed">
+            <div className="font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
+              NASA GMAT R2026a VERIFIED
+            </div>
+            <div className="mt-1 text-slate-200">
+              TOI +2,240 m/s · GOI +1,433 m/s · ΔV 3,673 m/s (12 iter DC)
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -104,8 +129,6 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 type="button"
                 onClick={() => {
                   setDestination(dest.id);
-                  if (dest.id === 'dest-geo') setOrbitParams(35786, 0);
-                  else if (dest.id === 'dest-leo') setOrbitParams(500, 51.6);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className={`w-full border p-2.5 text-left transition ${

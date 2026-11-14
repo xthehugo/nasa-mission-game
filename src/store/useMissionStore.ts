@@ -48,6 +48,7 @@ const memoryFallback = new Map<string, string>();
 
 const safeStorage: StateStorage = {
   getItem: (name) => {
+    if (typeof window === 'undefined') return memoryFallback.get(name) ?? null;
     try {
       return window.localStorage.getItem(name);
     } catch (error) {
@@ -56,6 +57,10 @@ const safeStorage: StateStorage = {
     }
   },
   setItem: (name, value) => {
+    if (typeof window === 'undefined') {
+      memoryFallback.set(name, value);
+      return;
+    }
     try {
       window.localStorage.setItem(name, value);
     } catch (error) {
@@ -64,6 +69,10 @@ const safeStorage: StateStorage = {
     }
   },
   removeItem: (name) => {
+    if (typeof window === 'undefined') {
+      memoryFallback.delete(name);
+      return;
+    }
     try {
       window.localStorage.removeItem(name);
     } catch (error) {
@@ -138,8 +147,8 @@ export const useMissionStore = create<MissionStoreState>()(
           phase: 'CML_1',
           maxUnlockedLevel: 1,
           activeRandomEvent: 'NONE',
-          orbitAltitudeKm: 500,
-          orbitInclinationDeg: 51.6,
+          orbitAltitudeKm: 550,
+          orbitInclinationDeg: 97.6,
           tankFillPercent: 80,
           oxidizerFillPercent: 80,
           batteryChargePercent: 90,
@@ -153,7 +162,7 @@ export const useMissionStore = create<MissionStoreState>()(
       },
     }),
     {
-      name: 'orbital-forge-mission-store-v2',
+      name: 'orbital-forge-mission-store-v3',
       storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         language: state.language,

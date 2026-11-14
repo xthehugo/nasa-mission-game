@@ -1,6 +1,11 @@
 import { motion } from 'framer-motion';
 import { useMissionStore } from '../store';
-import { computeLevelStars } from './holoAudio';
+import { computeLevelStars, computeTankExtraMassKg } from './holoAudio';
+import {
+  COMMANDER_PHASE_BEATS,
+  formatCommanderBeat,
+  HOLO_ANIMATION_PRESETS,
+} from './narrativeConfig';
 
 export function CommanderHudBanner() {
   const {
@@ -21,8 +26,7 @@ export function CommanderHudBanner() {
   const isCadet = experienceMode === 'CADET';
   const extraKg =
     phase === 'CML_4'
-      ? ((tankFillPercent + oxidizerFillPercent - 160) / 100) *
-        Math.max(2, metrics.propellantMass_kg * 0.25)
+      ? computeTankExtraMassKg(metrics, tankFillPercent, oxidizerFillPercent)
       : 0;
   const starInfo = computeLevelStars(
     metrics,
@@ -69,27 +73,11 @@ export function CommanderHudBanner() {
             ? `EVENTO: Penalización térmica (+8% masa). Vigila el límite del lanzador.`
             : `EVENT: Thermal mass penalty (+8% mass). Watch launch cap.`;
   } else if (isCadet) {
-    const byPhase = {
-      CML_1: isEs
-        ? `Comandante ${commanderName}, ajusta el chasis en alambre y define la misión de ${missionCustomName}.`
-        : `Commander ${commanderName}, size the wireframe chassis and define ${missionCustomName}.`,
-      CML_2: isEs
-        ? `Arrastra altitud e inclinación para ver cómo cambia el periodo orbital en vivo.`
-        : `Drag altitude and inclination sliders to watch orbital period respond live.`,
-      CML_3: isEs
-        ? `Compara los 3 hologramas superiores y optimiza los 7 subsistemas sin perder estrellas.`
-        : `Compare the 3 top holograms and balance all 7 subsystems cleanly.`,
-      CML_4: isEs
-        ? `Llena los tanques de combustible y oxidante vigilando no pasar el límite del cohete.`
-        : `Fill propellant and oxidizer tanks without exceeding launcher mass.`,
-      CML_5: isEs
-        ? `El escáner láser audita cada pieza. Mantén márgenes ≥35% y firma la autorización MCR.`
-        : `Laser V&V audits every subsystem. Reach ≥35% margins and hold to sign MCR.`,
-      SIMULATION: isEs
-        ? `Inicia el lanzamiento y resuelve las 3 crisis orbitales para ganar las 3 estrellas.`
-        : `Launch sequence ready. Resolve all 3 flight crises to claim 3 stars.`,
-    };
-    vegaText = byPhase[phase];
+    vegaText = formatCommanderBeat(
+      COMMANDER_PHASE_BEATS[phase].cadetScript[language],
+      commanderName,
+      missionCustomName,
+    );
   } else {
     vegaText = `CMDR ${commanderName} // MASS ${metrics.dryMass.marginPercent.toFixed(1)}% · EPS ${metrics.power.marginPercent.toFixed(1)}% · RF ${metrics.telecom.linkMargin_dB.toFixed(1)}dB · ${concurrentConflicts.length} CONFLICTS.`;
   }
@@ -113,7 +101,10 @@ export function CommanderHudBanner() {
                   stroke="#5FF3FF"
                   strokeWidth="1"
                   animate={{ y2: [38, 41 - idx, 38] }}
-                  transition={{ repeat: Infinity, duration: 0.9 + idx * 0.15 }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: HOLO_ANIMATION_PRESETS.voicePulseDurationSec + idx * 0.15,
+                  }}
                 />
               ))}
           </svg>
@@ -125,7 +116,7 @@ export function CommanderHudBanner() {
               {isEs ? 'COMANDANTE VEGA · CANAL EN VIVO' : 'COMMANDER VEGA · LIVE LINK'}
             </span>
             <span className={overMass || powerDeficit || rfRed ? 'text-[#FF4D6D]' : 'text-slate-400'}>
-              {isCadet ? 'CADETE' : 'JPL HARDCORE'}
+              {isCadet ? (isEs ? 'CADETE' : 'CADET') : 'JPL HARDCORE'}
             </span>
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-slate-200">{vegaText}</p>

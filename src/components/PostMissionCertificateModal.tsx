@@ -86,11 +86,13 @@ export function PostMissionCertificateModal() {
       .map((b) => `- ${b.title[language]} (${b.desc[language]})`)
       .join('\n');
     const summaryText = [
-      'ORBITAL FORGE — NASA SPACE APPS 2026 MISSION ARCHITECT CERTIFICATE',
+      'ORBITAL FORGE — MISSION ARCHITECT CERTIFICATE (JPL CML 1-5 EDUCATIONAL STANDARD)',
       `Commander: CMDR ${commanderName} | Mission: ${missionCustomName} | Mode: ${experienceMode}`,
       `Final Grade: ${simulationResult.overallGrade} (Science ${simulationResult.scienceScore}/100, Global P ${scores.compositeGlobalScore})`,
-      `NASA Benchmark: ${objective.realWorldBenchmark.missionName}`,
+      `Reference Benchmark: ${objective.realWorldBenchmark.missionName}`,
       `Dry Mass: ${metrics.dryMass.predicted.toFixed(1)} kg | Power: ${metrics.power.generatedAtDestination_W.toFixed(1)} W | Cost: $${metrics.cost.totalMillionsUSD.toFixed(1)}M`,
+      '',
+      'Open-Data Attribution: Grounded in NASA JPL CML, CubeSat 101, NASA GMAT R2026a & CSA open resources (Non-official educational credential).',
       '',
       'Medals Unlocked:',
       earnedNames || '- Mission Participant',
@@ -104,7 +106,7 @@ export function PostMissionCertificateModal() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `NASA-Orbital-Forge-${missionCustomName.replace(/\s+/g, '-')}.txt`;
+      link.download = `ORBITAL-FORGE-${missionCustomName.replace(/\s+/g, '-')}-Certificate.txt`;
       link.click();
       URL.revokeObjectURL(url);
       setDownloaded(true);
@@ -131,7 +133,9 @@ export function PostMissionCertificateModal() {
             <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-300">
-                  {isEs ? 'Certificado de Arquitecto de Misión NASA' : 'NASA Mission Architect Certificate'}
+                  {isEs
+                    ? 'Certificado de Arquitecto de Misión ORBITAL FORGE (Estándar JPL CML)'
+                    : 'ORBITAL FORGE Mission Architect Certificate (JPL CML Standard)'}
                 </span>
                 <h2 className="mt-1 text-xl font-black text-white">CMDR {commanderName} · {missionCustomName}</h2>
                 <p className="mt-0.5 font-mono text-xs text-cyan-300">
@@ -191,10 +195,23 @@ export function PostMissionCertificateModal() {
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4">
+              <span className="max-w-md font-mono text-[10px] leading-relaxed text-slate-400">
+                {isEs
+                  ? 'Credencial educativa basada en datos abiertos NASA JPL CML, CubeSat 101, CSA y NASA GMAT R2026a (no oficial).'
+                  : 'Grounded in NASA JPL CML, CubeSat 101, CSA & GMAT R2026a Open Data — Non-official educational credential.'}
+              </span>
               <button type="button" onClick={handleDownloadCertificate} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2.5 text-xs font-black text-slate-950">
                 {downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
-                <span>{downloaded ? (isEs ? 'Certificado Descargado' : 'Certificate Downloaded') : isEs ? 'Descargar Certificado NASA (.txt)' : 'Download NASA Certificate (.txt)'}</span>
+                <span>
+                  {downloaded
+                    ? isEs
+                      ? 'Certificado Descargado'
+                      : 'Certificate Downloaded'
+                    : isEs
+                      ? 'Descargar Certificado ORBITAL FORGE (.txt)'
+                      : 'Download ORBITAL FORGE Certificate (.txt)'}
+                </span>
               </button>
             </div>
           </motion.div>

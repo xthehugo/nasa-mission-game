@@ -23,6 +23,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     experienceMode,
     cubesatFormFactor,
     selection,
+    metrics,
     soundEnabled,
     setCubesatFormFactor,
     setSubsystem,
@@ -37,8 +38,11 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     return (
       <div className="space-y-4">
         <div>
-          <div className="mb-2 font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
-            {isEs ? 'PASO 1 · CHASIS' : 'STEP 1 · CHASSIS'}
+          <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[10px] tracking-[0.14em] uppercase">
+            <span className="text-slate-400">{isEs ? 'PASO 1 · CHASIS' : 'STEP 1 · CHASSIS'}</span>
+            <span className={metrics.volume.isCompliant ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
+              {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
+            </span>
           </div>
           <div className="space-y-1">
             {CHASSIS_OPTS.map((ch) => {

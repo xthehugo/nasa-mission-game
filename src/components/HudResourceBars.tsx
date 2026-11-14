@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useMissionStore } from '../store';
 import type { MCRStatus } from '../types/mission';
+import { computeTankExtraMassKg } from './holoAudio';
 
 function lineColor(status: MCRStatus, amberDefault = false): string {
   if (status === 'RED') return 'bg-[#FF4D6D] shadow-[0_0_8px_#FF4D6D]';
@@ -58,8 +59,7 @@ export function HudResourceBars() {
   const isEs = language === 'es';
   const extraKg =
     phase === 'CML_4'
-      ? ((tankFillPercent + oxidizerFillPercent - 160) / 100) *
-        Math.max(2, metrics.propellantMass_kg * 0.25)
+      ? computeTankExtraMassKg(metrics, tankFillPercent, oxidizerFillPercent)
       : 0;
   const liveMass = Math.max(1, metrics.wetMass_kg + extraKg);
   const massPct = (liveMass / Math.max(1, metrics.launchCapacity_kg)) * 100;

@@ -1,7 +1,6 @@
-import { findDestinationById, PRESET_MISSION_SELECTIONS } from '../engine';
 import { useMissionStore } from '../store';
 import type { CMLPhase } from '../types/mission';
-import { computeLevelStars, playHoloTone } from './holoAudio';
+import { computeLevelStars, computeTankExtraMassKg, playHoloTone } from './holoAudio';
 
 const LEVEL_META: Record<
   CMLPhase,
@@ -49,15 +48,13 @@ export function TopBar() {
     toggleReducedMotion,
     toggleSound,
     resetAllMission,
-    setOrbitParams,
   } = useMissionStore();
 
   const isEs = language === 'es';
   const meta = LEVEL_META[phase];
   const extraKg =
     phase === 'CML_4'
-      ? ((tankFillPercent + oxidizerFillPercent - 160) / 100) *
-        Math.max(2, metrics.propellantMass_kg * 0.25)
+      ? computeTankExtraMassKg(metrics, tankFillPercent, oxidizerFillPercent)
       : 0;
   const starInfo = computeLevelStars(
     metrics,
@@ -107,7 +104,7 @@ export function TopBar() {
             }}
             className="border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2.5 py-1 text-[#5FF3FF]"
           >
-            {experienceMode === 'CADET' ? 'CADETE' : 'JPL HARDCORE'}
+            {experienceMode === 'CADET' ? (isEs ? 'CADETE' : 'CADET') : 'JPL HARDCORE'}
           </button>
 
           <select
@@ -118,11 +115,6 @@ export function TopBar() {
               if (!key) return;
               loadPreset(key);
               unlockAllLevels();
-              const preset = PRESET_MISSION_SELECTIONS[key];
-              if (preset) {
-                const d = findDestinationById(preset.destinationId);
-                setOrbitParams(d.id === 'dest-geo' ? 35786 : 500, d.id === 'dest-geo' ? 0 : 51.6);
-              }
               playHoloTone('STEP', soundEnabled);
               e.target.value = '';
             }}

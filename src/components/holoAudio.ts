@@ -39,6 +39,17 @@ export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
   }
 }
 
+export function computeTankExtraMassKg(
+  metrics: PhysicsMetrics,
+  tankFillPercent: number,
+  oxidizerFillPercent: number,
+): number {
+  return (
+    ((tankFillPercent + oxidizerFillPercent - 160) / 100) *
+    Math.max(2, metrics.propellantMass_kg * 0.25)
+  );
+}
+
 export interface LevelStarsSummary {
   stars: number;
   marginOk: boolean;

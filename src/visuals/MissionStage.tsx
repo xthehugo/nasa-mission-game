@@ -14,6 +14,7 @@ interface Props {
 }
 
 type Stage = 'IDLE' | 'COUNTDOWN' | 'LAUNCH_ASCENT' | 'FAILURE' | 'CRUISE' | 'ORBIT_INSERTION';
+type EmbeddedView = 'SPLIT' | 'MAP' | 'BLUEPRINT';
 
 const COUNTDOWN_MS = 3000;
 const ASCENT_MS = 6000;
@@ -24,6 +25,9 @@ const T = {
     launch: '🚀 LAUNCH',
     launchAnyway: 'LAUNCH ANYWAY',
     reset: '↺ RESET',
+    viewSplit: 'SPLIT VIEW',
+    viewMap: 'ORBITAL MAP',
+    viewAscent: 'ASCENT & FAIRING',
     alt: 'Altitude',
     vel: 'Velocity',
     dv: 'ΔV used / required',
@@ -51,6 +55,9 @@ const T = {
     launch: '🚀 LANZAR',
     launchAnyway: 'LANZAR DE TODAS FORMAS',
     reset: '↺ REINICIAR',
+    viewSplit: 'VISTA DUAL',
+    viewMap: 'MAPA ORBITAL',
+    viewAscent: 'ASCENSO Y COFIA',
     alt: 'Altitud',
     vel: 'Velocidad',
     dv: 'ΔV usado / requerido',
@@ -134,6 +141,7 @@ export default function MissionStage({
   const anomalyLesson = fairingOverflow ? t.lessonFairing : t.lessonMass;
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
+  const [embeddedView, setEmbeddedView] = useState<EmbeddedView>('SPLIT');
 
   useEffect(() => {
     if (startedAt === null) return;
@@ -226,7 +234,7 @@ export default function MissionStage({
   };
 
   const titleColor =
-    stage === 'ORBIT_INSERTION' ? '#4ade80' : stage === 'FAILURE' ? '#f87171' : '#e2e8f0';
+    stage === 'ORBIT_INSERTION' ? '#5FF3FF' : stage === 'FAILURE' ? '#FF4D6D' : '#e2e8f0';
 
   const shipAnimation =
     stage === 'LAUNCH_ASCENT'
@@ -237,13 +245,18 @@ export default function MissionStage({
         ? 'failFall 2.5s ease-in forwards'
         : 'none';
 
+  const showMap = !embedded || embeddedView !== 'BLUEPRINT';
+  const showBlueprint = !embedded || embeddedView !== 'MAP';
+
   return (
     <div
       style={{
         position: 'relative',
-        minHeight: embedded ? '100%' : '100vh',
+        minHeight: embedded ? 440 : '100vh',
         overflow: 'hidden',
-        background: 'radial-gradient(ellipse at 50% 0%, #0b1a3a 0%, #020617 70%)',
+        background: embedded
+          ? 'radial-gradient(ellipse at 50% 45%, rgba(95,243,255,0.08) 0%, #04080F 72%)'
+          : 'radial-gradient(ellipse at 50% 0%, #0b1a3a 0%, #020617 70%)',
         color: '#fff',
       }}
     >
@@ -260,7 +273,7 @@ export default function MissionStage({
             height: l.size,
             borderRadius: '50%',
             boxShadow: l.shadow,
-            opacity: l.op,
+            opacity: embedded ? l.op * 0.65 : l.op,
             animation: `starScroll ${l.dur}s linear infinite`,
           }}
         />
@@ -272,34 +285,84 @@ export default function MissionStage({
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: embedded ? '100%' : '100vh',
-          padding: 16,
-          gap: 16,
+          minHeight: embedded ? 440 : '100vh',
+          padding: embedded ? 12 : 16,
+          gap: embedded ? 12 : 16,
         }}
       >
         {/* Barra superior */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 12, letterSpacing: 4, color: '#64748b' }}>ORBITAL FORGE</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: titleColor }}>{t.phases[stage]}</div>
-            {stage === 'ORBIT_INSERTION' && <div style={{ fontSize: 12, color: '#4ade80' }}>{t.orbitOk}</div>}
+            {!embedded && (
+              <div style={{ fontSize: 12, letterSpacing: 4, color: '#64748b' }}>ORBITAL FORGE</div>
+            )}
+            <div
+              className={embedded ? 'font-mono tracking-[0.12em] uppercase' : undefined}
+              style={{ fontSize: embedded ? 14 : 22, fontWeight: 700, color: titleColor }}
+            >
+              {t.phases[stage]}
+            </div>
+            {stage === 'ORBIT_INSERTION' && (
+              <div className={embedded ? 'font-mono text-[11px]' : undefined} style={{ fontSize: embedded ? 11 : 12, color: '#5FF3FF' }}>
+                {t.orbitOk}
+              </div>
+            )}
             {stage === 'IDLE' && failed && (
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#f87171' }}>
+              <div style={{ fontSize: embedded ? 11 : 13, fontWeight: 700, color: '#FF4D6D' }}>
                 {nogoMessage}
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
             {controls}
+            {embedded && (
+              <div className="flex border border-[#5FF3FF]/25 bg-[#04080F]/90 p-0.5 font-mono text-[9.5px]">
+                {(
+                  [
+                    ['SPLIT', t.viewSplit],
+                    ['MAP', t.viewMap],
+                    ['BLUEPRINT', t.viewAscent],
+                  ] as const
+                ).map(([viewKey, label]) => (
+                  <button
+                    key={viewKey}
+                    type="button"
+                    onClick={() => setEmbeddedView(viewKey)}
+                    className={`px-2 py-1 transition ${
+                      embeddedView === viewKey
+                        ? 'bg-[#5FF3FF]/15 text-[#5FF3FF]'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <button
+              type="button"
               onClick={toggle}
+              className={embedded ? 'font-mono text-[10px] tracking-[0.14em] uppercase' : undefined}
               style={{
-                padding: '8px 18px',
-                borderRadius: 8,
+                padding: embedded ? '6px 12px' : '8px 18px',
+                borderRadius: embedded ? 2 : 8,
                 fontWeight: 700,
-                background: startedAt !== null ? '#334155' : failed ? '#7f1d1d' : '#ef4444',
-                border: startedAt === null && failed ? '1px solid #f87171' : '1px solid transparent',
-                color: '#fff',
+                background:
+                  startedAt !== null
+                    ? '#1e293b'
+                    : failed
+                      ? 'rgba(255,77,109,0.2)'
+                      : embedded
+                        ? 'rgba(95,243,255,0.16)'
+                        : '#ef4444',
+                border:
+                  startedAt === null && failed
+                    ? '1px solid #FF4D6D'
+                    : embedded
+                      ? '1px solid #5FF3FF'
+                      : '1px solid transparent',
+                color: startedAt === null && failed ? '#FF4D6D' : embedded ? '#5FF3FF' : '#fff',
                 cursor: 'pointer',
               }}
             >
@@ -310,109 +373,153 @@ export default function MissionStage({
 
         {/* Centro: mapa + nave */}
         <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 32,
-          }}
-        >
-          <div
-            style={{
-              width: 'min(92vw, 560px)',
-              borderRadius: 12,
-              transition: 'opacity 1s, filter 1s, box-shadow 1s',
-              opacity: dim ? 0.3 : 1,
-              filter: dim ? 'blur(1px)' : 'none',
-              boxShadow: stage === 'ORBIT_INSERTION' ? '0 0 40px rgba(56,189,248,0.35)' : 'none',
-            }}
-          >
-            <OrbitalMapVisualizer
-              destination={destination}
-              lang={lang}
-              className="max-w-none"
-              progress={stage === 'CRUISE' ? cruiseEased : stage === 'ORBIT_INSERTION' ? 1 : null}
-            />
-          </div>
-
-          <div style={{ position: 'relative', width: 'min(92vw, 420px)', transform: `translateY(${-ascent * 30}px)` }}>
-            <div style={{ animation: shipAnimation }}>
-              <SpacecraftBlueprint volume={volume} lang={lang} className="max-w-none" />
-            </div>
-
-            {stage !== 'IDLE' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '12%',
-                  left: '100%',
-                  marginLeft: 12,
-                  width: 170,
+          className={
+            embedded
+              ? `grid flex-1 items-center gap-3 ${
+                  embeddedView === 'SPLIT' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'
+                }`
+              : undefined
+          }
+          style={
+            embedded
+              ? undefined
+              : {
+                  flex: 1,
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  animation: 'slideIn .6s ease-out',
-                }}
-              >
-                {cards.map(([label, value]) => (
-                  <div
-                    key={label}
-                    style={{
-                      background: 'rgba(30,41,59,0.8)',
-                      borderLeft: `3px solid ${stage === 'FAILURE' ? '#ef4444' : '#38bdf8'}`,
-                      borderRadius: 8,
-                      padding: '6px 10px',
-                    }}
-                  >
-                    <div style={{ fontSize: 10, color: '#94a3b8' }}>{label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700 }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {stage === 'LAUNCH_ASCENT' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '93%',
-                  left: '50%',
-                  marginLeft: -9,
-                  width: 18,
-                  height: 90,
-                  borderRadius: '0 0 50% 50%',
-                  background: 'linear-gradient(#fde68a, #f97316, transparent)',
-                  transformOrigin: 'top',
-                  animation: 'flame .1s infinite',
-                  filter: 'blur(1px)',
-                }}
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 32,
+                }
+          }
+        >
+          {showMap && (
+            <div
+              className={embedded ? 'mx-auto w-full max-w-[440px]' : undefined}
+              style={{
+                width: embedded ? '100%' : 'min(92vw, 560px)',
+                borderRadius: embedded ? 6 : 12,
+                transition: 'opacity 1s, filter 1s, box-shadow 1s',
+                opacity: dim ? 0.3 : 1,
+                filter: dim ? 'blur(1px)' : 'none',
+                boxShadow: stage === 'ORBIT_INSERTION' ? '0 0 36px rgba(95,243,255,0.28)' : 'none',
+              }}
+            >
+              <OrbitalMapVisualizer
+                destination={destination}
+                lang={lang}
+                className="max-w-none"
+                progress={stage === 'CRUISE' ? cruiseEased : stage === 'ORBIT_INSERTION' ? 1 : null}
               />
-            )}
+            </div>
+          )}
 
-            {/* Pedazos de la cofia al explotar */}
-            {stage === 'FAILURE' &&
-              DEBRIS.map((d, i) => (
+          {showBlueprint && (
+            <div
+              className={embedded ? 'mx-auto w-full max-w-[300px]' : undefined}
+              style={{
+                position: 'relative',
+                width: embedded ? '100%' : 'min(92vw, 420px)',
+                transform: `translateY(${-ascent * (embedded ? 16 : 30)}px)`,
+              }}
+            >
+              <div style={{ animation: shipAnimation }}>
+                <SpacecraftBlueprint volume={volume} lang={lang} className="max-w-none" />
+              </div>
+
+              {!embedded && stage !== 'IDLE' && (
                 <div
-                  key={i}
-                  style={
-                    {
-                      position: 'absolute',
-                      top: '45%',
-                      left: '50%',
-                      width: d.s,
-                      height: d.s,
-                      background: i % 2 ? '#f97316' : '#ef4444',
-                      '--dx': `${d.dx}px`,
-                      '--dy': `${d.dy}px`,
-                      animation: 'debris 1.6s ease-out forwards',
-                    } as CSSProperties
-                  }
+                  style={{
+                    position: 'absolute',
+                    top: '12%',
+                    left: '100%',
+                    marginLeft: 12,
+                    width: 170,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                    animation: 'slideIn .6s ease-out',
+                  }}
+                >
+                  {cards.map(([label, value]) => (
+                    <div
+                      key={label}
+                      style={{
+                        background: 'rgba(30,41,59,0.8)',
+                        borderLeft: `3px solid ${stage === 'FAILURE' ? '#ef4444' : '#38bdf8'}`,
+                        borderRadius: 8,
+                        padding: '6px 10px',
+                      }}
+                    >
+                      <div style={{ fontSize: 10, color: '#94a3b8' }}>{label}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {stage === 'LAUNCH_ASCENT' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '93%',
+                    left: '50%',
+                    marginLeft: -9,
+                    width: 18,
+                    height: 90,
+                    borderRadius: '0 0 50% 50%',
+                    background: 'linear-gradient(#fde68a, #f97316, transparent)',
+                    transformOrigin: 'top',
+                    animation: 'flame .1s infinite',
+                    filter: 'blur(1px)',
+                  }}
                 />
-              ))}
-          </div>
+              )}
+
+              {/* Pedazos de la cofia al explotar */}
+              {stage === 'FAILURE' &&
+                DEBRIS.map((d, i) => (
+                  <div
+                    key={i}
+                    style={
+                      {
+                        position: 'absolute',
+                        top: '45%',
+                        left: '50%',
+                        width: d.s,
+                        height: d.s,
+                        background: i % 2 ? '#f97316' : '#ef4444',
+                        '--dx': `${d.dx}px`,
+                        '--dy': `${d.dy}px`,
+                        animation: 'debris 1.6s ease-out forwards',
+                      } as CSSProperties
+                    }
+                  />
+                ))}
+            </div>
+          )}
         </div>
+
+        {/* Barra inferior de telemetría en modo embebido (evita recorte en columnas laterales) */}
+        {embedded && stage !== 'IDLE' && (
+          <div className="grid grid-cols-2 gap-1.5 border-t border-[#5FF3FF]/20 pt-2.5 sm:grid-cols-3 lg:grid-cols-4">
+            {cards.map(([label, value]) => (
+              <div
+                key={label}
+                className={`border px-2.5 py-1.5 ${
+                  stage === 'FAILURE'
+                    ? 'border-[#FF4D6D]/50 bg-[#04080F]/90'
+                    : 'border-[#5FF3FF]/25 bg-[#04080F]/90'
+                }`}
+              >
+                <div className="font-mono text-[8.5px] tracking-wider text-slate-400 uppercase">
+                  {label}
+                </div>
+                <div className="font-mono text-[11px] font-semibold text-white">{value}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Destello rojo de la falla */}
@@ -435,20 +542,22 @@ export default function MissionStage({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: 28,
+            bottom: 20,
             transform: 'translateX(-50%)',
             zIndex: 6,
-            width: 'min(92vw, 560px)',
+            width: 'min(92%, 560px)',
             textAlign: 'center',
-            background: 'rgba(127,29,29,0.88)',
-            border: '1px solid #f87171',
-            borderRadius: 12,
-            padding: '12px 16px',
+            background: 'rgba(127,29,29,0.9)',
+            border: '1px solid #FF4D6D',
+            borderRadius: embedded ? 4 : 12,
+            padding: '10px 14px',
             animation: 'pop .6s ease-out',
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{anomalyHeadline}</div>
-          <div style={{ fontSize: 13, marginTop: 4, color: '#fecaca' }}>{anomalyLesson}</div>
+          <div style={{ fontSize: embedded ? 14 : 18, fontWeight: 800 }}>{anomalyHeadline}</div>
+          <div style={{ fontSize: embedded ? 11 : 13, marginTop: 4, color: '#fecaca' }}>
+            {anomalyLesson}
+          </div>
         </div>
       )}
 
@@ -468,10 +577,10 @@ export default function MissionStage({
           <div
             key={count}
             style={{
-              fontSize: 'min(40vw, 260px)',
+              fontSize: embedded ? 'min(22vw, 150px)' : 'min(40vw, 260px)',
               fontWeight: 800,
               color: '#f8fafc',
-              textShadow: '0 0 40px #38bdf8',
+              textShadow: '0 0 40px #5FF3FF',
               animation: 'pop .9s ease-out',
             }}
           >

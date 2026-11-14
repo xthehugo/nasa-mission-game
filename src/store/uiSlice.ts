@@ -106,8 +106,11 @@ export interface UISlice {
   triggerRandomEvent: () => void;
 }
 
-export const DEFAULT_MISSION_STATEMENT =
-  'Desplegar un satélite científico autónomo para validar biología orbital y telemetría dentro de márgenes NASA.';
+export const DEFAULT_MISSION_STATEMENT_EN =
+  'Design a 3U CubeSat with ≥ 35% margin to detect environmental changes from LEO.';
+export const DEFAULT_MISSION_STATEMENT_ES =
+  'Diseñar un CubeSat 3U con margen ≥ 35% para detectar cambios ambientales desde LEO.';
+export const DEFAULT_MISSION_STATEMENT = DEFAULT_MISSION_STATEMENT_EN;
 
 export function createInitialDecisionLog(): DecisionLogEntry[] {
   return [
@@ -135,14 +138,14 @@ function formatClock(): string {
 const EVENT_CYCLE: RandomEventType[] = ['NONE', 'BUDGET_CUT', 'SOLAR_STORM', 'MASS_PENALTY'];
 
 export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
-  language: 'es',
+  language: 'en',
   experienceMode: 'CADET',
   phase: 'CML_1',
   maxUnlockedLevel: 1,
   teamMode: 'SOLO',
   activeTeamRole: 'MISSION_LEAD',
-  missionStatement: DEFAULT_MISSION_STATEMENT,
-  cubesatFormFactor: '2U',
+  missionStatement: DEFAULT_MISSION_STATEMENT_EN,
+  cubesatFormFactor: '3U',
   activeSubsystemTab: 'PAYLOAD',
   rightPanelTab: 'ANALYTICS',
   isPitchModalOpen: false,
@@ -155,8 +158,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
 
-  orbitAltitudeKm: 500,
-  orbitInclinationDeg: 51.6,
+  orbitAltitudeKm: 550,
+  orbitInclinationDeg: 97.6,
   tankFillPercent: 80,
   oxidizerFillPercent: 80,
   batteryChargePercent: 90,
@@ -166,7 +169,20 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   soundEnabled: true,
   activeRandomEvent: 'NONE',
 
-  setLanguage: (language) => set({ language }),
+  setLanguage: (language) =>
+    set((s) => {
+      const isDefaultStatement =
+        s.missionStatement === DEFAULT_MISSION_STATEMENT_EN ||
+        s.missionStatement === DEFAULT_MISSION_STATEMENT_ES;
+      return {
+        language,
+        missionStatement: isDefaultStatement
+          ? language === 'es'
+            ? DEFAULT_MISSION_STATEMENT_ES
+            : DEFAULT_MISSION_STATEMENT_EN
+          : s.missionStatement,
+      };
+    }),
   setExperienceMode: (experienceMode) => set({ experienceMode }),
   setPhase: (phase) =>
     set((s) => ({

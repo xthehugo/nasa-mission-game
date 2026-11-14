@@ -43,7 +43,7 @@ export function HoloSpacecraftWireframe() {
   const hasRTG = selection.epsId === 'eps-rtg';
 
   const scanPins = [
-    { id: 'mass', x: 250, y: topY + 24, ok: metrics.dryMass.status === 'GREEN', label: 'MASA', fix: () => { setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9'); playHoloTone('STAR', soundEnabled); } },
+    { id: 'mass', x: 250, y: topY + 24, ok: metrics.dryMass.status === 'GREEN', label: isEs ? 'MASA' : 'MASS', fix: () => { setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9'); playHoloTone('STAR', soundEnabled); } },
     { id: 'eps', x: 355, y: 175, ok: metrics.power.status === 'GREEN', label: 'EPS', fix: () => { setSubsystem('EPS', 'eps-megaflex'); playHoloTone('STAR', soundEnabled); } },
     { id: 'rf', x: 250, y: topY - 12, ok: metrics.telecom.status === 'GREEN', label: 'RF', fix: () => { setSubsystem('TELECOM', 'telecom-xka'); playHoloTone('STAR', soundEnabled); } },
   ];

@@ -2,8 +2,13 @@ import { motion } from 'framer-motion';
 import { findDestinationById, findGroundStationById } from '../engine';
 import { useMissionStore } from '../store';
 
-const MU_EARTH_KM3_S2 = 398600.44;
-const EARTH_RADIUS_KM = 6371;
+const BODY_GRAVITY: Record<string, { muKm3S2: number; radiusKm: number }> = {
+  'dest-leo': { muKm3S2: 398600.44, radiusKm: 6371 },
+  'dest-geo': { muKm3S2: 398600.44, radiusKm: 6371 },
+  'dest-moon': { muKm3S2: 4902.8, radiusKm: 1737.4 },
+  'dest-mars': { muKm3S2: 42828.37, radiusKm: 3389.5 },
+  'dest-jupiter': { muKm3S2: 126686534, radiusKm: 69911 },
+};
 
 export function HoloOrbitStage() {
   const {
@@ -18,20 +23,30 @@ export function HoloOrbitStage() {
   const isEs = language === 'es';
   const dest = findDestinationById(selection.destinationId);
   const gs = findGroundStationById(selection.groundStationId);
+  const isGeo = selection.destinationId === 'dest-geo';
+  const body = BODY_GRAVITY[selection.destinationId] ?? BODY_GRAVITY['dest-leo'];
 
-  const semiMajorKm = EARTH_RADIUS_KM + orbitAltitudeKm;
+  const semiMajorKm = body.radiusKm + orbitAltitudeKm;
   const periodMin =
-    (2 * Math.PI * Math.sqrt(Math.pow(semiMajorKm, 3) / MU_EARTH_KM3_S2)) / 60;
-  const velocityKms = Math.sqrt(MU_EARTH_KM3_S2 / semiMajorKm);
+    (2 * Math.PI * Math.sqrt(Math.pow(semiMajorKm, 3) / body.muKm3S2)) / 60;
+  const velocityKms = Math.sqrt(body.muKm3S2 / semiMajorKm);
 
-  const normRadius = Math.min(1, Math.log10(Math.max(200, orbitAltitudeKm) / 180) / 2.35);
-  const rx = 86 + normRadius * 128;
-  const ry = Math.max(26, rx * (0.28 + Math.abs(Math.sin((orbitInclinationDeg * Math.PI) / 180)) * 0.34));
+  const normRadius = Math.min(1, Math.log10(Math.max(100, orbitAltitudeKm) / 90) / 2.6);
+  const rx = 86 + normRadius * 124;
+  const ry = Math.max(
+    28,
+    rx * (isGeo ? 0.42 : 0.28 + Math.abs(Math.sin((orbitInclinationDeg * Math.PI) / 180)) * 0.34),
+  );
   const rfAlert = metrics.telecom.status === 'RED';
+
+  // GMAT R2026a Hohmann transfer ellipse geometry (LEO r=68 -> GEO rx)
+  const rLeoPx = 68;
+  const hohmannRx = (rLeoPx + rx) / 2;
+  const hohmannRy = Math.sqrt(rLeoPx * rx) * 0.56;
 
   return (
     <div className="flex w-full flex-col items-center">
-      <svg viewBox="0 0 500 320" className="h-[300px] w-full max-w-[540px] sm:h-[345px]">
+      <svg viewBox="0 0 500 325" className="h-[300px] w-full max-w-[540px] sm:h-[345px]">
         <defs>
           <filter id="orbitGlow">
             <feGaussianBlur stdDeviation="2" result="blur" />
@@ -52,7 +67,38 @@ export function HoloOrbitStage() {
         </g>
 
         {/* Inclined Dynamic Wireframe Orbit */}
-        <g transform={`rotate(${orbitInclinationDeg * 0.45 - 22} 250 155)`}>
+        <g transform={`rotate(${isGeo ? -8 : orbitInclinationDeg * 0.45 - 22} 250 155)`}>
+          {isGeo && (
+            <>
+              <ellipse
+                cx="250"
+                cy="155"
+                rx={rLeoPx}
+                ry={rLeoPx * 0.42}
+                fill="none"
+                stroke="#5FF3FF"
+                strokeOpacity="0.35"
+                strokeDasharray="3 3"
+              />
+              <path
+                d={`M ${250 + rLeoPx} 155 A ${hohmannRx} ${hohmannRy} 0 0 0 ${250 - rx} 155`}
+                fill="none"
+                stroke="#38bdf8"
+                strokeWidth="1.4"
+                strokeDasharray="5 3"
+                opacity="0.9"
+              />
+              <circle cx={250 + rLeoPx} cy="155" r="4" fill="#f97316" filter="url(#orbitGlow)" />
+              <text x={250 + rLeoPx + 6} y="168" className="font-mono text-[8px]" fill="#FFC15E">
+                TOI +2,240 m/s
+              </text>
+              <circle cx={250 - rx} cy="155" r="4" fill="#22c55e" filter="url(#orbitGlow)" />
+              <text x={250 - rx + 6} y="145" className="font-mono text-[8px]" fill="#86efac">
+                GOI +1,433 m/s
+              </text>
+            </>
+          )}
+
           <ellipse
             cx="250"
             cy="155"
@@ -100,7 +146,9 @@ export function HoloOrbitStage() {
             {dest.name[language].toUpperCase()} · {gs.name[language].toUpperCase()}
           </text>
           <text x="250" y="310" textAnchor="middle" fill={rfAlert ? '#FF4D6D' : '#FFC15E'}>
-            {isEs ? 'PERIODO' : 'PERIOD'} {periodMin.toFixed(0)} MIN · {velocityKms.toFixed(2)} KM/S · ΔV {dest.requiredDeltaV_ms} M/S · ECLIPSE {Math.round(dest.eclipseFraction * 100)}%
+            {isGeo
+              ? `GMAT R2026a HOHMANN · ΔV ${dest.requiredDeltaV_ms.toLocaleString()} M/S · PERIOD ${periodMin.toFixed(0)} MIN`
+              : `${isEs ? 'PERIODO' : 'PERIOD'} ${periodMin.toFixed(0)} MIN · ${velocityKms.toFixed(2)} KM/S · ΔV ${dest.requiredDeltaV_ms} M/S · ECLIPSE ${Math.round(dest.eclipseFraction * 100)}%`}
           </text>
         </g>
       </svg>
