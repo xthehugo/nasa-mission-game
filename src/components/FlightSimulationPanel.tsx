@@ -8,6 +8,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     experienceMode,
     selection,
     metrics,
+    scores,
     concurrentConflicts,
     activeRandomEvent,
     resolvedCrises,
@@ -29,6 +30,8 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
 
   if (!simulationResult) return null;
 
+  const resolvedCount = simulationResult.dilemmas.filter((d) => Boolean(resolvedCrises[d.id])).length;
+
   if (zone === 'LEFT') {
     return (
       <div className="space-y-3">
@@ -41,6 +44,12 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
           </div>
           <div className="mt-1 font-mono text-sm tracking-[0.25em] text-[#FFC15E]">
             {'★'.repeat(starInfo.stars)}{'☆'.repeat(3 - starInfo.stars)}
+          </div>
+          <div className="mt-2 grid grid-cols-4 gap-1 border-t border-[#FFC15E]/20 pt-2 font-mono text-[9px] text-slate-300">
+            <div>S:{scores.scienceReturnScore}</div>
+            <div>M:{scores.engineeringMarginScore}</div>
+            <div>B:{scores.budgetEfficiencyScore}</div>
+            <div className="text-[#5FF3FF]">P:{scores.compositeGlobalScore}</div>
           </div>
         </div>
 
@@ -81,7 +90,9 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     <div className="space-y-3">
       <div className="flex items-center justify-between font-mono text-[10px] uppercase">
         <span className="text-[#FFC15E]">
-          {isEs ? 'CRISIS ORBITALES (3)' : 'ORBITAL CRISES (3)'}
+          {isEs
+            ? `CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
+            : `ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
         </span>
         <span className="text-slate-400">
           {isCadet ? (isEs ? 'PISTAS ON' : 'HINTS ON') : isEs ? 'SIN PISTAS' : 'BLIND CMD'}

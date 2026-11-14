@@ -73,7 +73,38 @@ function OnboardingContent() {
             : 'You are the Flight Commander. Register your spacecraft callsign and choose your CML 1–5 engineering challenge:'}
         </p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {/* 3-Step Mission Roadmap (Goldfish Clarity) */}
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {[
+            {
+              step: '01',
+              title: { en: 'Design (CML 1–4)', es: 'Diseñar (CML 1–4)' },
+              desc: { en: 'Orbit, 7 subsystems & tanks', es: 'Órbita, 7 subsistemas y tanques' },
+            },
+            {
+              step: '02',
+              title: { en: 'Qualify (CML 5 MCR)', es: 'Calificar (CML 5 MCR)' },
+              desc: { en: 'Environmental V&V & ≥35% margin', es: 'Pruebas V&V y margen ≥35%' },
+            },
+            {
+              step: '03',
+              title: { en: 'Launch & Crises (06)', es: 'Lanzamiento y Crisis (06)' },
+              desc: { en: 'Resolve 3 orbital anomalies', es: 'Resuelve 3 crisis en órbita' },
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="rounded-xl border border-cyan-500/20 bg-slate-950/70 px-3 py-2"
+            >
+              <div className="font-mono text-[10px] font-bold text-cyan-300">
+                {item.step} · {item.title[language]}
+              </div>
+              <div className="text-[11px] text-slate-400">{item.desc[language]}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 focus-within:border-cyan-400/70">
             <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase text-cyan-300">
               <UserCheck className="h-3.5 w-3.5" />
@@ -84,7 +115,7 @@ function OnboardingContent() {
               maxLength={28}
               value={draftCommander}
               onChange={(e) => setDraftCommander(e.target.value)}
-              placeholder={isEs ? 'Ej. Vega' : 'e.g. Vega'}
+              placeholder={isEs ? 'Ej. Orion' : 'e.g. Orion'}
               className="mt-1.5 w-full bg-transparent text-sm font-bold text-white outline-none placeholder:text-slate-600"
             />
           </label>
@@ -130,8 +161,8 @@ function OnboardingContent() {
               </h2>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
                 {isEs
-                  ? 'Soy Cadete: Quiero aprender diseñando mi primera misión con la Comandante Astra, analogías divertidas, pistas visuales de piezas y crisis guiadas.'
-                  : 'I am a Cadet: Learn by building my first mission with Commander Astra, intuitive analogies, part hints, and guided flight crises.'}
+                  ? 'Soy Cadete: Quiero aprender diseñando mi primera misión con la Comandante Vega, analogías divertidas, pistas visuales de piezas y crisis guiadas.'
+                  : 'I am a Cadet: Learn by building my first mission with Commander Vega, intuitive analogies, part hints, and guided flight crises.'}
               </p>
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[10px] text-cyan-300">

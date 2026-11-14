@@ -1,4 +1,9 @@
-import { findObjectiveById, getSubsystemsByCategory, SCIENCE_OBJECTIVES } from '../engine';
+import {
+  findObjectiveById,
+  findSubsystemById,
+  getSubsystemsByCategory,
+  SCIENCE_OBJECTIVES,
+} from '../engine';
 import { useMissionStore, type CubeSatFormFactor } from '../store';
 import type { ScienceDiscipline } from '../types/mission';
 import { playHoloTone } from './holoAudio';
@@ -22,10 +27,12 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     language,
     experienceMode,
     cubesatFormFactor,
+    missionStatement,
     selection,
     metrics,
     soundEnabled,
     setCubesatFormFactor,
+    setMissionStatement,
     setSubsystem,
     setObjective,
     appendDecisionLog,
@@ -104,12 +111,32 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   }
 
   const activeObj = findObjectiveById(selection.objectiveId);
+  const reqPayloads = activeObj.requiredPayloadIds.map((id) => ({
+    id,
+    name: findSubsystemById(id)?.name[language] ?? id,
+    equipped: selection.payloadIds.includes(id),
+  }));
 
   return (
     <div className="space-y-2.5">
       <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
         {isEs ? 'PASO 2 · MISIÓN' : 'STEP 2 · MISSION'}
       </div>
+
+      {/* Editable Napkin Mission Statement */}
+      <label className="block border border-[#5FF3FF]/25 bg-[#04080F]/70 p-2.5 focus-within:border-[#5FF3FF]">
+        <span className="font-mono text-[9px] tracking-[0.14em] text-[#5FF3FF] uppercase">
+          {isEs ? 'ENUNCIADO DE SERVILLETA (CONCEPTO)' : 'NAPKIN MISSION STATEMENT'}
+        </span>
+        <textarea
+          rows={2}
+          maxLength={140}
+          value={missionStatement}
+          onChange={(e) => setMissionStatement(e.target.value)}
+          className="mt-1 w-full resize-none bg-transparent text-[11px] leading-snug text-slate-100 outline-none"
+        />
+      </label>
+
       <div className="space-y-2">
         {SCIENCE_OBJECTIVES.map((obj) => {
           const active = selection.objectiveId === obj.id;
@@ -151,8 +178,25 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           );
         })}
       </div>
-      <div className="border-t border-[#5FF3FF]/15 pt-2 font-mono text-[9px] tracking-[0.12em] text-slate-400 uppercase">
-        BENCHMARK: <span className="text-[#FFC15E]">{activeObj.realWorldBenchmark.missionName}</span>
+      <div className="space-y-1.5 border-t border-[#5FF3FF]/15 pt-2 font-mono text-[9px] tracking-[0.12em] text-slate-400 uppercase">
+        <div>
+          BENCHMARK: <span className="text-[#FFC15E]">{activeObj.realWorldBenchmark.missionName}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {reqPayloads.map((rp) => (
+            <span
+              key={rp.id}
+              className={`border px-1.5 py-0.5 ${
+                rp.equipped
+                  ? 'border-[#5FF3FF]/45 text-[#5FF3FF]'
+                  : 'border-[#FFC15E]/50 text-[#FFC15E]'
+              }`}
+            >
+              {isEs ? 'INSTRUMENTO:' : 'PAYLOAD:'} {rp.name}{' '}
+              {rp.equipped ? '✓' : isEs ? '(EQUIPAR EN CML 3)' : '(EQUIP IN CML 3)'}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

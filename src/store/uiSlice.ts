@@ -119,8 +119,8 @@ export function createInitialDecisionLog(): DecisionLogEntry[] {
       phase: 'CML_1',
       timestamp: 'T-00:00',
       label: {
-        en: 'Holographic blueprint initialized by CMDR Vega.',
-        es: 'Proyección holográfica inicializada con Comandante Vega.',
+        en: 'Holographic blueprint initialized by CMDR Orion.',
+        es: 'Proyección holográfica inicializada por CMDR Orion.',
       },
       impact: 'POSITIVE',
     },
@@ -151,9 +151,9 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   isPitchModalOpen: false,
   isTelemetryOpen: false,
 
-  commanderName: 'Vega',
+  commanderName: 'Orion',
   missionCustomName: 'Inti-1',
-  hasCompletedOnboarding: true,
+  hasCompletedOnboarding: false,
   isCertificateOpen: false,
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
@@ -204,7 +204,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   completeOnboarding: (mode, rawCommander, rawMission) =>
     set((s) => ({
       experienceMode: mode,
-      commanderName: rawCommander.trim() || 'Vega',
+      commanderName: rawCommander.trim() || 'Orion',
       missionCustomName: rawMission.trim() || 'Inti-1',
       hasCompletedOnboarding: true,
       decisionLog: [
@@ -214,8 +214,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
           phase: s.phase,
           timestamp: formatClock(),
           label: {
-            en: `CMDR ${rawCommander.trim() || 'Vega'} commissioned "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
-            es: `CMDR ${rawCommander.trim() || 'Vega'} comisionó "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
+            en: `CMDR ${rawCommander.trim() || 'Orion'} commissioned "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
+            es: `CMDR ${rawCommander.trim() || 'Orion'} comisionó "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
           },
           impact: 'POSITIVE',
         },

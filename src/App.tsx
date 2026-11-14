@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  COMMANDER_PHASE_BEATS,
   CommanderHudBanner,
   CommanderOnboardingModal,
   FlightSimulationPanel,
@@ -38,11 +39,13 @@ const NEXT_PHASE: Partial<Record<CMLPhase, CMLPhase>> = {
   CML_2: 'CML_3',
   CML_3: 'CML_4',
   CML_4: 'CML_5',
+  CML_5: 'SIMULATION',
 };
 
 export function App() {
   const {
     language,
+    experienceMode,
     phase,
     maxUnlockedLevel,
     selection,
@@ -56,6 +59,7 @@ export function App() {
   const isEs = language === 'es';
   const nextPhase = NEXT_PHASE[phase];
   const currentIdx = LEVELS.findIndex((l) => l.id === phase);
+  const beat = COMMANDER_PHASE_BEATS[phase];
 
   const goToLevel = (target: CMLPhase) => {
     playHoloTone('STEP', soundEnabled);
@@ -91,6 +95,13 @@ export function App() {
 
         {/* CENTER ZONE: Hero Hologram Stage */}
         <section className="order-1 flex flex-col items-center justify-center py-2 lg:order-2 lg:col-span-6">
+          <div className="mb-3 w-full border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1.5 text-center font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF]">
+            <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
+            <span className="text-slate-200">
+              {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
+            </span>
+          </div>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={phase}
@@ -125,7 +136,13 @@ export function App() {
               onClick={() => goToLevel(nextPhase)}
               className="mt-4 border border-[#5FF3FF] bg-[#5FF3FF]/10 px-6 py-2 font-mono text-[11px] tracking-[0.18em] text-[#5FF3FF] uppercase shadow-[0_0_20px_rgba(95,243,255,0.18)] transition hover:bg-[#5FF3FF]/20"
             >
-              {isEs ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →` : `NEXT LEVEL · 0${currentIdx + 2} →`}
+              {nextPhase === 'SIMULATION'
+                ? isEs
+                  ? 'LANZAR MISIÓN · 06 →'
+                  : 'LAUNCH MISSION · 06 →'
+                : isEs
+                  ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →`
+                  : `NEXT LEVEL · 0${currentIdx + 2} →`}
             </button>
           )}
         </section>

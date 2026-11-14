@@ -13,7 +13,7 @@ export function TelemetryModalDrawer() {
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-[#5FF3FF]/50 bg-[#04080F] p-5 shadow-[0_0_40px_rgba(95,243,255,0.16)]">
         <div className="mb-3 flex items-center justify-between border-b border-[#5FF3FF]/20 pb-2">
           <span className="font-mono text-xs tracking-[0.18em] text-[#5FF3FF] uppercase">
-            {isEs ? 'TELEMETRÍA ANALÍTICA RECHARTS' : 'RECHARTS ANALYTICS TELEMETRY'}
+            {isEs ? 'TELEMETRÍA ANALÍTICA SWaP-C' : 'SWaP-C ANALYTICS & MARGINS'}
           </span>
           <button
             type="button"

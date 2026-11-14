@@ -162,7 +162,7 @@ export const useMissionStore = create<MissionStoreState>()(
       },
     }),
     {
-      name: 'orbital-forge-mission-store-v3',
+      name: 'orbital-forge-mission-store-v4',
       storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         language: state.language,

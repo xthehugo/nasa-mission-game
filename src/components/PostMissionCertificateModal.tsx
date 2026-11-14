@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
   Check,
+  Copy,
   Download,
   FlaskConical,
   History,
   Medal,
   Rocket,
   ShieldCheck,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { findObjectiveById } from '../engine';
@@ -33,6 +35,7 @@ export function PostMissionCertificateModal() {
   } = useMissionStore();
 
   const [downloaded, setDownloaded] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
   const isEs = language === 'es';
   const show = Boolean(isCertificateOpen && simulationResult);
 
@@ -79,16 +82,48 @@ export function PostMissionCertificateModal() {
     },
   ];
 
-  const handleDownloadCertificate = () => {
-    if (!simulationResult) return;
+  const recommendations: { en: string; es: string }[] = [];
+  if (metrics.dryMass.marginPercent < 35) {
+    recommendations.push({
+      en: `Increase Dry Mass margin to ≥35% (currently ${metrics.dryMass.marginPercent.toFixed(1)}%) by scaling the launcher or choosing higher-Isp propulsion.`,
+      es: `Eleva el margen de masa seca a ≥35% (actual ${metrics.dryMass.marginPercent.toFixed(1)}%) escalando el lanzador o usando propulsión de mayor Isp.`,
+    });
+  }
+  if (metrics.power.marginPercent < 35) {
+    recommendations.push({
+      en: `Raise EPS Power margin to ≥35% (currently ${metrics.power.marginPercent.toFixed(1)}%) with deployable arrays or RTG for deep space.`,
+      es: `Aumenta el margen eléctrico EPS a ≥35% (actual ${metrics.power.marginPercent.toFixed(1)}%) con alas desplegables o RTG en espacio profundo.`,
+    });
+  }
+  if (!preFlightVerdict.passed || testing.rfInhibitTimerMin < 30) {
+    recommendations.push({
+      en: 'Complete all 5 environmental V&V checks in CML 5 and keep RF deployment inhibit timer ≥30 min.',
+      es: 'Aprueba las 5 pruebas V&V en CML 5 y configura el temporizador de inhibición RF en ≥30 min.',
+    });
+  }
+  if (!allCrisesOptimal) {
+    recommendations.push({
+      en: 'Review the 3 in-flight crises in Level 06 to select optimal engineering trade-offs.',
+      es: 'Revisa las 3 crisis orbitales del Nivel 06 para elegir las respuestas óptimas de ingeniería.',
+    });
+  }
+  if (metrics.cost.reserveMillionsUSD < 0) {
+    recommendations.push({
+      en: `Eliminate the budget overrun ($${Math.abs(metrics.cost.reserveMillionsUSD).toFixed(1)}M over cap) by trimming lower-priority subsystems.`,
+      es: `Elimina el déficit presupuestario ($${Math.abs(metrics.cost.reserveMillionsUSD).toFixed(1)}M sobre tope) optimizando subsistemas.`,
+    });
+  }
+
+  const buildReportText = () => {
+    if (!simulationResult) return '';
     const earnedNames = badges
       .filter((b) => b.earned)
       .map((b) => `- ${b.title[language]} (${b.desc[language]})`)
       .join('\n');
-    const summaryText = [
+    return [
       'ORBITAL FORGE — MISSION ARCHITECT CERTIFICATE (JPL CML 1-5 EDUCATIONAL STANDARD)',
       `Commander: CMDR ${commanderName} | Mission: ${missionCustomName} | Mode: ${experienceMode}`,
-      `Final Grade: ${simulationResult.overallGrade} (Science ${simulationResult.scienceScore}/100, Global P ${scores.compositeGlobalScore})`,
+      `Final Grade: ${simulationResult.overallGrade} (Science ${simulationResult.scienceScore}/100, Global P ${scores.compositeGlobalScore} [S:${scores.scienceReturnScore} M:${scores.engineeringMarginScore} B:${scores.budgetEfficiencyScore}])`,
       `Reference Benchmark: ${objective.realWorldBenchmark.missionName}`,
       `Dry Mass: ${metrics.dryMass.predicted.toFixed(1)} kg | Power: ${metrics.power.generatedAtDestination_W.toFixed(1)} W | Cost: $${metrics.cost.totalMillionsUSD.toFixed(1)}M`,
       '',
@@ -100,6 +135,19 @@ export function PostMissionCertificateModal() {
       'Decision Legacy Log:',
       ...decisionLog.map((entry) => `[${entry.timestamp}] (${entry.phase}) ${entry.label[language]}`),
     ].join('\n');
+  };
+
+  const handleCopyReport = () => {
+    const text = buildReportText();
+    if (!text) return;
+    void navigator.clipboard.writeText(text);
+    setCopiedSummary(true);
+    window.setTimeout(() => setCopiedSummary(false), 1800);
+  };
+
+  const handleDownloadCertificate = () => {
+    const summaryText = buildReportText();
+    if (!summaryText) return;
 
     try {
       const blob = new Blob([summaryText], { type: 'text/plain;charset=utf-8' });
@@ -179,6 +227,30 @@ export function PostMissionCertificateModal() {
               </div>
             </div>
 
+            <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 text-xs">
+              <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-amber-300">
+                <Sparkles className="h-4 w-4" />
+                <span>
+                  {isEs
+                    ? 'Diagnóstico de Ingeniería · Cómo alcanzar Grado S'
+                    : 'Engineering Diagnostic · How to Reach Grade S'}
+                </span>
+              </div>
+              {recommendations.length === 0 ? (
+                <p className="mt-1.5 text-emerald-300">
+                  {isEs
+                    ? '¡Excelencia de Arquitectura alcanzada! Cumpliste márgenes ≥35%, rigor V&V y las 3 decisiones óptimas en vuelo.'
+                    : 'Mission Architect Optimization Achieved! All ≥35% margins, V&V checks, and 3 flight crises cleared optimally.'}
+                </p>
+              ) : (
+                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-slate-300">
+                  {recommendations.map((rec, idx) => (
+                    <li key={idx}>{rec[language]}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5">
               <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-emerald-300">
                 <History className="h-4 w-4" />
@@ -196,23 +268,41 @@ export function PostMissionCertificateModal() {
             </div>
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4">
-              <span className="max-w-md font-mono text-[10px] leading-relaxed text-slate-400">
+              <span className="max-w-xs font-mono text-[10px] leading-relaxed text-slate-400">
                 {isEs
                   ? 'Credencial educativa basada en datos abiertos NASA JPL CML, CubeSat 101, CSA y NASA GMAT R2026a (no oficial).'
                   : 'Grounded in NASA JPL CML, CubeSat 101, CSA & GMAT R2026a Open Data — Non-official educational credential.'}
               </span>
-              <button type="button" onClick={handleDownloadCertificate} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2.5 text-xs font-black text-slate-950">
-                {downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
-                <span>
-                  {downloaded
-                    ? isEs
-                      ? 'Certificado Descargado'
-                      : 'Certificate Downloaded'
-                    : isEs
-                      ? 'Descargar Certificado ORBITAL FORGE (.txt)'
-                      : 'Download ORBITAL FORGE Certificate (.txt)'}
-                </span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyReport}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-4 py-2.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/20"
+                >
+                  {copiedSummary ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                  <span>
+                    {copiedSummary
+                      ? isEs
+                        ? 'Resumen Copiado'
+                        : 'Summary Copied'
+                      : isEs
+                        ? 'Copiar Resumen'
+                        : 'Copy Shareable Report'}
+                  </span>
+                </button>
+                <button type="button" onClick={handleDownloadCertificate} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2.5 text-xs font-black text-slate-950">
+                  {downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+                  <span>
+                    {downloaded
+                      ? isEs
+                        ? 'Certificado Descargado'
+                        : 'Certificate Downloaded'
+                      : isEs
+                        ? 'Descargar Certificado ORBITAL FORGE (.txt)'
+                        : 'Download ORBITAL FORGE Certificate (.txt)'}
+                  </span>
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

@@ -93,7 +93,7 @@ export function TopBar() {
                 : 'border-[#FFC15E] bg-[#FFC15E]/15 text-[#FFC15E]'
             }`}
           >
-            {isEs ? 'EVENTO' : 'EVENT'}: {activeRandomEvent}
+            {isEs ? 'EVENTO SIM' : 'SIM EVENT'}: {activeRandomEvent}
           </button>
 
           <button
@@ -131,7 +131,7 @@ export function TopBar() {
             onClick={() => setTelemetryOpen(true)}
             className="border border-[#5FF3FF]/25 px-2.5 py-1 text-slate-300 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
           >
-            RECHARTS
+            {isEs ? 'GRÁFICAS SWaP-C' : 'SWaP-C CHARTS'}
           </button>
 
           <button

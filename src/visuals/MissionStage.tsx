@@ -139,8 +139,10 @@ export default function MissionStage({
     : `${t.nogoMass} (${metrics?.wetMass_kg} kg / ${metrics?.launchCapacity_kg} kg)`;
   const anomalyHeadline = fairingOverflow ? t.anomalyFairing : t.anomalyMass;
   const anomalyLesson = fairingOverflow ? t.lessonFairing : t.lessonMass;
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [now, setNow] = useState(0);
+  const [startedAt, setStartedAt] = useState<number | null>(() =>
+    embedded ? performance.now() : null,
+  );
+  const [now, setNow] = useState<number>(() => performance.now());
   const [embeddedView, setEmbeddedView] = useState<EmbeddedView>('SPLIT');
 
   useEffect(() => {
