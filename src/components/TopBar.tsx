@@ -17,6 +17,7 @@ const LEVEL_META: Record<
 const PRESET_LIST = [
   { key: 'obj-earth-bionutrients', label: { en: 'BioNutrients-2 (LEO)', es: 'BioNutrients-2 (LEO)' } },
   { key: 'preset-gmat-geo', label: { en: 'GMAT GEO (3,673 m/s)', es: 'GMAT GEO (3,673 m/s)' } },
+  { key: 'obj-geo-goes-weather', label: { en: 'GOES-U / TRACERS (GEO)', es: 'GOES-U / TRACERS (GEO)' } },
   { key: 'obj-helio-lunar-trailblazer', label: { en: 'Lunar Trailblazer', es: 'Lunar Trailblazer' } },
   { key: 'obj-mars-reconnaissance', label: { en: 'Mars MRO (1.52 AU)', es: 'Marte MRO (1.52 AU)' } },
   { key: 'obj-jupiter-clipper', label: { en: 'Jupiter RTG (5.2 AU)', es: 'Júpiter RTG (5.2 AU)' } },
@@ -96,16 +97,36 @@ export function TopBar() {
             {isEs ? 'EVENTO SIM' : 'SIM EVENT'}: {activeRandomEvent}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setExperienceMode(experienceMode === 'CADET' ? 'JPL_ENGINEER' : 'CADET');
-              playHoloTone('STEP', soundEnabled);
-            }}
-            className="border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2.5 py-1 text-[#5FF3FF]"
-          >
-            {experienceMode === 'CADET' ? (isEs ? 'CADETE' : 'CADET') : 'JPL HARDCORE'}
-          </button>
+          <div className="inline-flex border border-[#5FF3FF]/30 bg-[#04080F]" role="group" aria-label="Experience Mode">
+            <button
+              type="button"
+              onClick={() => {
+                setExperienceMode('CADET');
+                playHoloTone('STEP', soundEnabled);
+              }}
+              className={`px-2 py-1 transition ${
+                experienceMode === 'CADET'
+                  ? 'bg-[#5FF3FF]/20 text-[#5FF3FF] font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isEs ? '🎓 CADETE' : '🎓 CADET'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setExperienceMode('JPL_ENGINEER');
+                playHoloTone('STEP', soundEnabled);
+              }}
+              className={`border-l border-[#5FF3FF]/25 px-2 py-1 transition ${
+                experienceMode === 'JPL_ENGINEER'
+                  ? 'bg-[#FFC15E]/20 text-[#FFC15E] font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isEs ? '🛰️ ING. JPL' : '🛰️ JPL ENG'}
+            </button>
+          </div>
 
           <select
             id="nasa-preset-select"

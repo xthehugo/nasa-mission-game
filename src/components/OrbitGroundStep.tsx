@@ -15,6 +15,7 @@ const PRESET_INCLINATIONS: { deg: number; label: { en: string; es: string } }[] 
 export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const {
     language,
+    experienceMode,
     selection,
     orbitAltitudeKm,
     orbitInclinationDeg,
@@ -150,6 +151,16 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 <div className="mt-1 font-mono text-[9px] text-[#5FF3FF]">
                   ΔV {dest.requiredDeltaV_ms} M/S · {dest.solarIrradiance_Wm2} W/M²
                 </div>
+                {experienceMode === 'CADET' ? (
+                  <div className="mt-1 space-y-0.5 text-[10px] leading-snug">
+                    <p className="text-slate-300">{dest.description[language]}</p>
+                    <p className="text-[#FFC15E]">⚠️ {dest.environmentHazard[language]}</p>
+                  </div>
+                ) : (
+                  <div className="mt-1 font-mono text-[8.5px] text-slate-400">
+                    R={dest.heliocentricDistanceAU} AU · Dist={dest.distanceFromEarthKm.toLocaleString()} km · Ecl={(dest.eclipseFraction * 100).toFixed(0)}% · OWLT={dest.oneWayLightTimeSec}s · Link≥{dest.linkMarginThreshold_dB}dB
+                  </div>
+                )}
               </button>
             );
           })}
@@ -177,6 +188,11 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             >
               <div className="text-[11px] font-light leading-tight">{gs.name[language]}</div>
               <div className="mt-1 font-mono text-[9px] text-[#FFC15E]">${gs.costPerMonth_MillionsUSD}M/M</div>
+              <div className="mt-0.5 font-mono text-[8.5px] text-slate-400">
+                {experienceMode === 'CADET'
+                  ? `${isEs ? 'Bandas' : 'Bands'}: ${gs.compatibleBands.join(' / ')}`
+                  : `G/T: ${gs.figureOfMerit_G_T_dBK} dB/K · ${gs.compatibleBands.join('/')}`}
+              </div>
             </button>
           ))}
         </div>

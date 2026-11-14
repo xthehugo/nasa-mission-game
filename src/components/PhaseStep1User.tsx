@@ -93,14 +93,21 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     setSubsystem('EPS', opt.id);
                     playHoloTone('STEP', soundEnabled);
                   }}
-                  className={`flex w-full items-center justify-between border px-3 py-2 text-left transition ${
+                  className={`w-full border px-3 py-2 text-left transition ${
                     active
                       ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white'
                       : 'border-[#5FF3FF]/20 text-slate-300 hover:border-[#5FF3FF]/50'
                   }`}
                 >
-                  <span className="text-[11px] font-light">{opt.name[language]}</span>
-                  <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-light">{opt.name[language]}</span>
+                    <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
+                  </div>
+                  <div className="mt-1 text-[10px] leading-snug text-slate-400">
+                    {experienceMode === 'CADET'
+                      ? opt.analogyTooltip[language]
+                      : `CBE ${opt.massCBE_kg}kg · TRL ${opt.trl} (+${Math.round(opt.mgaContingencyFactor * 100)}% MGA) · $${opt.cost_MillionsUSD}M`}
+                  </div>
                 </button>
               );
             })}
@@ -171,9 +178,20 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               <div className="mt-1 text-xs font-light leading-snug text-slate-100">
                 {obj.title[language]}
               </div>
-              {experienceMode === 'JPL_ENGINEER' && (
+              {experienceMode === 'CADET' ? (
+                <div className="mt-1.5 space-y-1">
+                  <p className="text-[10.5px] leading-snug text-slate-400">
+                    {obj.question[language]}
+                  </p>
+                  {active && (
+                    <p className="border-l-2 border-[#5FF3FF]/50 pl-2 text-[10px] leading-snug text-[#5FF3FF]">
+                      💡 {obj.realWorldBenchmark.keyTakeaway[language]}
+                    </p>
+                  )}
+                </div>
+              ) : (
                 <div className="mt-1.5 font-mono text-[9px] text-slate-400">
-                  TARGET {obj.targetDestinationId.toUpperCase()} · ≥{obj.minDataRateKbps} KBPS
+                  TARGET {obj.targetDestinationId.toUpperCase()} · ≥{obj.minDataRateKbps} KBPS · {obj.targetDurationYears}Y · REF: {obj.realWorldBenchmark.actualMass_kg}kg / {obj.realWorldBenchmark.actualPower_W}W / ${obj.realWorldBenchmark.actualCost_MillionsUSD}M
                 </div>
               )}
             </button>

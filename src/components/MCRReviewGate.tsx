@@ -137,6 +137,23 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
         {isEs ? 'AUDITORÍA DE MÁRGENES MCR' : 'MCR MARGIN AUDIT'}
       </div>
 
+      {isJpl ? (
+        <div className="border border-[#FFC15E]/40 bg-[#FFC15E]/8 p-2.5 font-mono text-[9px] leading-relaxed text-[#FFC15E]">
+          <div className="font-bold uppercase">
+            NASA/SP-2016-6105 · NASA-STD-5001 (1.40× ULT) · GSFC-STD-1000 RULE 1.05
+          </div>
+          <div className="mt-0.5 text-slate-200">
+            Dry MEV {metrics.dryMass.predicted.toFixed(1)}kg / Allow {metrics.dryMass.allowable.toFixed(1)}kg · EPS Pred {metrics.power.predicted.toFixed(0)}W · FSPL {metrics.telecom.freeSpaceLoss_dB.toFixed(1)}dB
+          </div>
+        </div>
+      ) : (
+        <div className="border border-[#5FF3FF]/35 bg-[#5FF3FF]/8 p-2.5 text-[11px] leading-snug text-slate-200">
+          {isEs
+            ? '🎓 Modo Cadete: las tarjetas en cian indican al menos ≥35% de margen seguro para despegar; si ves amarillo o rojo, usa las correcciones rápidas o ajusta en CML 3.'
+            : '🎓 Cadet Guide: cyan cards confirm ≥35% safety reserve for launch; yellow or red cards show exactly what to adjust in CML 3 or via Quick Fixes.'}
+        </div>
+      )}
+
       <div className="space-y-1.5">
         {metrics.mcrChecklist.map((item) => (
           <div key={item.id} className={`border p-2.5 ${statusColor(item.status)}`}>
