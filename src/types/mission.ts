@@ -9,6 +9,8 @@
 
 export type Language = 'en' | 'es';
 
+export type ExperienceMode = 'CADET' | 'JPL_ENGINEER';
+
 export interface LocalizedText {
   en: string;
   es: string;
@@ -67,6 +69,16 @@ export type SimulationSeverity = 'INFO' | 'WARNING' | 'CRITICAL' | 'SUCCESS';
 
 export type MissionGrade = 'S' | 'A' | 'B' | 'C' | 'FAIL';
 
+export interface RealWorldMissionBenchmark {
+  missionName: string;
+  launchYear: number;
+  actualMass_kg: number;
+  actualPower_W: number;
+  actualCost_MillionsUSD: number;
+  keyTakeaway: LocalizedText;
+  nasaReferenceUrl: string;
+}
+
 export interface ScienceObjective {
   id: string;
   discipline: ScienceDiscipline;
@@ -77,6 +89,7 @@ export interface ScienceObjective {
   minDataRateKbps: number;
   baseBudgetMillions: number;
   targetDurationYears: number;
+  realWorldBenchmark: RealWorldMissionBenchmark;
 }
 
 export interface OrbitalDestination {
@@ -100,6 +113,7 @@ export interface SubsystemOption {
   name: LocalizedText;
   description: LocalizedText;
   tradeOffNote: LocalizedText;
+  analogyTooltip: LocalizedText;
   massCBE_kg: number;
   powerDrawNominal_W: number;
   powerDrawPeak_W: number;
@@ -197,6 +211,12 @@ export interface VolumeMetrics {
   isCompliant: boolean;
 }
 
+export interface FlightDirectorAdvice {
+  status: MCRStatus;
+  headline: LocalizedText;
+  humanExplanation: LocalizedText;
+}
+
 export interface PhysicsMetrics {
   dryMass: ResourceBreakdown;
   propellantMass_kg: number;
@@ -209,6 +229,7 @@ export interface PhysicsMetrics {
   cost: CostMetrics;
   volume: VolumeMetrics;
   overallMCRStatus: MCRStatus;
+  flightDirectorAdvice: FlightDirectorAdvice;
   mcrChecklist: MCRChecklistItem[];
 }
 
@@ -230,14 +251,42 @@ export interface SimulationEvent {
   telemetrySnapshot: TelemetrySnapshot;
 }
 
+export interface CrisisOption {
+  id: string;
+  label: LocalizedText;
+  engineeringJustification: LocalizedText;
+  powerImpact_W: number;
+  propellantImpact_pct: number;
+  scienceScoreImpact: number;
+  isOptimal: boolean;
+  outcomeNarrative: LocalizedText;
+}
+
+export interface InteractiveCrisisDilemma {
+  id: string;
+  phase: SimulationPhaseName;
+  missionDay: number;
+  title: LocalizedText;
+  situation: LocalizedText;
+  triggeredBySubsystem?: SubsystemCategory;
+  options: CrisisOption[];
+}
+
 export interface SimulationResult {
   missionSuccess: boolean;
   scienceScore: number;
   overallGrade: MissionGrade;
   events: SimulationEvent[];
+  dilemmas: InteractiveCrisisDilemma[];
   lessonsLearned: LocalizedText[];
   finalMetrics: PhysicsMetrics;
 }
+
+export type RunMissionSimulationFn = (
+  selection: MissionSelection,
+  metrics: PhysicsMetrics,
+  resolvedChoices?: Record<string, string>,
+) => SimulationResult;
 
 export const NASA_PHYSICS_CONSTANTS = {
   STANDARD_GRAVITY_MS2: 9.80665,
