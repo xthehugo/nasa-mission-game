@@ -441,10 +441,11 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
         },
       ],
     })),
-  completeOnboarding: (mode) =>
+  completeOnboarding: (mode, commanderName, missionName, cadetOverride, engOverride) =>
     set((s) => {
-      const nextCadet = 'Orion';
-      const nextEng = 'Vanguard';
+      const cleanName = commanderName?.trim() || (mode === 'CADET' ? 'Orion' : 'Vanguard');
+      const nextCadet = cadetOverride?.trim() || (mode === 'CADET' ? cleanName : s.cadetName || 'Orion');
+      const nextEng = engOverride?.trim() || (mode === 'JPL_ENGINEER' ? cleanName : s.engineerName || 'Vanguard');
       const activeCommander = mode === 'CADET' ? nextCadet : nextEng;
       const nextChapter: StoryChapter =
         s.storyChapter === 'FREE_SANDBOX'
@@ -458,8 +459,9 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
         cadetName: nextCadet,
         engineerName: nextEng,
         commanderName: activeCommander,
-        missionCustomName: 'Ícaro-Pionero',
+        missionCustomName: missionName?.trim() || s.missionCustomName || 'Ícaro-Pionero',
         hasCompletedOnboarding: true,
+        isCampaignModalOpen: true,
         tutorialStepIndex: 0,
         decisionLog: [
           ...s.decisionLog.slice(-24),
@@ -468,8 +470,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
             phase: s.phase,
             timestamp: formatClock(),
             label: {
-              en: `${mode === 'CADET' ? 'Cadet' : 'Chief Eng.'} ${activeCommander} commissioned "Ícaro-Pionero" (${mode}).`,
-              es: `${mode === 'CADET' ? 'Cadete' : 'Ing. Jefe'} ${activeCommander} comisionó "Ícaro-Pionero" (${mode}).`,
+              en: `${mode === 'CADET' ? 'Student/Cadet' : 'Chief Eng.'} ${activeCommander} enlisted in NASA Orbital Forge (${mode}).`,
+              es: `${mode === 'CADET' ? 'Estudiante/Cadete' : 'Ing. Jefe'} ${activeCommander} se alistó en NASA Orbital Forge (${mode}).`,
             },
             impact: 'POSITIVE',
           },

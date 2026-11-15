@@ -232,10 +232,10 @@ export const useMissionStore = create<MissionStoreState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.cadetName = 'Orion';
-        state.engineerName = 'Vanguard';
-        state.commanderName = state.experienceMode === 'CADET' ? 'Orion' : 'Vanguard';
-        state.missionCustomName = 'Ícaro-Pionero';
+        state.cadetName = state.cadetName || 'Orion';
+        state.engineerName = state.engineerName || 'Vanguard';
+        state.commanderName = state.commanderName || (state.experienceMode === 'CADET' ? state.cadetName : state.engineerName);
+        state.missionCustomName = state.missionCustomName || 'Ícaro-Pionero';
         if (!state.seenCinematics?.ACT1_PROLOGUE && state.storyChapter === 'ACT_1_CADET') {
           state.activeCinematicId = 'ACT1_PROLOGUE';
         }
