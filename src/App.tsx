@@ -155,142 +155,152 @@ export function App() {
 
       <TopBar />
 
-      {/* 3-Zone Holographic Stage (Center Hologram first on mobile) */}
-      <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-start gap-6 px-4 py-5 sm:px-6 lg:grid-cols-12">
-        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls */}
+      {/* 3-Zone Holographic Stage (Center Hologram pinned with user as lateral selectors scroll) */}
+      <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 px-4 py-5 sm:px-6 lg:grid-cols-12 lg:items-stretch items-start">
+        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls (Sticky Pinned) */}
         <section
           data-astra-zone="LEFT_PANEL"
-          className={`order-2 space-y-4 transition-all lg:order-1 lg:col-span-3 ${
+          className={`order-2 transition-all lg:order-1 lg:col-span-3 lg:self-stretch ${
             robotHoverZone === 'LEFT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
           }`}
         >
-          <div
-            data-astra-zone="RESOURCES"
-            className={`transition-all ${
-              (phase === 'CML_1' && level1TutorialStep === 0) ||
-              robotHoverZone === 'RESOURCES'
-                ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
-                : ''
-            }`}
-          >
-            {phase === 'CML_1' && level1TutorialStep === 0 && (
-              <div className="mb-2 space-y-1.5 border border-[#FFC15E] bg-[#FFC15E]/15 p-2">
-                <div className="font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
-                  <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
-                  <span>
+          <div className="lg:sticky lg:top-[4.5rem] lg:self-start w-full space-y-4 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto pr-1">
+            <div
+              data-astra-zone="RESOURCES"
+              className={`transition-all ${
+                (phase === 'CML_1' && level1TutorialStep === 0) ||
+                robotHoverZone === 'RESOURCES'
+                  ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+                  : ''
+              }`}
+            >
+              {phase === 'CML_1' && level1TutorialStep === 0 && (
+                <div className="mb-2 space-y-1.5 border border-[#FFC15E] bg-[#FFC15E]/15 p-2">
+                  <div className="font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+                    <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+                    <span>
+                      {isEs
+                        ? 'PASO 1/5: ESTOS SON LOS 5 SIGNOS VITALES DE TU NAVE'
+                        : 'STEP 1/5: THESE ARE THE 5 VITAL SIGNS OF YOUR SPACECRAFT'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playHoloTone('STEP', soundEnabled);
+                      setLevel1TutorialStep(1);
+                    }}
+                    className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 py-1 font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+                  >
                     {isEs
-                      ? 'PASO 1/5: ESTOS SON LOS 5 SIGNOS VITALES DE TU NAVE'
-                      : 'STEP 1/5: THESE ARE THE 5 VITAL SIGNS OF YOUR SPACECRAFT'}
-                  </span>
+                      ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
+                      : 'GOT IT · CONTINUE TO CHASSIS →'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playHoloTone('STEP', soundEnabled);
-                    setLevel1TutorialStep(1);
-                  }}
-                  className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 py-1 font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
-                >
-                  {isEs
-                    ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
-                    : 'GOT IT · CONTINUE TO CHASSIS →'}
-                </button>
-              </div>
-            )}
-            <HudResourceBars />
+              )}
+              <HudResourceBars />
+            </div>
+            {phase === 'CML_1' && <PhaseStep1User zone="LEFT" />}
+            {phase === 'CML_2' && <OrbitGroundStep zone="LEFT" />}
+            {phase === 'CML_3' && <TradeSpacePanel zone="LEFT" />}
+            {phase === 'CML_4' && <PointDesignStep zone="LEFT" />}
+            {phase === 'CML_5' && <MCRReviewGate zone="LEFT" />}
+            {phase === 'SIMULATION' && <FlightSimulationPanel zone="LEFT" />}
           </div>
-          {phase === 'CML_1' && <PhaseStep1User zone="LEFT" />}
-          {phase === 'CML_2' && <OrbitGroundStep zone="LEFT" />}
-          {phase === 'CML_3' && <TradeSpacePanel zone="LEFT" />}
-          {phase === 'CML_4' && <PointDesignStep zone="LEFT" />}
-          {phase === 'CML_5' && <MCRReviewGate zone="LEFT" />}
-          {phase === 'SIMULATION' && <FlightSimulationPanel zone="LEFT" />}
         </section>
 
-        {/* CENTER ZONE: Hero Hologram Stage */}
+        {/* CENTER ZONE: Hero Hologram Stage (Sticky Pinned with user as lateral selectors scroll) */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 flex flex-col items-center justify-center py-2 transition-all lg:order-2 lg:col-span-6 ${
+          className={`order-1 flex flex-col transition-all lg:order-2 lg:col-span-6 lg:self-stretch ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
           }`}
         >
-          <div className="mb-3 w-full border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1.5 text-center font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF]">
-            <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
-            <span className="text-slate-200">
-              {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
-            </span>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={phase}
-              initial={reducedMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={reducedMotion ? undefined : { opacity: 0 }}
-              transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
-              className="w-full"
-            >
-              {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
-                <HoloSpacecraftWireframe />
-              )}
-              {phase === 'CML_2' && <HoloOrbitStage />}
-              {phase === 'CML_4' && <HoloPointTankStage />}
-              {phase === 'SIMULATION' && (
-                <div className="min-h-[460px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
-                  <MissionStage
-                    key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
-                    destination={findDestinationById(selection.destinationId)}
-                    volume={metrics.volume}
-                    metrics={metrics}
-                    lang={language}
-                    onQuickFix={handleQuickFixFailure}
-                    embedded
-                  />
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {nextPhase && (
-            <div className="mt-4 flex flex-col items-center gap-1.5">
-              {phase === 'CML_1' && level1TutorialStep === 4 && (
-                <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
-                  <ArrowDown className="h-3 w-3 text-[#FFC15E]" />
-                  <span>
-                    {isEs
-                      ? 'PASO 5/5: ¡PLANO COMPLETADO! PULSA AQUÍ PARA IR AL NIVEL 02'
-                      : 'STEP 5/5: BLUEPRINT COMPLETE! CLICK HERE FOR LEVEL 02'}
-                  </span>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  if (phase === 'CML_1' && level1TutorialStep < 5) {
-                    setLevel1TutorialStep(5);
-                  }
-                  goToLevel(nextPhase);
-                }}
-                className={`border px-6 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition ${
-                  phase === 'CML_1' && level1TutorialStep === 4
-                    ? 'border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] ring-2 ring-[#FFC15E] shadow-[0_0_28px_rgba(255,193,94,0.35)] animate-pulse'
-                    : 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-[#5FF3FF] shadow-[0_0_20px_rgba(95,243,255,0.18)] hover:bg-[#5FF3FF]/20'
-                }`}
-              >
-                {nextPhase === 'SIMULATION'
-                  ? isEs
-                    ? 'LANZAR MISIÓN · 06 →'
-                    : 'LAUNCH MISSION · 06 →'
-                  : isEs
-                    ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →`
-                    : `NEXT LEVEL · 0${currentIdx + 2} →`}
-              </button>
+          <div className="lg:sticky lg:top-[4.5rem] lg:self-start w-full flex flex-col items-center justify-start py-1 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto pr-1">
+            <div className="mb-2.5 w-full flex items-center justify-between border border-[#5FF3FF]/25 bg-[#04080F]/90 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF] backdrop-blur-md shadow-[0_0_15px_rgba(95,243,255,0.08)]">
+              <div className="flex items-center gap-2 truncate">
+                <span className="font-bold text-[#FFC15E] shrink-0">{beat.beatCode}</span>
+                <span className="text-slate-200 truncate">
+                  {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 shrink-0 text-[8.5px] font-bold text-[#5FF3FF] uppercase tracking-widest bg-[#5FF3FF]/10 border border-[#5FF3FF]/30 px-2 py-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#5FF3FF] animate-pulse" />
+                <span>{isEs ? 'HOLOGRAMA ACTIVO' : 'ACTIVE HUD'}</span>
+              </div>
             </div>
-          )}
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={phase}
+                initial={reducedMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reducedMotion ? undefined : { opacity: 0 }}
+                transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
+                className="w-full"
+              >
+                {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
+                  <HoloSpacecraftWireframe />
+                )}
+                {phase === 'CML_2' && <HoloOrbitStage />}
+                {phase === 'CML_4' && <HoloPointTankStage />}
+                {phase === 'SIMULATION' && (
+                  <div className="min-h-[460px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
+                    <MissionStage
+                      key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
+                      destination={findDestinationById(selection.destinationId)}
+                      volume={metrics.volume}
+                      metrics={metrics}
+                      lang={language}
+                      onQuickFix={handleQuickFixFailure}
+                      embedded
+                    />
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {nextPhase && (
+              <div className="mt-3 flex flex-col items-center gap-1.5 w-full">
+                {phase === 'CML_1' && level1TutorialStep === 4 && (
+                  <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+                    <ArrowDown className="h-3 w-3 text-[#FFC15E]" />
+                    <span>
+                      {isEs
+                        ? 'PASO 5/5: ¡PLANO COMPLETADO! PULSA AQUÍ PARA IR AL NIVEL 02'
+                        : 'STEP 5/5: BLUEPRINT COMPLETE! CLICK HERE FOR LEVEL 02'}
+                    </span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (phase === 'CML_1' && level1TutorialStep < 5) {
+                      setLevel1TutorialStep(5);
+                    }
+                    goToLevel(nextPhase);
+                  }}
+                  className={`border px-6 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition ${
+                    phase === 'CML_1' && level1TutorialStep === 4
+                      ? 'border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] ring-2 ring-[#FFC15E] shadow-[0_0_28px_rgba(255,193,94,0.35)] animate-pulse'
+                      : 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-[#5FF3FF] shadow-[0_0_20px_rgba(95,243,255,0.18)] hover:bg-[#5FF3FF]/20'
+                  }`}
+                >
+                  {nextPhase === 'SIMULATION'
+                    ? isEs
+                      ? 'LANZAR MISIÓN · 06 →'
+                      : 'LAUNCH MISSION · 06 →'
+                    : isEs
+                      ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →`
+                      : `NEXT LEVEL · 0${currentIdx + 2} →`}
+                </button>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
