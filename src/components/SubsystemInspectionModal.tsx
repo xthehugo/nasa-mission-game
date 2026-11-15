@@ -133,7 +133,7 @@ export function SubsystemInspectionModal({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, pointerEvents: 'none' }}
           onClick={handleClose}
           className="fixed inset-0 bg-[#02050B]/85 backdrop-blur-md"
         />

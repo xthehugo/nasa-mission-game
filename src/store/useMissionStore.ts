@@ -187,6 +187,7 @@ export const useMissionStore = create<MissionStoreState>()(
           activeCinematicId: null,
           hasCompletedOnboarding: false,
           seenCinematics: {},
+          activeCampaignLevelId: 'contract-leo-bionutrients',
           decisionLog: createInitialDecisionLog(),
         });
       },
@@ -216,6 +217,7 @@ export const useMissionStore = create<MissionStoreState>()(
         mcrSignedAuthorized: state.mcrSignedAuthorized,
         decisionLog: state.decisionLog,
         playerXP: state.playerXP,
+        activeCampaignLevelId: state.activeCampaignLevelId,
         campaignProgress: state.campaignProgress,
         hullIntegrity: state.hullIntegrity,
         orbitAltitudeKm: state.orbitAltitudeKm,

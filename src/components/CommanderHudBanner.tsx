@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Film, Volume2, Zap } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Film, Volume2, Zap } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
@@ -119,6 +119,17 @@ export function CommanderHudBanner() {
   }
 
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [starsOpen, setStarsOpen] = useState(true);
+  const [idleHint, setIdleHint] = useState(false);
+
+  useEffect(() => {
+    if (!isLevel1GuidedTour) return;
+    const timer = window.setTimeout(() => setIdleHint(true), 8000);
+    return () => {
+      window.clearTimeout(timer);
+      setIdleHint(false);
+    };
+  }, [isLevel1GuidedTour, level1TutorialStep]);
   const lastSpokenKeyRef = useRef<string>('');
 
   const flightAlert = overMass
@@ -146,15 +157,22 @@ export function CommanderHudBanner() {
     lastSpokenKeyRef.current = currentSpeechKey;
 
     const speaker = isCadet ? 'VEGA' : 'ROSTOVA';
+    let safetyWatchdog = 0;
     const timer = window.setTimeout(() => {
       setIsSpeaking(true);
+      safetyWatchdog = window.setTimeout(() => {
+        console.warn('[CommanderHudBanner] Speech state exceeded 8s without completion; auto-releasing.');
+        setIsSpeaking(false);
+      }, 8000);
       speakCharacterLine(vegaText, language, speaker, soundEnabled, () => {
+        window.clearTimeout(safetyWatchdog);
         setIsSpeaking(false);
       });
     }, 140);
 
     return () => {
       window.clearTimeout(timer);
+      window.clearTimeout(safetyWatchdog);
       setIsSpeaking(false);
     };
   }, [activeCinematicId, currentSpeechKey, isCadet, language, soundEnabled, vegaText]);
@@ -251,29 +269,38 @@ export function CommanderHudBanner() {
               </button>
             </div>
           </div>
-          <div className="mt-0.5 font-mono text-[8.5px] tracking-[0.14em] text-slate-400 uppercase">
+          <div className="mt-0.5 font-mono text-[10px] tracking-[0.1em] text-slate-400 uppercase">
             {chapterBadge} · {activeCallsign}
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-200">{vegaText}</p>
+          <p className="mt-1 text-[12.5px] leading-snug text-slate-200 line-clamp-3 hover:line-clamp-none">
+            {vegaText}
+          </p>
         </div>
       </div>
 
-      {/* Level 01 Interactive Guided Tour (Detects when the player moves controls) */}
+      {/* Level 01 Interactive Guided Tour (Compact + Inactivity Hint) */}
       {activeTourStep && (
-        <div className="border-2 border-[#FFC15E] bg-[#FFC15E]/10 p-2.5 shadow-[0_0_22px_rgba(255,193,94,0.18)]">
-          <div className="flex items-center justify-between gap-2 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase">
+        <div className="border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 px-3 py-2">
+          <div className="flex items-center justify-between gap-2 font-mono text-[11px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
             <span>{activeTourStep.badge[language]}</span>
             <button
               type="button"
               onClick={() => setLevel1TutorialStep(5)}
-              className="text-[8.5px] text-slate-400 underline hover:text-white"
+              className="text-[10px] text-slate-400 underline hover:text-white"
             >
               {isEs ? 'Saltar tour' : 'Skip tour'}
             </button>
           </div>
-          <p className="mt-1 text-[11px] font-medium leading-snug text-white">
+          <p className="mt-0.5 text-[13px] font-medium leading-snug text-white">
             {activeTourStep.title[language]}
           </p>
+          {idleHint && (
+            <p className="mt-1 font-mono text-[11px] text-[#FFC15E]">
+              {isEs
+                ? 'Pista: haz clic en una opción iluminada para ver cómo cambia la nave.'
+                : 'Hint: click any highlighted option to see the spacecraft update.'}
+            </p>
+          )}
           <div className="mt-2 flex items-center justify-between gap-2">
             {level1TutorialStep === 0 ? (
               <button
@@ -282,7 +309,7 @@ export function CommanderHudBanner() {
                   playHoloTone('STEP', soundEnabled);
                   setLevel1TutorialStep(1);
                 }}
-                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[9.5px] font-bold tracking-[0.16em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
               >
                 {isEs
                   ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
@@ -290,29 +317,27 @@ export function CommanderHudBanner() {
               </button>
             ) : level1TutorialStep < 4 ? (
               <>
-                <span className="inline-flex items-center gap-1 font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
-                  <Zap className="h-3 w-3 text-[#FFC15E]" />
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] text-[#5FF3FF] uppercase">
+                  <Zap className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
                   <span>
-                    {isEs
-                      ? 'SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
-                      : 'SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
+                    {isEs ? 'SENSOR ACTIVO' : 'SENSOR ACTIVE'}
                   </span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setLevel1TutorialStep((level1TutorialStep + 1) as 2 | 3 | 4)}
-                  className="shrink-0 border border-[#5FF3FF]/40 px-2 py-0.5 font-mono text-[8.5px] text-slate-300 hover:text-white"
+                  className="shrink-0 border border-[#5FF3FF]/40 px-2.5 py-0.5 font-mono text-[10px] text-slate-200 hover:text-white"
                 >
                   {isEs ? 'Siguiente →' : 'Next →'}
                 </button>
               </>
             ) : (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#5FF3FF]" />
+              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.1em] text-[#5FF3FF] uppercase">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
                 <span>
                   {isEs
-                    ? '¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
-                    : 'TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+                    ? '¡LISTO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
+                    : 'DONE! CLICK NEXT LEVEL 02 IN THE CENTER'}
                 </span>
               </span>
             )}
@@ -320,18 +345,35 @@ export function CommanderHudBanner() {
         </div>
       )}
 
-      {/* Star Criteria */}
-      <div className="space-y-1 font-mono text-[10px] tracking-[0.14em] uppercase">
-        <div className="text-slate-400">{isEs ? 'PARA GANAR ESTRELLAS' : 'STAR CRITERIA'}</div>
-        <div className={starInfo.marginOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
-          ▸ {isEs ? `MARGEN MAYOR A ${isCadet ? 35 : 40}%` : `MARGIN OVER ${isCadet ? 35 : 40}%`}
-        </div>
-        <div className={starInfo.zeroConflicts ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
-          ▸ {isEs ? 'CERO CONFLICTOS' : 'ZERO CONFLICTS'}
-        </div>
-        <div className={starInfo.budgetOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
-          ▸ {isEs ? 'BAJO PRESUPUESTO' : 'UNDER BUDGET'}
-        </div>
+      {/* Star Criteria (Clean mockup list) */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setStarsOpen((o) => !o)}
+          className="flex w-full items-center justify-between gap-2 py-1 font-mono text-[11px] tracking-[0.14em] uppercase hover:text-white"
+        >
+          <span className="text-slate-400">
+            {isEs ? 'PARA GANAR ESTRELLAS' : 'STAR CRITERIA'}
+          </span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 text-[#5FF3FF] transition-transform duration-150 ${
+              starsOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+        {starsOpen && (
+          <div className="mt-1 space-y-1 font-mono text-[12px] tracking-[0.1em] uppercase">
+            <div className={starInfo.marginOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
+              ▸ {isEs ? `MARGEN MAYOR A ${isCadet ? 35 : 40}%` : `MARGIN OVER ${isCadet ? 35 : 40}%`}
+            </div>
+            <div className={starInfo.zeroConflicts ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
+              ▸ {isEs ? 'CERO CONFLICTOS' : 'ZERO CONFLICTS'}
+            </div>
+            <div className={starInfo.budgetOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
+              ▸ {isEs ? 'BAJO PRESUPUESTO' : 'UNDER BUDGET'}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

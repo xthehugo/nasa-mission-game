@@ -83,10 +83,13 @@ export function HoloPointTankStage() {
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
-      last = now;
-      if (autoSpinRef.current) {
-        setYawDeg((y) => (y + dt * 16) % 360);
+      const elapsed = (now - last) / 1000;
+      if (elapsed >= 0.032) {
+        const dt = Math.min(0.05, Math.max(0, elapsed));
+        last = now;
+        if (autoSpinRef.current && !document.hidden) {
+          setYawDeg((y) => (y + dt * 16) % 360);
+        }
       }
       raf = requestAnimationFrame(loop);
     };

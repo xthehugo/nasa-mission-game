@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { useMissionStore, type RobotSpotlightZone } from '../store';
@@ -326,10 +326,10 @@ function computeCoordsForZone(zone: RobotSpotlightZone | null): { x: number; y: 
   }
 
   if (targetY + cardHeight > vh - 16) {
-    targetY = Math.max(16, vh - cardHeight - 20);
+    targetY = Math.max(76, vh - cardHeight - 20);
   }
-  if (targetY < 16) {
-    targetY = 16;
+  if (targetY < 76) {
+    targetY = 76;
   }
 
   return { x: Math.round(targetX), y: Math.round(targetY) };
@@ -345,7 +345,7 @@ export function AstraFloatingCompanion() {
   } = useMissionStore();
 
   const isEs = language === 'es';
-  const steps = getAstraStepsForPhase(phase);
+  const steps = useMemo(() => getAstraStepsForPhase(phase), [phase]);
 
   const [isOpen, setIsOpen] = useState(true);
   const [stepIdx, setStepIdx] = useState(0);
@@ -420,13 +420,13 @@ export function AstraFloatingCompanion() {
     ? DIRECT_ZONE_EXPLANATIONS[customZoneOverride].body[language]
     : activeStep.body[language];
 
-  // When resting quietly in the bottom-left corner:
+  // When resting quietly in the bottom-right corner above the level bar:
   if (!isOpen) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed bottom-4 left-4 z-40 flex items-center gap-2.5"
+        className="fixed bottom-12 right-4 z-40 flex items-center gap-2 pointer-events-none"
       >
         <button
           type="button"
@@ -441,20 +441,20 @@ export function AstraFloatingCompanion() {
               ? 'Haz clic para abrir a ASTRA (o haz clic derecho en cualquier panel)'
               : 'Click to open ASTRA (or right-click any panel)'
           }
-          className="group flex items-center gap-2.5 rounded-sm border border-[#5FF3FF]/70 bg-[#040B14]/95 px-3 py-2 shadow-[0_0_24px_rgba(95,243,255,0.28)] transition hover:border-[#5FF3FF] hover:bg-[#071628]"
+          className="pointer-events-auto cursor-pointer group flex items-center gap-2 rounded-sm border border-[#5FF3FF]/70 bg-[#040B14]/95 px-2.5 py-1.5 shadow-[0_0_20px_rgba(95,243,255,0.22)] transition hover:border-[#5FF3FF] hover:bg-[#071628]"
         >
           <motion.div
-            animate={{ y: [0, -3, 0] }}
+            animate={{ y: [0, -2, 0] }}
             transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
           >
-            <RobotSvgIcon className="h-11 w-11" />
+            <RobotSvgIcon className="h-8 w-8" />
           </motion.div>
           <div className="text-left">
-            <div className="font-mono text-[10px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
+            <div className="font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
               ASTRA · {isEs ? 'GUÍA' : 'GUIDE'}
             </div>
-            <div className="text-[10px] text-slate-300">
-              {isEs ? 'Clic o Anticlic en un panel' : 'Click or Right-click any panel'}
+            <div className="hidden sm:block text-[9px] text-slate-300">
+              {isEs ? 'Clic o Anticlic' : 'Click or Right-click'}
             </div>
           </div>
         </button>
@@ -473,25 +473,25 @@ export function AstraFloatingCompanion() {
       }}
       transition={{ type: 'spring', stiffness: 220, damping: 24 }}
       style={{ position: 'fixed' }}
-      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4 pointer-events-none"
+      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-2.5 pointer-events-none"
     >
-      {/* Glowing Neon Robot Mascot ASTRA (Left of the card, just like the reference image) */}
+      {/* Glowing Neon Robot Mascot ASTRA (Compact) */}
       <motion.button
         type="button"
         onClick={() => {
           setIsOpen(false);
           setRobotHoverZone(null);
         }}
-        animate={{ y: [0, -5, 0] }}
+        animate={{ y: [0, -4, 0] }}
         transition={{ repeat: Infinity, duration: 2.6, ease: 'easeInOut' }}
         title={isEs ? 'Descansar en la esquina' : 'Rest in corner'}
-        className="mt-2 shrink-0 cursor-pointer focus:outline-none pointer-events-auto"
+        className="mt-1 shrink-0 cursor-pointer focus:outline-none pointer-events-auto"
       >
-        <RobotSvgIcon className="h-16 w-16 sm:h-20 sm:w-20" />
+        <RobotSvgIcon className="h-12 w-12 sm:h-14 sm:w-14" />
       </motion.button>
 
-      {/* ASTRA Cyan-Bordered Dialog Box (Matching the reference image) */}
-      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5 pointer-events-auto">
+      {/* ASTRA Cyan-Bordered Dialog Box (Compact) */}
+      <div className="relative w-[275px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-3 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_24px_rgba(95,243,255,0.2)] sm:w-[320px] sm:p-3.5 pointer-events-auto">
         {/* Top-right subtle close/minimize button + step indicator */}
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="font-mono text-[9px] tracking-[0.16em] text-[#5FF3FF]/80 uppercase">

@@ -20,11 +20,19 @@ export { evaluateMissionPhysics } from './physics';
 export { runMissionSimulation } from './simulation';
 export {
   CAMPAIGN_CONTRACTS,
+  CAMPAIGN_LEVELS,
   computeActiveSynergies,
   EQUIPMENT_SYNERGIES,
+  getCampaignLevelById,
+  getNextCampaignLevel,
   getPlayerRank,
+  isCampaignLevelUnlocked,
   PLAYER_RANKS,
   type CampaignContract,
+  type CampaignGuideSpeaker,
+  type CampaignLevelConfig,
+  type CampaignLevelConstraints,
+  type CampaignLevelStepConfig,
   type EquipmentSynergy,
   type PlayerRank,
 } from './campaign';

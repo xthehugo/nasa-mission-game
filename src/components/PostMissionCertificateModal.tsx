@@ -13,9 +13,14 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { findObjectiveById } from '../engine';
+import {
+  findObjectiveById,
+  getCampaignLevelById,
+  getNextCampaignLevel,
+} from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone } from './holoAudio';
+import { CONTRACT_TO_CINEMATIC } from './narrativeConfig';
 import EngineeringHistogramCard from './EngineeringHistogramCard';
 
 export function PostMissionCertificateModal() {
@@ -34,14 +39,49 @@ export function PostMissionCertificateModal() {
     decisionLog,
     reducedMotion,
     soundEnabled,
+    activeCampaignLevelId,
+    campaignProgress,
+    playerXP,
     isCertificateOpen,
     setCertificateOpen,
+    setActiveCampaignLevelId,
+    loadPreset,
+    setPhase,
+    setCampaignModalOpen,
+    openCinematic,
+    appendDecisionLog,
   } = useMissionStore();
 
   const [downloaded, setDownloaded] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const isEs = language === 'es';
   const show = Boolean(isCertificateOpen && simulationResult);
+  const activeLevel = getCampaignLevelById(activeCampaignLevelId);
+  const nextLevel = getNextCampaignLevel(activeLevel.id);
+  const levelProgress = campaignProgress[activeLevel.id];
+
+  const handleGoToNextMission = () => {
+    if (!nextLevel) return;
+    playHoloTone('STAR', soundEnabled);
+    setCertificateOpen(false);
+    setActiveCampaignLevelId(nextLevel.id);
+    loadPreset(nextLevel.presetKey);
+    setPhase('CML_1');
+    appendDecisionLog({
+      phase: 'CML_1',
+      label: {
+        en: `Unlocked & started ${nextLevel.code}: ${nextLevel.title.en}`,
+        es: `Desbloqueada e iniciada ${nextLevel.code}: ${nextLevel.title.es}`,
+      },
+      impact: 'POSITIVE',
+    });
+    const cinematicId = CONTRACT_TO_CINEMATIC[nextLevel.id];
+    if (cinematicId) {
+      openCinematic(cinematicId);
+    } else {
+      setCampaignModalOpen(true);
+    }
+  };
 
   const objective = findObjectiveById(selection.objectiveId);
   const resolvedCount = simulationResult
@@ -178,7 +218,7 @@ export function PostMissionCertificateModal() {
         <motion.div
           initial={reducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={reducedMotion ? undefined : { opacity: 0 }}
+          exit={reducedMotion ? undefined : { opacity: 0, pointerEvents: 'none' }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#04080F]/90 p-4 backdrop-blur-md"
         >
           <motion.div
@@ -299,6 +339,26 @@ export function PostMissionCertificateModal() {
               )}
             </div>
 
+            <div className="mt-4 border border-[#5FF3FF]/30 bg-[#04080F] p-3.5 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
+                  {isEs ? `Lo que aprendiste · ${activeLevel.code}` : `What You Learned · ${activeLevel.code}`}
+                </div>
+                <div className="flex items-center gap-2 font-mono text-[10px]">
+                  <span className="text-[#FFC15E]">
+                    {'★'.repeat(levelProgress?.stars ?? 0)}
+                    {'☆'.repeat(Math.max(0, 3 - (levelProgress?.stars ?? 0)))}
+                  </span>
+                  <span className="text-[#5FF3FF]">{playerXP} XP</span>
+                </div>
+              </div>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-200">
+                {activeLevel.learnedTakeaways.map((item, idx) => (
+                  <li key={idx}>{item[language]}</li>
+                ))}
+              </ul>
+            </div>
+
             <div className="mt-4 border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
               <div className="mb-2 flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
                 <History className="h-4 w-4" />
@@ -369,6 +429,20 @@ export function PostMissionCertificateModal() {
                         : 'Download Certificate (.txt)'}
                   </span>
                 </button>
+                {nextLevel && (
+                  <button
+                    type="button"
+                    onClick={handleGoToNextMission}
+                    className="inline-flex items-center gap-2 border border-[#5FF3FF] bg-[#5FF3FF] px-4 py-2 font-mono text-[10px] font-bold tracking-[0.14em] text-[#02050B] uppercase transition hover:bg-[#7ff6ff]"
+                  >
+                    <Rocket className="h-4 w-4" />
+                    <span>
+                      {isEs
+                        ? `Siguiente misión: ${nextLevel.code} →`
+                        : `Next Mission: ${nextLevel.code} →`}
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

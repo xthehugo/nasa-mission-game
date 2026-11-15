@@ -139,10 +139,28 @@ export function playRadioSquelch(enabled: boolean): void {
   }
 }
 
+export interface VoicePlaybackSnapshot {
+  active: boolean;
+  source: 'audio' | 'speech' | 'none';
+  currentTimeSec: number;
+  durationSec: number;
+  progress: number;
+  ended: boolean;
+  failed: boolean;
+  sessionId: number;
+}
+
 let activeAudioElement: HTMLAudioElement | null = null;
 let currentPlayPromise: Promise<void> | null = null;
 let activeSpeechAbort: AbortController | null = null;
 let activeCallback: (() => void) | null = null;
+let activeSpeechSessionId = 0;
+let activePlaybackSource: 'audio' | 'speech' | 'none' = 'none';
+let activeSpeechStartMs = 0;
+let activeSpeechEstimatedDurationSec = 0;
+let activeSpeechEnded = false;
+let activeSpeechFailed = false;
+let speechWatchdogTimer: number | null = null;
 const blobAudioCache = new Map<string, string>();
 
 let activeBgmAudio: HTMLAudioElement | null = null;
@@ -232,6 +250,87 @@ export function playCinemaSfx(sound: 'RAIN_WIND' | 'MCR_APPLAUSE', enabled: bool
   }
 }
 
+function clearSpeechWatchdog(): void {
+  if (speechWatchdogTimer !== null && typeof window !== 'undefined') {
+    window.clearTimeout(speechWatchdogTimer);
+    speechWatchdogTimer = null;
+  }
+}
+
+function detachAudioElement(el: HTMLAudioElement): void {
+  el.onloadedmetadata = null;
+  el.ontimeupdate = null;
+  el.onended = null;
+  el.onerror = null;
+}
+
+export function getVoicePlaybackSnapshot(): VoicePlaybackSnapshot {
+  if (typeof window === 'undefined') {
+    return {
+      active: false,
+      source: 'none',
+      currentTimeSec: 0,
+      durationSec: 0,
+      progress: 0,
+      ended: activeSpeechEnded,
+      failed: activeSpeechFailed,
+      sessionId: activeSpeechSessionId,
+    };
+  }
+
+  if (activePlaybackSource === 'audio' && activeAudioElement) {
+    const duration =
+      Number.isFinite(activeAudioElement.duration) && activeAudioElement.duration > 0
+        ? activeAudioElement.duration
+        : 0;
+    const current = Math.max(0, activeAudioElement.currentTime || 0);
+    const ended = activeAudioElement.ended || activeSpeechEnded;
+    const progress = ended
+      ? 1
+      : duration > 0
+        ? Math.max(0, Math.min(1, current / duration))
+        : 0;
+    return {
+      active: !activeAudioElement.paused && !ended,
+      source: 'audio',
+      currentTimeSec: current,
+      durationSec: duration,
+      progress,
+      ended,
+      failed: activeSpeechFailed,
+      sessionId: activeSpeechSessionId,
+    };
+  }
+
+  if (activePlaybackSource === 'speech') {
+    const est = Math.max(1, activeSpeechEstimatedDurationSec);
+    const elapsed = Math.max(0, (performance.now() - activeSpeechStartMs) / 1000);
+    const ended = activeSpeechEnded;
+    const progress = ended ? 1 : Math.max(0, Math.min(1, elapsed / est));
+    return {
+      active: !ended,
+      source: 'speech',
+      currentTimeSec: Math.min(est, elapsed),
+      durationSec: est,
+      progress,
+      ended,
+      failed: activeSpeechFailed,
+      sessionId: activeSpeechSessionId,
+    };
+  }
+
+  return {
+    active: false,
+    source: 'none',
+    currentTimeSec: 0,
+    durationSec: 0,
+    progress: activeSpeechEnded ? 1 : 0,
+    ended: activeSpeechEnded,
+    failed: activeSpeechFailed,
+    sessionId: activeSpeechSessionId,
+  };
+}
+
 export function isCharacterVoicePlaying(): boolean {
   if (typeof window === 'undefined') return false;
   if (activeAudioElement && !activeAudioElement.paused && !activeAudioElement.ended) {
@@ -246,6 +345,12 @@ export function isCharacterVoicePlaying(): boolean {
 export function stopCharacterVoice(): void {
   if (typeof window === 'undefined') return;
   try {
+    activeSpeechSessionId += 1;
+    clearSpeechWatchdog();
+    activePlaybackSource = 'none';
+    activeSpeechEnded = false;
+    activeSpeechFailed = false;
+
     if (activeSpeechAbort) {
       activeSpeechAbort.abort();
       activeSpeechAbort = null;
@@ -254,18 +359,18 @@ export function stopCharacterVoice(): void {
 
     if (activeAudioElement) {
       const el = activeAudioElement;
+      const pendingPlay = currentPlayPromise;
       activeAudioElement = null;
-      el.onended = null;
-      el.onerror = null;
+      currentPlayPromise = null;
+      detachAudioElement(el);
 
-      if (currentPlayPromise) {
-        currentPlayPromise
+      if (pendingPlay) {
+        pendingPlay
           .then(() => {
             el.pause();
             el.currentTime = 0;
           })
           .catch(() => {});
-        currentPlayPromise = null;
       } else {
         el.pause();
         el.currentTime = 0;
@@ -284,12 +389,24 @@ function fallbackBrowserSpeech(
   cleanText: string,
   lang: 'en' | 'es',
   speaker: 'VEGA' | 'ROSTOVA' | 'SYSTEM',
+  sessionId: number,
   onEnded?: () => void,
+  onBoundaryCharIndex?: (charIndex: number) => void,
 ): void {
+  if (sessionId !== activeSpeechSessionId) return;
+  clearSpeechWatchdog();
+  activePlaybackSource = 'speech';
+  activeSpeechStartMs = performance.now();
+  activeSpeechEstimatedDurationSec = Math.max(4, cleanText.length / 13);
+  activeSpeechEnded = false;
+
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    activeSpeechFailed = true;
+    activeSpeechEnded = true;
     onEnded?.();
     return;
   }
+
   try {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(cleanText);
@@ -331,19 +448,43 @@ function fallbackBrowserSpeech(
       utter.rate = 1.02;
     }
 
-    utter.onend = () => {
+    const finishSpeech = (failed: boolean) => {
+      if (sessionId !== activeSpeechSessionId) return;
+      clearSpeechWatchdog();
+      utter.onboundary = null;
+      utter.onend = null;
+      utter.onerror = null;
+      activeSpeechEnded = true;
+      if (failed) activeSpeechFailed = true;
       onEnded?.();
     };
-    utter.onerror = () => {
-      onEnded?.();
+
+    utter.onboundary = (ev) => {
+      if (sessionId !== activeSpeechSessionId) return;
+      if (typeof ev.charIndex === 'number') {
+        onBoundaryCharIndex?.(ev.charIndex);
+      }
     };
+    utter.onend = () => finishSpeech(false);
+    utter.onerror = () => finishSpeech(true);
+
+    // Watchdog so speechSynthesis browser hangs never freeze the dialogue state
+    speechWatchdogTimer = window.setTimeout(
+      () => finishSpeech(false),
+      Math.round((activeSpeechEstimatedDurationSec + 6) * 1000),
+    );
 
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
     window.speechSynthesis.speak(utter);
   } catch {
-    onEnded?.();
+    if (sessionId === activeSpeechSessionId) {
+      clearSpeechWatchdog();
+      activeSpeechFailed = true;
+      activeSpeechEnded = true;
+      onEnded?.();
+    }
   }
 }
 
@@ -403,6 +544,7 @@ export function speakCharacterLine(
   speaker: 'VEGA' | 'ROSTOVA' | 'SYSTEM',
   enabled: boolean,
   onEnded?: () => void,
+  onBoundaryCharIndex?: (charIndex: number) => void,
 ): void {
   if (!enabled || typeof window === 'undefined') {
     onEnded?.();
@@ -410,6 +552,7 @@ export function speakCharacterLine(
   }
 
   stopCharacterVoice();
+  const sessionId = activeSpeechSessionId;
   activeCallback = onEnded ?? null;
   playRadioSquelch(enabled);
 
@@ -422,11 +565,14 @@ export function speakCharacterLine(
     .trim();
 
   if (!cleanText) {
+    activeSpeechEnded = true;
     onEnded?.();
     return;
   }
 
   const triggerEnded = () => {
+    if (sessionId !== activeSpeechSessionId) return;
+    activeSpeechEnded = true;
     if (activeCallback) {
       const cb = activeCallback;
       activeCallback = null;
@@ -434,23 +580,79 @@ export function speakCharacterLine(
     }
   };
 
+  const attachAndPlayAudio = (src: string) => {
+    if (sessionId !== activeSpeechSessionId) return;
+    const audio = new Audio(src);
+    audio.volume = 0.85;
+    activeAudioElement = audio;
+    activePlaybackSource = 'audio';
+    activeSpeechEnded = false;
+    activeSpeechFailed = false;
+
+    let endedHandled = false;
+
+    const handleAudioFailure = () => {
+      if (sessionId !== activeSpeechSessionId || endedHandled) return;
+      endedHandled = true;
+      detachAudioElement(audio);
+      if (activeAudioElement === audio) {
+        activeAudioElement = null;
+      }
+      currentPlayPromise = null;
+      activeSpeechFailed = true;
+      fallbackBrowserSpeech(
+        cleanText,
+        lang,
+        speaker,
+        sessionId,
+        triggerEnded,
+        onBoundaryCharIndex,
+      );
+    };
+
+    audio.ontimeupdate = () => {
+      if (sessionId !== activeSpeechSessionId) return;
+      if (audio.duration > 0 && Number.isFinite(audio.duration)) {
+        const approxChar = Math.floor((audio.currentTime / audio.duration) * cleanText.length);
+        onBoundaryCharIndex?.(approxChar);
+      }
+    };
+
+    audio.onended = () => {
+      if (sessionId !== activeSpeechSessionId || endedHandled) return;
+      endedHandled = true;
+      detachAudioElement(audio);
+      if (activeAudioElement === audio) {
+        activeAudioElement = null;
+      }
+      currentPlayPromise = null;
+      onBoundaryCharIndex?.(cleanText.length);
+      triggerEnded();
+    };
+
+    audio.onerror = handleAudioFailure;
+
+    const playPromise = audio.play();
+    currentPlayPromise = playPromise;
+    playPromise
+      .then(() => {
+        if (currentPlayPromise === playPromise) {
+          currentPlayPromise = null;
+        }
+        if (sessionId !== activeSpeechSessionId) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      })
+      .catch(() => {
+        handleAudioFailure();
+      });
+  };
+
   // 1. Static pre-generated ElevenLabs MP3 in /audio/voices/
   const staticMp3Url = findPrebakedVoiceUrl(cleanText, lang, speaker);
   if (staticMp3Url) {
-    const audio = new Audio(staticMp3Url);
-    audio.volume = 0.85;
-    activeAudioElement = audio;
-    audio.onended = () => {
-      activeAudioElement = null;
-      triggerEnded();
-    };
-    audio.onerror = () => {
-      fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
-    };
-    currentPlayPromise = audio.play();
-    currentPlayPromise.catch(() => {
-      fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
-    });
+    attachAndPlayAudio(staticMp3Url);
     return;
   }
 
@@ -458,20 +660,7 @@ export function speakCharacterLine(
   const cacheKey = `${speaker}|${lang}|${cleanText}`;
   const cachedBlobUrl = blobAudioCache.get(cacheKey);
   if (cachedBlobUrl) {
-    const audio = new Audio(cachedBlobUrl);
-    audio.volume = 0.85;
-    activeAudioElement = audio;
-    audio.onended = () => {
-      activeAudioElement = null;
-      triggerEnded();
-    };
-    audio.onerror = () => {
-      fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
-    };
-    currentPlayPromise = audio.play();
-    currentPlayPromise.catch(() => {
-      fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
-    });
+    attachAndPlayAudio(cachedBlobUrl);
     return;
   }
 
@@ -493,27 +682,22 @@ export function speakCharacterLine(
       }
 
       const blob = await response.blob();
-      if (abortCtrl.signal.aborted) return;
+      if (abortCtrl.signal.aborted || sessionId !== activeSpeechSessionId) return;
 
       const blobUrl = URL.createObjectURL(blob);
       blobAudioCache.set(cacheKey, blobUrl);
-
-      const audio = new Audio(blobUrl);
-      audio.volume = 0.85;
-      activeAudioElement = audio;
-      audio.onended = () => {
-        activeAudioElement = null;
-        triggerEnded();
-      };
-      audio.onerror = () => {
-        fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
-      };
-      currentPlayPromise = audio.play();
-      await currentPlayPromise;
+      attachAndPlayAudio(blobUrl);
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      if (abortCtrl.signal.aborted) return;
-      fallbackBrowserSpeech(cleanText, lang, speaker, triggerEnded);
+      if (abortCtrl.signal.aborted || sessionId !== activeSpeechSessionId) return;
+      fallbackBrowserSpeech(
+        cleanText,
+        lang,
+        speaker,
+        sessionId,
+        triggerEnded,
+        onBoundaryCharIndex,
+      );
     }
   })();
 }
