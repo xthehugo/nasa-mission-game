@@ -287,9 +287,11 @@ export default function MissionStage({
   const {
     simIsPlaying,
     simSpeed,
+    phaseTutorialStep,
     setSimPlaying,
     toggleSimPlaying,
     setSimSpeed,
+    setPhaseTutorialStep,
     soundEnabled,
   } = useMissionStore();
 
@@ -415,6 +417,7 @@ export default function MissionStage({
 
   const toggle = () => {
     playHoloTone('STEP', soundEnabled);
+    if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
     toggleSimPlaying();
   };
 

@@ -1,4 +1,4 @@
-import type { StoryCinematicId } from '../store';
+import type { RobotSpotlightZone, StoryCinematicId } from '../store';
 import type { CMLPhase, SubsystemCategory } from '../types/mission';
 
 export interface ScrewByScrewStep {
@@ -6,6 +6,15 @@ export interface ScrewByScrewStep {
   controlLabel: { en: string; es: string };
   whatIsIt: { en: string; es: string };
   howItConnects: { en: string; es: string };
+}
+
+export interface PhaseTourStep {
+  step: number;
+  targetZone: RobotSpotlightZone;
+  badge: { en: string; es: string };
+  title: { en: string; es: string };
+  instruction: { en: string; es: string };
+  astraTip?: { en: string; es: string };
 }
 
 export interface NarrativePhaseBeat {
@@ -69,64 +78,381 @@ export const HOLO_ANIMATION_PRESETS = {
   voicePulseDurationSec: 0.9,
 };
 
-export const LEVEL1_INTERACTIVE_TOUR: {
-  step: number;
-  targetZone: 'RESOURCES' | 'CHASSIS' | 'EPS' | 'MISSION' | 'NEXT_LEVEL';
-  badge: { en: string; es: string };
-  title: { en: string; es: string };
-  instruction: { en: string; es: string };
-}[] = [
-  {
-    step: 0,
-    targetZone: 'RESOURCES',
-    badge: { en: 'TOUR 1/5 · VITAL SIGNS', es: 'GUÍA 1/5 · SIGNOS VITALES' },
-    title: { en: 'Live Resource Bars (Top Left)', es: 'Barras de Recursos en Vivo (Izquierda Arriba)' },
-    instruction: {
-      en: 'Cadet {cadet}, look at the top-left panel. Those 5 bars are your ship’s vital signs: Mass, Power, Budget, Data, and RF Link. Every piece you touch will move them. Click "Understand & Continue" to touch your first part.',
-      es: 'Cadete {cadet}, mira arriba a la izquierda. Esas 5 barras son los signos vitales de tu nave: Masa, Energía, Presupuesto, Datos y Enlace RF. Cada pieza que elijas moverá estas barras en vivo. Pulsa "Entendido" para tocar tu primera pieza.',
+export const PHASE_INTERACTIVE_TOURS: Record<CMLPhase, PhaseTourStep[]> = {
+  CML_1: [
+    {
+      step: 0,
+      targetZone: 'RESOURCES',
+      badge: { en: 'TOUR 1/5 · VITAL SIGNS', es: 'GUÍA 1/5 · SIGNOS VITALES' },
+      title: { en: 'Live Resource Bars (Top Left)', es: 'Barras de Recursos en Vivo (Arriba Izquierda)' },
+      instruction: {
+        en: 'Cadet {cadet}, look at the top-left panel. Those 5 bars are your ship’s vital signs: Mass, Power, Budget, Data, and RF Link. Every piece you touch will move them in real time. Click "Next" or touch your first part.',
+        es: 'Cadete {cadet}, mira arriba a la izquierda. Esas 5 barras son los signos vitales de tu nave: Masa, Energía, Presupuesto, Datos y Enlace RF. Cada pieza que elijas moverá estas barras en vivo. Pulsa "Siguiente" o toca tu primera pieza.',
+      },
+      astraTip: {
+        en: 'Keep all bars in Cyan. If any turns Red, your spacecraft fails review!',
+        es: 'Mantén todas las barras en color Cian. ¡Si una se pone roja, el satélite no despegará!',
+      },
     },
-  },
-  {
-    step: 1,
-    targetZone: 'CHASSIS',
-    badge: { en: 'TOUR 2/5 · CLICK A CHASSIS', es: 'GUÍA 2/5 · HAZ CLIC EN UN CHASIS' },
-    title: { en: 'Step 1: The Spacecraft Skeleton (Chassis)', es: 'Paso 1: El Esqueleto de la Nave (Chasis)' },
-    instruction: {
-      en: 'Look at STEP 1 · CHASSIS on the left. It is the aluminum body where instruments fit. Click any size (1.5U, 2U, or CUSTOM) right now—I will detect your move and show you how the center hologram changes!',
-      es: 'Mira el PASO 1 · CHASIS a la izquierda. Es el cuerpo de aluminio donde caben las cámaras. Haz clic ahora mismo en otro tamaño (1.5U, 2U o CUSTOM): detectaré tu movimiento y verás cómo cambia el holograma central.',
+    {
+      step: 1,
+      targetZone: 'CHASSIS',
+      badge: { en: 'TOUR 2/5 · CLICK A CHASSIS', es: 'GUÍA 2/5 · ELIGE UN CHASIS' },
+      title: { en: 'Step 1: The Spacecraft Skeleton (Chassis)', es: 'Paso 1: El Esqueleto de la Nave (Chasis)' },
+      instruction: {
+        en: 'Look at STEP 1 · CHASSIS on the left. It is the aluminum body where instruments fit. Click any size (1.5U, 2U, 3U or CUSTOM) right now—I will detect your move and show you how the center hologram changes!',
+        es: 'Mira el PASO 1 · CHASIS a la izquierda. Es el cuerpo de aluminio donde caben los equipos. Haz clic en otro tamaño (1.5U, 2U, 3U o CUSTOM): detectaré tu movimiento y verás cómo cambia el holograma central.',
+      },
+      astraTip: {
+        en: 'Each 1U is a 10x10 cm cube. Larger boxes fit more scientific cameras.',
+        es: 'Cada 1U es un cubo de 10x10 cm. Los chasis más grandes permiten llevar más cámaras.',
+      },
     },
-  },
-  {
-    step: 2,
-    targetZone: 'EPS',
-    badge: { en: 'TOUR 3/5 · CLICK SOLAR ARRAYS', es: 'GUÍA 3/5 · ELIGE PANELES SOLARES' },
-    title: { en: 'Solar Wings & Electrical Power (EPS)', es: 'Paneles Solares y Energía Eléctrica (EPS)' },
-    instruction: {
-      en: 'Great move! You saw the cube resize in the center. Now look at SOLAR ARRAYS / EPS below on the left. They generate electricity so your ship never dies in the dark like Icarus-1. Click any power system to deploy the wings!',
-      es: '¡Bien hecho! ¿Viste cómo cambió el cubo en el centro? Ahora baja a PANELES SOLARES / EPS a la izquierda. Generan la electricidad para que tu nave no se apague como el Ícaro-1. ¡Haz clic en una opción para desplegar las alas!',
+    {
+      step: 2,
+      targetZone: 'EPS',
+      badge: { en: 'TOUR 3/5 · SOLAR ARRAYS', es: 'GUÍA 3/5 · PANELES SOLARES' },
+      title: { en: 'Solar Wings & Electrical Power (EPS)', es: 'Paneles Solares y Energía Eléctrica (EPS)' },
+      instruction: {
+        en: 'Great move! You saw the cube resize in the center. Now look at SOLAR ARRAYS / EPS below on the left. They generate electricity so your ship never dies in the dark like Icarus-1. Click any power option to deploy the wings!',
+        es: '¡Bien hecho! ¿Viste cómo cambió el cubo en el centro? Ahora baja a PANELES SOLARES / EPS a la izquierda. Generan la electricidad para que tu nave no se apague como el Ícaro-1. ¡Haz clic en una opción para desplegar las alas!',
+      },
+      astraTip: {
+        en: 'Deployable arrays give higher wattage during orbital sunlight passes.',
+        es: 'Las alas desplegables generan más vatios (+W) para sobrevivir los eclipses.',
+      },
     },
-  },
-  {
-    step: 3,
-    targetZone: 'MISSION',
-    badge: { en: 'TOUR 4/5 · PICK A SCIENCE MISSION', es: 'GUÍA 4/5 · ELIGE UNA MISIÓN A LA DERECHA' },
-    title: { en: 'Step 2: Science Mission & Payload (Right Panel)', es: 'Paso 2: Misión Científica y Carga Útil (Derecha)' },
-    instruction: {
-      en: 'Look at those solar wings deployed in the hologram! Now look to the RIGHT panel under STEP 2 · MISSION. Picking a mission sets our target planet, science camera, and NASA budget. Click any mission card on the right!',
-      es: '¡Mira cómo se desplegaron las alas en el centro! Ahora mira a la DERECHA en PASO 2 · MISIÓN. Elegir la misión define qué planeta investigaremos, qué cámara llevaremos y nuestro presupuesto. ¡Haz clic en una misión a la derecha!',
+    {
+      step: 3,
+      targetZone: 'MISSION',
+      badge: { en: 'TOUR 4/5 · SCIENCE MISSION', es: 'GUÍA 4/5 · ELIGE LA MISIÓN' },
+      title: { en: 'Step 2: Science Mission & Payload (Right Panel)', es: 'Paso 2: Misión Científica y Carga Útil (Derecha)' },
+      instruction: {
+        en: 'Look at those solar wings deployed in the hologram! Now look to the RIGHT panel under STEP 2 · MISSION. Picking a mission sets our target planet, science camera, and NASA budget. Click any mission card on the right!',
+        es: '¡Mira cómo se desplegaron las alas en el centro! Ahora mira a la DERECHA en PASO 2 · MISIÓN. Elegir la misión define qué planeta investigaremos, qué cámara llevaremos y nuestro presupuesto. ¡Haz clic en una misión a la derecha!',
+      },
+      astraTip: {
+        en: 'Each mission requires specific scientific payloads you will equip in Level 03.',
+        es: 'Cada misión exige instrumentos específicos que equiparás en el Nivel 03.',
+      },
     },
-  },
-  {
-    step: 4,
-    targetZone: 'NEXT_LEVEL',
-    badge: { en: 'TOUR 5/5 · READY FOR ORBIT!', es: 'GUÍA 5/5 · ¡LISTO PARA LA ÓRBITA!' },
-    title: { en: 'First Blueprint Complete!', es: '¡Primer Plano en Servilleta Completado!' },
-    instruction: {
-      en: 'Outstanding work, Cadet {cadet}! You now know how the left controls, right mission cards, and center hologram work together. Click "NEXT LEVEL · 02" below the hologram to launch into Orbit!',
-      es: '¡Excelente trabajo, Cadete {cadet}! Ya dominas los controles de la izquierda, las misiones de la derecha y el holograma central. Pulsa el botón brillante "SIGUIENTE NIVEL · 02" debajo del holograma para ir a la Órbita.',
+    {
+      step: 4,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 5/5 · ADVANCE TO ORBIT', es: 'GUÍA 5/5 · ¡LISTO PARA LA ÓRBITA!' },
+      title: { en: 'First Blueprint Complete!', es: '¡Primer Plano en Servilleta Completado!' },
+      instruction: {
+        en: 'Outstanding work, {callsign}! You now know how the left controls, right mission cards, and center hologram work together. Click "NEXT LEVEL · 02" below the hologram to launch into Orbit!',
+        es: '¡Excelente trabajo, {callsign}! Ya dominas los controles de la izquierda, las misiones de la derecha y el holograma central. Pulsa el botón brillante "SIGUIENTE NIVEL · 02" debajo del holograma para ir a la Órbita.',
+      },
+      astraTip: {
+        en: 'Click NEXT LEVEL 02 right below the center rotating hologram.',
+        es: 'Pulsa SIGUIENTE NIVEL 02 justo debajo del holograma giratorio en el centro.',
+      },
     },
-  },
-];
+  ],
+
+  CML_2: [
+    {
+      step: 0,
+      targetZone: 'LEFT_PANEL',
+      badge: { en: 'TOUR 1/4 · ORBIT PARAMS', es: 'GUÍA 1/4 · PARÁMETROS ORBITALES' },
+      title: { en: 'Altitude, Inclination & Tsiolkovsky Delta-V', es: 'Altitud, Inclinación y Delta-V de Tsiolkovsky' },
+      instruction: {
+        en: 'Welcome to Level 02: Orbit & Ground Stations, {callsign}. On the left you configure your orbital altitude and inclination. The physics engine solves Tsiolkovsky’s rocket equation in real time. Try adjusting the altitude slider!',
+        es: 'Bienvenido al Módulo 02 de Órbita y Estaciones, {callsign}. A la izquierda configuras la altitud e inclinación de vuelo. El motor físico calcula el Delta-V requerido con la ecuación de Tsiolkovsky. ¡Prueba a mover la altitud!',
+      },
+      astraTip: {
+        en: 'Higher altitudes escape atmospheric drag but require more Delta-V.',
+        es: 'A mayor altitud hay menos fricción con el aire, pero necesitas más combustible.',
+      },
+    },
+    {
+      step: 1,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 2/4 · SOLAR DESTINATIONS', es: 'GUÍA 2/4 · DESTINOS DE LA NASA' },
+      title: { en: 'Select Solar System Destination', es: 'Selecciona tu Destino en el Sistema Solar' },
+      instruction: {
+        en: 'Look to the right panel. NASA operates across 6 planetary regimes: LEO, SSO, GEO, Moon, SE-L2, and Jupiter. Click a destination card to calculate the required orbital insertion burn!',
+        es: 'Mira al panel derecho. La NASA opera en 6 regímenes: LEO, SSO, GEO, Luna, SE-L2 y Júpiter. Haz clic en una tarjeta de destino para ver la trayectoria y el encendido en el mapa central.',
+      },
+      astraTip: {
+        en: 'Missions to Jupiter face weak solar power and extreme radiation belts.',
+        es: 'Las misiones a Júpiter exigen energía nuclear RTG y blindaje contra radiación.',
+      },
+    },
+    {
+      step: 2,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 3/4 · DEEP SPACE NETWORK', es: 'GUÍA 3/4 · RED DE ESPACIO PROFUNDO' },
+      title: { en: 'Ground Stations & DSN Antennas', es: 'Estaciones Terrenas y Antenas DSN' },
+      instruction: {
+        en: 'Scroll down on the right to select your ground station: Near-Earth for LEO, DSN 34m for the Moon and L2, and the 70-meter dish for Jupiter. Ensure your RF link margin stays above 3 dB!',
+        es: 'Baja a la derecha para seleccionar tu estación terrena: Near-Earth para LEO, DSN 34m para la Luna y L2, o la antena de 70m para Júpiter. ¡Asegúrate de que el enlace de radio esté en verde!',
+      },
+      astraTip: {
+        en: 'A weak link means mission telemetry drops out when passing behind bodies.',
+        es: 'Una antena pequeña provocará pérdida de datos cuando la nave esté lejos.',
+      },
+    },
+    {
+      step: 3,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 4/4 · ORBITAL MAP & NEXT', es: 'GUÍA 4/4 · MAPA ORBITAL Y AVANCE' },
+      title: { en: 'Holographic CAD Orbit Ready', es: 'Mapa Orbital Listo: Pasa al Nivel 03' },
+      instruction: {
+        en: 'Look at the center holographic polar grid: it projects true orbital velocity, Van Allen belts, and ground station line-of-sight. When ready, click "NEXT LEVEL · 03" below the orbit map to enter the Trade Space!',
+        es: 'Observa en el centro la retícula polar CAD: proyecta la velocidad real, los cinturones Van Allen y el enlace con Tierra. Cuando estés listo, pulsa "SIGUIENTE NIVEL · 03" para diseñar los subsistemas.',
+      },
+      astraTip: {
+        en: 'Click NEXT LEVEL 03 below the orbit canvas to proceed.',
+        es: 'Pulsa el botón SIGUIENTE NIVEL 03 debajo del mapa orbital.',
+      },
+    },
+  ],
+
+  CML_3: [
+    {
+      step: 0,
+      targetZone: 'LEFT_PANEL',
+      badge: { en: 'TOUR 1/4 · 7 SUBSYSTEMS', es: 'GUÍA 1/4 · LOS 7 SUBSISTEMAS' },
+      title: { en: 'The 7 NASA Engineering Disciplines', es: 'Las 7 Disciplinas Aeroespaciales de la NASA' },
+      instruction: {
+        en: 'Welcome to Level 03 Trade Space, {callsign}. On the left you have the 7 subsystems: Payload, Propulsion, EPS, Telecom, Thermal, ADCS, and Launcher. Each tab displays what you currently have equipped. Click any tab to explore!',
+        es: 'Bienvenido al Trade Space del Módulo 03, {callsign}. A la izquierda tienes los 7 subsistemas canónicos: Carga Útil, Propulsión, EPS, Telecom, Térmico, ADCS y Lanzador. Cada pestaña muestra tu pieza montada. ¡Haz clic en una pestaña!',
+      },
+      astraTip: {
+        en: 'Navigate between the 7 tabs on the left to equip each discipline.',
+        es: 'Usa las 7 pestañas de la izquierda para cambiar entre motores, antenas y baterías.',
+      },
+    },
+    {
+      step: 1,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 2/4 · EQUIP HARDWARE', es: 'GUÍA 2/4 · EQUIPA COMPONENTES' },
+      title: { en: 'Inspect CAD & Click [+ EQUIP]', es: 'Inspecciona en 3D y Pulsa [+ EQUIPAR]' },
+      instruction: {
+        en: 'The right panel shows NASA-rated hardware options. Click [CAD / SPECS] to inspect the component in 3D wireframe, and click the bright green [+ EQUIP] button to mount it onto your spacecraft blueprint in real time!',
+        es: 'A la derecha tienes el catálogo con piezas reales. Pulsa el botón azul [CAD / SPECS] para examinar la pieza en 3D, y pulsa el botón verde [+ EQUIPAR] para montarla en el satélite al instante.',
+      },
+      astraTip: {
+        en: 'Notice how the center blueprint updates immediately as you click [+ EQUIP].',
+        es: 'Observa cómo el plano en el centro se actualiza al instante al pulsar [+ EQUIPAR].',
+      },
+    },
+    {
+      step: 2,
+      targetZone: 'RESOURCES',
+      badge: { en: 'TOUR 3/4 · SYNERGY COMBOS', es: 'GUÍA 3/4 · COMBOS DE SINERGIA' },
+      title: { en: 'Active Synergies & SWaP-C Budgets', es: 'Combos de Sinergia y Margen SWaP-C' },
+      instruction: {
+        en: 'Pairing compatible systems (like laser comms with high-capacity batteries) unlocks active synergy bonuses in the left panel. Watch your vital bars to ensure mass and power stay well within launcher limits!',
+        es: 'Combinar piezas que trabajan bien juntas (como telecomunicaciones láser con baterías potentes) desbloquea combos de sinergia a la izquierda. ¡Vigila que ninguna barra se ponga roja!',
+      },
+      astraTip: {
+        en: 'Synergy combos give you bonus scientific score and power efficiency.',
+        es: 'Los combos de sinergia otorgan puntos extras de ciencia y ahorro de energía.',
+      },
+    },
+    {
+      step: 3,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 4/4 · FAIRING & ADVANCE', es: 'GUÍA 4/4 · PLANO CON COFIA' },
+      title: { en: '50mm Clearance (NASA-STD-5001B) & Next Level', es: 'Holgura de 50mm NASA-STD-5001B y Nivel 04' },
+      instruction: {
+        en: 'Look at the center blueprint: the green border is the rocket fairing envelope with NASA-STD-5001B dynamic clearance. If nothing clashes and margins are solid, click "NEXT LEVEL · 04" to enter Point Design!',
+        es: 'Mira el plano central: la línea verde es la cofia del cohete con holgura dinámica de 50 mm según NASA-STD-5001B. Si nada choca y los márgenes son seguros, pulsa "SIGUIENTE NIVEL · 04" para ir al Punto de Diseño.',
+      },
+      astraTip: {
+        en: 'Click NEXT LEVEL 04 below the blueprint to lock your baseline design.',
+        es: 'Pulsa SIGUIENTE NIVEL 04 debajo del plano para pasar al siguiente paso.',
+      },
+    },
+  ],
+
+  CML_4: [
+    {
+      step: 0,
+      targetZone: 'LEFT_PANEL',
+      badge: { en: 'TOUR 1/4 · CONCURRENT SEATS', es: 'GUÍA 1/4 · SILLAS CONCURRENTES' },
+      title: { en: 'JPL Team X Concurrent Engineering Chairs', es: 'Metodología JPL Team X (4 Sillas Especialistas)' },
+      instruction: {
+        en: 'Welcome to Level 04 Point Design, {callsign}. On the left you have the 4 specialized concurrent seats: Mission Lead, Payload, Bus, and Launch Operations. Click through each chair to audit their subsystem telemetry!',
+        es: 'Bienvenido al Módulo 04 de Punto de Diseño, {callsign}. A la izquierda tienes las 4 Sillas de JPL Team X: Líder de Misión, Carga Útil, Bus y Lanzamiento. Alterna entre ellas para auditar cada disciplina.',
+      },
+      astraTip: {
+        en: 'Concurrent engineering prevents costly redesigns by aligning all disciplines early.',
+        es: 'El diseño concurrente evita rediseños costosos resolviendo discrepancias a tiempo.',
+      },
+    },
+    {
+      step: 1,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 2/4 · PROPELLANT TANKS', es: 'GUÍA 2/4 · LLENADO DE TANQUES' },
+      title: { en: 'Tank Fill Sliders & Wet Mass Trade-off', es: 'Deslizadores de Tanques y Masa Húmeda' },
+      instruction: {
+        en: 'In the center you have the propellant and oxidizer tanks. Move the fill sliders to inject fuel: watch your Delta-V climb, but beware of total wet mass approaching the rocket’s lift limit!',
+        es: 'En el centro tienes los tanques de combustible y oxidante. Mueve los deslizadores de llenado: verás aumentar tu Delta-V disponible, pero vigila no exceder la capacidad del cohete.',
+      },
+      astraTip: {
+        en: 'Bipropellant requires balancing both fuel and oxidizer for complete combustion.',
+        es: 'En sistemas bipropelente debes llenar ambos tanques para una combustión balanceada.',
+      },
+    },
+    {
+      step: 2,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 3/4 · MARGIN TRADEOFFS', es: 'GUÍA 3/4 · AJUSTE DE MÁRGENES' },
+      title: { en: 'Sensitivity Curves & Safety Margins', es: 'Curvas de Sensibilidad y Margen > 35%' },
+      instruction: {
+        en: 'On the right panel, fine-tune your mass growth allowances (MGA) and power eclipse buffers. Achieve a safety margin above 35% to qualify for the 3-Star NASA Engineering Excellence Award!',
+        es: 'En el panel derecho ajustas las reservas de masa de crecimiento y potencia. ¡Consigue un margen de seguridad superior al 35% para calificar para las 3 Estrellas de la NASA!',
+      },
+      astraTip: {
+        en: 'A 35% margin protects your spacecraft against unexpected in-flight crises.',
+        es: 'Un margen del 35% garantiza que la nave sobreviva tormentas solares o fallos.',
+      },
+    },
+    {
+      step: 3,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 4/4 · POINT DESIGN LOCKED', es: 'GUÍA 4/4 · PUNTO DE DISEÑO LISTO' },
+      title: { en: 'Proceed to MCR Gate Review', es: 'Avanzar a la Puerta de Revisión MCR' },
+      instruction: {
+        en: 'Superb point design calibration! Your concurrent chairs report zero critical conflicts. Click "NEXT LEVEL · 05" below the tank stage to submit your design to the Mission Concept Review (MCR)!',
+        es: '¡Excelente calibración del punto de diseño! Todas las sillas reportan cero conflictos. Pulsa "SIGUIENTE NIVEL · 05" debajo de los tanques para someter la nave a la revisión MCR.',
+      },
+      astraTip: {
+        en: 'Click NEXT LEVEL 05 to begin environmental verification.',
+        es: 'Pulsa SIGUIENTE NIVEL 05 para someter el satélite a pruebas ambientales.',
+      },
+    },
+  ],
+
+  CML_5: [
+    {
+      step: 0,
+      targetZone: 'LEFT_PANEL',
+      badge: { en: 'TOUR 1/4 · CSLI TESTING', es: 'GUÍA 1/4 · PRUEBAS AMBIENTALES' },
+      title: { en: 'NASA CSLI Environmental Test Matrix', es: 'Matriz de Ensayos Ambientales CSLI' },
+      instruction: {
+        en: 'Welcome to Level 05: Verification & Validation (V&V), {callsign}. On the left you execute NASA’s environmental qualification suite: acoustic vibe, 40K thermal vacuum, solar deployment, and RF silence. Click to run each test!',
+        es: 'Bienvenido al Módulo 05 de Verificación y Validación (V&V), {callsign}. A la izquierda ejecutas las pruebas ambientales de la NASA: vibración acústica, termovacío, despliegue solar y silencio RF. ¡Ejecuta las pruebas!',
+      },
+      astraTip: {
+        en: 'CSLI compliance is legally required before any rocket launch provider integrates your satellite.',
+        es: 'Aprobar CSLI es obligatorio para que el lanzador permita montar tu satélite en la cofia.',
+      },
+    },
+    {
+      step: 1,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 2/4 · AUTO-RESOLVER MCR', es: 'GUÍA 2/4 · AUTO-RESOLVER MCR' },
+      title: { en: 'Resolve Discrepancies with One Click', es: 'Discrepancias Técnicas y Auto-Resolución' },
+      instruction: {
+        en: 'Look to the right panel. Any remaining mass, delta-V, or power deficits appear here. You can manually adjust them or click the golden [⚡ AUTO-RESOLVE ALL MCR DISCREPANCIES] button to fix all issues in one second!',
+        es: 'Mira al panel derecho. Si hay discrepancias de masa, potencia o radio, puedes resolverlas pieza por pieza o pulsar el botón dorado [⚡ AUTO-RESOLVER TODAS LAS DISCREPANCIAS MCR] para solucionarlas en un clic.',
+      },
+      astraTip: {
+        en: 'Auto-resolve smartly selects mission-compatible subsystems based on your destination.',
+        es: 'El botón auto-resolver equipa de inmediato las piezas oficiales según tu planeta destino.',
+      },
+    },
+    {
+      step: 2,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 3/4 · CAD INSPECTION', es: 'GUÍA 3/4 · PINES DE INSPECCIÓN CAD' },
+      title: { en: 'NASA-STD-5001B Quality Pins', es: 'Pines de Control de Calidad NASA-STD-5001B' },
+      instruction: {
+        en: 'In the center, rotate the spacecraft and inspect the 4 CAD quality pins: COPV pressure vessels, structural fasteners, EPS wings, and telecom dish. Verify that all four inspection points show green nominal status!',
+        es: 'En el centro puedes rotar el satélite e inspeccionar los 4 pines de control de calidad: pernos estructurales, tanques COPV, alas solares y antena. ¡Verifica que los 4 pines marquen estado nominal!',
+      },
+      astraTip: {
+        en: 'Click each pin to view the NASA standard requirements and stress factors.',
+        es: 'Haz clic en cada pin para leer el factor de seguridad y la norma aeroespacial.',
+      },
+    },
+    {
+      step: 3,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 4/4 · FLIGHT CLEARANCE', es: 'GUÍA 4/4 · ¡LANZAR MISIÓN!' },
+      title: { en: 'Flight Authorization Approved!', es: '¡Firma MCR Concedida: Lanzar Misión 06!' },
+      instruction: {
+        en: 'Flight clearance signed by the Mission Director! Your spacecraft meets 100% of NASA aerospace flight criteria. Click the bright pulsing button "LAUNCH MISSION · 06" below the hologram to proceed to the Launch Pad!',
+        es: '¡Autorización de vuelo firmada por el Director de Misión! Tu nave cumple al 100% las normas de la NASA. Pulsa el botón brillante "LANZAR MISIÓN · 06" debajo del holograma para ir a la plataforma de lanzamiento.',
+      },
+      astraTip: {
+        en: 'Click LAUNCH MISSION 06 to initiate the orbital simulation.',
+        es: 'Pulsa LANZAR MISIÓN 06 para entrar a la simulación física de vuelo.',
+      },
+    },
+  ],
+
+  SIMULATION: [
+    {
+      step: 0,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 1/4 · FLIGHT CONTROLS', es: 'GUÍA 1/4 · CONTROLES DE VUELO' },
+      title: { en: 'Poly Bridge Time Controls: Play, Pause & Warp', es: 'Controles Poly Bridge: Play, Pausa y Velocidades' },
+      instruction: {
+        en: 'We are on the launch pad, {callsign}! In the center you have the Poly Bridge transport bar: click Play to ignite engines, Pause to freeze telemetry at any exact second, or switch between 0.5x, 1x, 2x, and 4x WARP speed!',
+        es: '¡Estamos en plataforma de lanzamiento, {callsign}! En el centro tienes los controles de tiempo estilo Poly Bridge: pulsa Play para iniciar el despegue, Pausa para congelar la telemetría, o cambia la velocidad entre 0.5x y 4x WARP.',
+      },
+      astraTip: {
+        en: 'You can pause time at any moment to study sudden telemetry drops.',
+        es: 'Puedes pausar la simulación en cualquier segundo para analizar la telemetría.',
+      },
+    },
+    {
+      step: 1,
+      targetZone: 'LEFT_PANEL',
+      badge: { en: 'TOUR 2/4 · STRESS HEATMAP', es: 'GUÍA 2/4 · MAPA DE ESTRÉS EN VIVO' },
+      title: { en: 'Real-time Subsystem Stress & Telemetry', es: 'Mapa de Calor de Estrés y Telemetría en Vivo' },
+      instruction: {
+        en: 'On the left, track your live altitude, speed, and the Poly Bridge subsystem stress heatmap: 0–60% safe cyan, 85% amber warning, and over 100% neon red overload. If a joint snaps, sparks will fly!',
+        es: 'A la izquierda monitoreas la altitud, velocidad orbital y el mapa de estrés por subsistema: cian seguro, ámbar advertencia, y más de 100% rojo sobrecarga con chispas de rotura estructural.',
+      },
+      astraTip: {
+        en: 'Thermal and aerodynamic Max-Q loads peak during early orbital insertion.',
+        es: 'Las cargas máximas de fricción aerodinámica ocurren durante la inserción orbital.',
+      },
+    },
+    {
+      step: 2,
+      targetZone: 'RIGHT_PANEL',
+      badge: { en: 'TOUR 3/4 · DEPLOYMENT & CRISES', es: 'GUÍA 3/4 · DESPLIEGUE Y CRISIS' },
+      title: { en: '5-Stage Deployment Timeline & Crisis Management', es: 'Cronograma de Despliegue y Resolución de Crisis' },
+      instruction: {
+        en: 'On the right, watch the 5 mechanical deployment stages: P-POD separation, 30-min RF silence, solar deployment, and B-Dot detumble. If an orbital crisis strikes, select the optimal crew intervention to save the mission!',
+        es: 'A la derecha sigues las 5 etapas de despliegue SmallSat y la bitácora de vuelo. Si surge una crisis en órbita, selecciona la respuesta de emergencia adecuada para salvar la misión.',
+      },
+      astraTip: {
+        en: 'Resolving all 3 random crisis events qualifies you for the 3rd NASA Master Star.',
+        es: 'Resolver las crisis de vuelo con éxito te otorgará la tercera Estrella de Maestría.',
+      },
+    },
+    {
+      step: 3,
+      targetZone: 'HOLOGRAM',
+      badge: { en: 'TOUR 4/4 · AUTO-REPAIR & STARS', es: 'GUÍA 4/4 · AUTO-REPARAR Y CERTIFICADO' },
+      title: { en: 'Auto-Repair and 3-Star Mission Certificate', es: 'Auto-Reparar y Certificado Oficial de 3 Estrellas' },
+      instruction: {
+        en: 'If an anomaly causes mission failure, click [AUTO-REPAIR & RELAUNCH] in the top header or return to blueprints from the Black Box autopsy. Once insertion succeeds, claim your Official NASA Mission Certificate!',
+        es: 'Si ocurre una anomalía crítica, pulsa el botón [AUTO-REPARAR Y RELANZAR] en la barra superior o reajusta el plano desde la Caja Negra. ¡Al completar la órbita recibirás tu Certificado Oficial de la NASA con tus 3 Estrellas!',
+      },
+      astraTip: {
+        en: 'The Black Box allows a 0.5x slow-mo replay of the exact second of failure.',
+        es: 'La Caja Negra te permite ver una repetición a 0.5x en cámara lenta del fallo.',
+      },
+    },
+  ],
+};
+
+export const LEVEL1_INTERACTIVE_TOUR = PHASE_INTERACTIVE_TOURS.CML_1;
+
+export function getPhaseInteractiveTour(phase: CMLPhase): PhaseTourStep[] {
+  return PHASE_INTERACTIVE_TOURS[phase] || PHASE_INTERACTIVE_TOURS.CML_1;
+}
 
 export const SUBSYSTEM_TAB_GUIDE: Record<
   SubsystemCategory,

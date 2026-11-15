@@ -24,12 +24,14 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     mcrSignedAuthorized,
     laserScanActive,
     soundEnabled,
+    phaseTutorialStep,
     toggleLaserScan,
     setSubsystem,
     setGroundStation,
     togglePayload,
     runFullVVSuite,
     setMcrSignedAuthorized,
+    setPhaseTutorialStep,
     appendDecisionLog,
     launchSimulation,
   } = useMissionStore();
@@ -46,6 +48,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           type="button"
           onClick={() => {
             toggleLaserScan();
+            if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
             playHoloTone('STEP', soundEnabled);
           }}
           className={`w-full border px-3 py-2 font-mono text-[10px] tracking-[0.14em] uppercase transition ${
@@ -177,6 +180,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               togglePayload(pid);
             }
             runFullVVSuite();
+            if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
             playHoloTone('STAR', soundEnabled);
             appendDecisionLog({
               phase: 'CML_5',
@@ -231,6 +235,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     type="button"
                     onClick={() => {
                       setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+                      if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                       playHoloTone('STEP', soundEnabled);
                     }}
                     className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
@@ -245,6 +250,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     onClick={() => {
                       setSubsystem('EPS', isJupiter ? 'eps-rtg' : 'eps-megaflex');
                       setSubsystem('THERMAL', 'therm-active');
+                      if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                       playHoloTone('STEP', soundEnabled);
                     }}
                     className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
@@ -265,6 +271,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     onClick={() => {
                       setSubsystem('TELECOM', destId === 'dest-l2' ? 'telecom-cubelct-laser' : 'telecom-xka');
                       setGroundStation(isJupiter ? 'gs-dsn-70m' : isDeepSpace ? 'gs-dsn-34m' : 'gs-near-earth');
+                      if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                       playHoloTone('STEP', soundEnabled);
                     }}
                     className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
@@ -281,6 +288,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     onClick={() => {
                       setSubsystem('PROPULSION', 'prop-biprop');
                       if (destId !== 'dest-leo') setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+                      if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                       playHoloTone('STEP', soundEnabled);
                     }}
                     className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
@@ -294,6 +302,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     type="button"
                     onClick={() => {
                       for (const pid of missingPayloads) togglePayload(pid);
+                      if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                       playHoloTone('STEP', soundEnabled);
                     }}
                     className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"

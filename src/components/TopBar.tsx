@@ -111,7 +111,11 @@ export function TopBar() {
               playHoloTone('STEP', soundEnabled);
             }}
             className="hidden sm:flex items-center gap-2 rounded-sm border border-[#5FF3FF]/25 bg-[#071324]/70 px-2.5 py-1 font-mono text-[11px] text-slate-300 hover:border-[#5FF3FF]/70 hover:text-white transition cursor-pointer"
-            title={isEs ? 'Cambiar campaña / contrato NASA' : 'Switch NASA campaign / contract'}
+            title={
+              isEs
+                ? `${activeContract.code}: ${activeContract.title.es} (LEO = Órbita Baja Terrestre · Clic para cambiar campaña)`
+                : `${activeContract.code}: ${activeContract.title.en} (LEO = Low Earth Orbit · Click to switch campaign)`
+            }
           >
             <Compass className="h-3.5 w-3.5 text-[#5FF3FF]" />
             <span className="text-[#FFC15E] font-semibold">{activeContract.code}</span>

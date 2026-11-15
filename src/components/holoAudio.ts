@@ -421,10 +421,18 @@ function fallbackBrowserSpeech(
 
     if (matchingVoices.length > 0) {
       if (speaker === 'VEGA') {
-        const maleMatch = matchingVoices.find((v) =>
-          /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male/i.test(v.name),
+        const nonFemale = matchingVoices.filter(
+          (v) =>
+            !/helena|sabina|laura|paulina|monica|elvira|zira|aria|samantha|victoria|female|mujer|hazel|susan|hilda|paloma|carmen|marta|conchita/i.test(
+              v.name,
+            ),
         );
-        utter.voice = maleMatch ?? matchingVoices[0];
+        const maleMatch = (nonFemale.length > 0 ? nonFemale : matchingVoices).find((v) =>
+          /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male|hombre|enrique|mateo|geraldo|alvaro|manuel|julio|rodrigo|alberto/i.test(
+            v.name,
+          ),
+        );
+        utter.voice = maleMatch ?? (nonFemale.length > 0 ? nonFemale[0] : matchingVoices[0]);
       } else if (speaker === 'ROSTOVA') {
         const femaleMatch = matchingVoices.find((v) =>
           /helena|laura|sabina|paulina|monica|elvira|zira|aria|samantha|victoria|female/i.test(
@@ -438,8 +446,8 @@ function fallbackBrowserSpeech(
     }
 
     if (speaker === 'VEGA') {
-      utter.pitch = 0.88;
-      utter.rate = 1.0;
+      utter.pitch = 0.78;
+      utter.rate = 0.96;
     } else if (speaker === 'ROSTOVA') {
       utter.pitch = 1.08;
       utter.rate = 1.02;
@@ -488,6 +496,74 @@ function fallbackBrowserSpeech(
   }
 }
 
+function findVegaFallbackUrl(cleanText: string, lang: 'en' | 'es'): string | null {
+  const s = cleanText.toLowerCase();
+
+  // CML 2: Orbit & Ground Stations
+  if (
+    /órbita|orbit|altitud|altitude|inclinaci|inclination|terrena|ground dish|near-earth|dsn 34|70m|cml\s*2|nivel\s*0?2|módulo\s*0?2/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml2_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // CML 3: Trade Space & Subsystems
+  if (
+    /trade space|subsistema|subsystem|módulo|hardware|equipar|equip|sinergia|synergy|cml\s*3|nivel\s*0?3|módulo\s*0?3/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml3_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // CML 4: Point Design & Hydrazine Tanks
+  if (
+    /tanque|tank|propelente|propellant|hidracina|hydrazine|sincronizar bd|commit|sillas|cml\s*4|nivel\s*0?4|módulo\s*0?4/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml4_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // CML 5: V&V / MCR Verification Gate
+  if (
+    /v&v|mcr|verificaci|verification|galería de cristal|glass gallery|huella|fingerprint|despegar|clearance|cml\s*5|nivel\s*0?5|módulo\s*0?5/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml5_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // SIMULATION: Flight simulation & Crisis
+  if (
+    /crisis|omega|simulaci|lanzamiento|launch|motores humeando|engines smoking|cml\s*6|nivel\s*0?6|fase e/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_sim_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // CML 1: Blueprint & Chassis
+  if (
+    /chasis|chassis|signos vitales|vital signs|servilleta|napkin|solar|alas|cml\s*1|nivel\s*0?1/i.test(
+      s,
+    )
+  ) {
+    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml1_cadet_${lang}`);
+    if (entry) return `/audio/voices/${entry.filename}`;
+  }
+
+  // High-priority fallback to Commander Vega's CML 1 canonical audio
+  const fallback = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml1_cadet_${lang}`);
+  return fallback ? `/audio/voices/${fallback.filename}` : null;
+}
+
 function findPrebakedVoiceUrl(
   cleanText: string,
   lang: 'en' | 'es',
@@ -502,6 +578,13 @@ function findPrebakedVoiceUrl(
     }
     if (customEngineer && customEngineer !== 'Vanguard') {
       canonical = canonical.replaceAll(customEngineer, 'Vanguard');
+    }
+    const customMission = window.localStorage.getItem('orbital_forge_mission_name')?.trim();
+    if (customMission && customMission !== 'Ícaro-Pionero' && customMission !== 'Icarus-Pioneer') {
+      canonical = canonical.replaceAll(
+        customMission,
+        lang === 'es' ? 'Ícaro-Pionero' : 'Icarus-Pioneer',
+      );
     }
   } catch {
     // ignore storage errors
@@ -528,6 +611,14 @@ function findPrebakedVoiceUrl(
     );
     if (prefixMatch) {
       return `/audio/voices/${prefixMatch.filename}`;
+    }
+  }
+
+  // For Commander Vega, ALWAYS use pre-generated ElevenLabs audio instead of browser synthesis
+  if (speaker === 'VEGA') {
+    const vegaFallback = findVegaFallbackUrl(canonical, lang);
+    if (vegaFallback) {
+      return vegaFallback;
     }
   }
 
@@ -690,6 +781,15 @@ export function speakCharacterLine(
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       if (abortCtrl.signal.aborted || sessionId !== activeSpeechSessionId) return;
+
+      if (speaker === 'VEGA') {
+        const fallbackUrl = findVegaFallbackUrl(cleanText, lang);
+        if (fallbackUrl) {
+          attachAndPlayAudio(fallbackUrl);
+          return;
+        }
+      }
+
       fallbackBrowserSpeech(
         cleanText,
         lang,

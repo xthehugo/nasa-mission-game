@@ -33,10 +33,12 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     lastValidatedAt,
     concurrentConflicts,
     soundEnabled,
+    phaseTutorialStep,
     setActiveTeamRole,
     setTankLevels,
     fillAllTanks,
     commitAndValidate,
+    setPhaseTutorialStep,
     appendDecisionLog,
   } = useMissionStore();
 
@@ -92,6 +94,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             onClick={() => {
               fillAllTanks();
               checkTankSound(100, 100);
+              if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
             }}
             className="border border-[#5FF3FF] bg-[#5FF3FF]/10 px-2.5 py-1 font-mono text-[10px] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/20 cursor-pointer"
           >
@@ -135,6 +138,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                   setTankLevels({ [s.key]: v });
                   if (s.key === 'tankFillPercent') checkTankSound(v, oxidizerFillPercent);
                   if (s.key === 'oxidizerFillPercent') checkTankSound(tankFillPercent, v);
+                  if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                 }}
                 className="mt-1.5 w-full accent-[#5FF3FF]"
               />
@@ -171,6 +175,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 type="button"
                 onClick={() => {
                   setActiveTeamRole(chair.role);
+                  if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className={`border px-2.5 py-1.5 text-left transition cursor-pointer ${
@@ -346,6 +351,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
           type="button"
           onClick={() => {
             commitAndValidate(activeTeamRole);
+            if (phaseTutorialStep <= 2) setPhaseTutorialStep(3);
             playHoloTone(concurrentConflicts.length === 0 ? 'STAR' : 'ALARM', soundEnabled);
             appendDecisionLog({
               phase: 'CML_4',
