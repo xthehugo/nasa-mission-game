@@ -52,11 +52,48 @@ const OBJECTIVE_STATEMENTS: Record<string, { en: string; es: string }> = {
   },
 };
 
-const CHASSIS_OPTS: { id: CubeSatFormFactor; sub: { en: string; es: string } }[] = [
-  { id: '1.5U', sub: { en: 'RIDESHARE', es: 'RIDESHARE' } },
-  { id: '2U', sub: { en: 'BALANCED', es: 'EQUILIBRADO' } },
-  { id: '3U', sub: { en: 'MORE PAYLOAD', es: 'MÁS CARGA' } },
-  { id: 'CUSTOM', sub: { en: 'DEEP SPACE', es: 'ESPACIO PROFUNDO' } },
+const CHASSIS_OPTS: {
+  id: CubeSatFormFactor;
+  sub: { en: string; es: string };
+  analogy: { en: string; es: string };
+  badge: string;
+}[] = [
+  {
+    id: '1.5U',
+    sub: { en: 'RIDESHARE · 15 cm', es: 'RIDESHARE · 15 cm' },
+    analogy: {
+      en: '🥛 Like 1.5 milk cartons. Very light, but tight interior.',
+      es: '🥛 Como 1 caja y media de leche. Ligero, pero espacio justo.',
+    },
+    badge: '1.5U',
+  },
+  {
+    id: '2U',
+    sub: { en: 'BALANCED · 20 cm', es: 'EQUILIBRADO · 20 cm' },
+    analogy: {
+      en: '📦 Like 2 milk cartons stacked. Good balance of battery & mass.',
+      es: '📦 Como 2 cajas de leche apiladas. Buen balance de batería y peso.',
+    },
+    badge: '2U',
+  },
+  {
+    id: '3U',
+    sub: { en: 'RECOMMENDED FOR SCIENCE · 30 cm', es: 'RECOMENDADO PARA CIENCIA · 30 cm' },
+    analogy: {
+      en: '🛰️ Triple carton (3U). Perfect room for BioNutrients-2!',
+      es: '🛰️ Triple caja (3U). ¡Espacio perfecto para BioNutrients-2!',
+    },
+    badge: '★ 3U',
+  },
+  {
+    id: 'CUSTOM',
+    sub: { en: 'DEEP SPACE BUS', es: 'ESPACIO PROFUNDO' },
+    analogy: {
+      en: '🚀 Heavy bus for Jupiter/Mars interplanetary exploration.',
+      es: '🚀 Nave pesada para misiones lejanas hacia Júpiter o Marte.',
+    },
+    badge: 'BUS',
+  },
 ];
 
 export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
@@ -260,21 +297,29 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                             }
                           }
                         }}
-                        className={`group flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-all duration-300 ${
+                        className={`group flex w-full items-start justify-between gap-3 p-3.5 text-left rounded transition-all duration-300 cursor-pointer ${
                           active
-                            ? 'border border-[#5FF3FF]/70 bg-[#5FF3FF]/10 text-white shadow-[0_0_20px_rgba(95,243,255,0.18)]'
-                            : 'border border-transparent border-l-2 border-l-[#5FF3FF]/20 text-slate-300 hover:border-l-[#5FF3FF] hover:bg-[#5FF3FF]/5'
+                            ? 'border-2 border-[#5FF3FF] bg-[#5FF3FF]/15 text-white shadow-[0_0_24px_rgba(95,243,255,0.25)]'
+                            : 'border border-[#5FF3FF]/20 bg-[#04080F]/90 text-slate-300 hover:border-[#5FF3FF]/60 hover:bg-[#5FF3FF]/8'
                         } ${pulsing ? 'ring-2 ring-[#FFC15E]' : ''}`}
                       >
-                        <div>
-                          <div className="text-[15px] font-medium tracking-tight text-white">
-                            {ch.id}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-bold tracking-tight text-white">
+                              {ch.id}
+                            </span>
+                            <span className="rounded bg-[#5FF3FF]/20 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#5FF3FF] border border-[#5FF3FF]/30">
+                              {ch.badge}
+                            </span>
                           </div>
-                          <div className="font-mono text-[12px] tracking-[0.12em] text-slate-400 uppercase">
+                          <div className="font-mono text-[11px] tracking-wider text-[#FFC15E] font-medium uppercase">
                             {ch.sub[language]}
                           </div>
+                          <p className="text-[12px] leading-snug text-slate-300 pt-0.5">
+                            {ch.analogy[language]}
+                          </p>
                         </div>
-                        {active && <Check className="h-4 w-4 shrink-0 text-[#5FF3FF]" />}
+                        {active && <Check className="h-5 w-5 shrink-0 text-[#5FF3FF] mt-1" />}
                       </button>
                     );
                   })}
@@ -400,22 +445,21 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                               }
                             }
                           }}
-                          className="flex-1 px-2.5 py-2 text-left"
+                          className="flex-1 p-3 text-left cursor-pointer"
                         >
                           <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[13px] font-medium text-white">
+                            <span className="text-[14px] font-semibold text-white">
                               {opt.name[language]}
                             </span>
-                            <span className="font-mono text-[12px] text-[#FFC15E] shrink-0">
-                              +{opt.powerGenerated1AU_W}W
+                            <span className="rounded bg-[#FFC15E]/15 border border-[#FFC15E]/40 px-2 py-0.5 font-mono text-[11px] font-bold text-[#FFC15E] shrink-0">
+                              ⚡ +{opt.powerGenerated1AU_W}W
                             </span>
                           </div>
-                          <div
-                            className={`mt-1 items-center justify-between font-mono text-[12px] text-slate-400 ${
-                              active ? 'flex' : 'hidden group-hover:flex group-focus-within:flex'
-                            }`}
-                          >
-                            <span>{opt.massCBE_kg}kg · ${opt.cost_MillionsUSD}M</span>
+                          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-slate-300">
+                            <span className="flex items-center gap-1.5">
+                              <span className="rounded bg-slate-800 px-1.5 py-0.5">⚖️ {opt.massCBE_kg} kg</span>
+                              <span className="rounded bg-slate-800 px-1.5 py-0.5">💰 ${opt.cost_MillionsUSD}M</span>
+                            </span>
                             <span
                               role="button"
                               tabIndex={0}
@@ -434,8 +478,8 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                               }}
                               className="inline-flex items-center gap-1 text-[#5FF3FF] hover:underline"
                             >
-                              <Info className="h-3 w-3" />
-                              <span>INFO</span>
+                              <Info className="h-3.5 w-3.5" />
+                              <span>INFO 3D</span>
                             </span>
                           </div>
                         </button>

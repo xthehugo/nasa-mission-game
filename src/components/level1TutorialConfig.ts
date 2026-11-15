@@ -26,32 +26,32 @@ export const LEVEL1_TOTAL_STEPS = 10;
 export const LEVEL1_TUTORIAL_STEPS: Level1TutorialStepConfig[] = [
   {
     index: 0,
-    badge: { en: 'STEP 1 OF 10 · WELCOME', es: 'PASO 1 DE 10 · BIENVENIDA' },
+    badge: { en: 'STEP 1 OF 10 · WELCOME 🚀', es: 'PASO 1 DE 10 · BIENVENIDA 🚀' },
     title: {
       en: 'Mission Goal: BioNutrients-2 (LEO 400 km)',
-      es: 'Objetivo: BioNutrients-2 en órbita LEO (400 km)',
+      es: 'Objetivo: BioNutrients-2 en órbita LEO (400 km) 🌍',
     },
     why: {
-      en: 'Commander Vega: Build a 3U CubeSat that synthesizes nutrients in microgravity with ≥35% mass & power margin.',
-      es: 'Comandante Vega: Diseña un CubeSat 3U que sintetice nutrientes en microgravedad con ≥35% de margen en masa y energía.',
+      en: 'Commander Vega: Build a 3U CubeSat to grow fresh vitamins in space for future Artemis astronauts. Keep ≥35% safety margin!',
+      es: 'Comandante Vega: Fabrica un satélite 3U para producir vitaminas frescas para astronautas de Artemis. ¡Mantén ≥35% de margen de seguridad!',
     },
     inactivityHint: {
       en: 'Click "Got it · Read Contract" below to inspect your mission rules.',
-      es: 'Pulsa "Entendido · Leer contrato" aquí abajo para revisar las reglas de tu misión.',
+      es: 'Toca el botón grande abajo para revisar las reglas y el presupuesto de tu misión.',
     },
     targetPhase: 'CML_1',
     activeZone: 'COMMANDER_HUD',
   },
   {
     index: 1,
-    badge: { en: 'STEP 2 OF 10 · CONTRACT', es: 'PASO 2 DE 10 · CONTRATO' },
+    badge: { en: 'STEP 2 OF 10 · CONTRACT 📜', es: 'PASO 2 DE 10 · CONTRATO 📜' },
     title: {
-      en: 'Read & Confirm the BioNutrients-2 Contract',
-      es: 'Toca la tarjeta de BioNutrients-2 para leer restricciones y presupuesto',
+      en: 'Read & Confirm BioNutrients-2 Contract',
+      es: 'Toca la tarjeta de BioNutrients-2 para ver presupuesto y reglas 💰',
     },
     why: {
-      en: 'Every NASA mission starts with constraints: orbital altitude, 16 daily eclipses, and budget cap.',
-      es: 'Toda misión NASA parte de restricciones reales: altitud orbital, 16 eclipses diarios y tope de presupuesto.',
+      en: 'Every space flight has real rules: launch altitude (400 km), 16 night eclipses every day, and a strict money cap.',
+      es: 'Todo vuelo espacial tiene reglas reales: altura de 400 km, 16 noches de eclipse al día y un presupuesto que no puedes pasar.',
     },
     inactivityHint: {
       en: 'Click the highlighted BioNutrients-2 card on the right panel to confirm.',
@@ -62,54 +62,54 @@ export const LEVEL1_TUTORIAL_STEPS: Level1TutorialStepConfig[] = [
   },
   {
     index: 2,
-    badge: { en: 'STEP 3 OF 10 · CHASSIS', es: 'PASO 3 DE 10 · CHASIS' },
+    badge: { en: 'STEP 3 OF 10 · CHASSIS 🥛', es: 'PASO 3 DE 10 · CHASIS (TAMAÑO) 🥛' },
     title: {
-      en: 'Test Chassis Sizes & Select 3U Balanced',
-      es: 'Prueba un chasis y elige el 3U correcto para tu carga útil',
+      en: 'Test Chassis Sizes & Pick 3U Balanced',
+      es: 'Prueba tamaños (1U es como una caja de leche) y elige 3U 🛰️',
     },
     why: {
-      en: 'Chassis size defines internal volume (U) and structural mass. Too small breaks fairing rules; 3U fits BioNutrients-2.',
-      es: 'El chasis define el volumen interno (U) y la masa estructural. Si es muy pequeño no cabe la carga; 3U es el estándar ideal.',
+      en: '1U is 10×10 cm like a milk carton! 1.5U is too small for our farm lab; 3U joins three cartons to fit powerful cameras and science.',
+      es: '¡1U mide 10×10 cm, igual que una caja de leche! Junta 3 cajas (3U) para que quepan los nutrientes, las cámaras y las baterías.',
     },
     inactivityHint: {
-      en: 'Click 1.5U or 2U to see the mass/volume effect, then select 3U on the left.',
-      es: 'Haz clic en 1.5U o 2U para ver el efecto en masa/volumen y luego elige 3U en el panel izquierdo.',
+      en: 'Click 1.5U or 2U to see how the rocket balances, then pick 3U on the left.',
+      es: 'Toca 1.5U o 2U para ver cómo cambia la nave y el peso, y luego elige 3U en el panel izquierdo.',
     },
     targetPhase: 'CML_1',
     activeZone: 'CHASSIS',
   },
   {
     index: 3,
-    badge: { en: 'STEP 4 OF 10 · POWER (EPS)', es: 'PASO 4 DE 10 · ENERGÍA EPS' },
+    badge: { en: 'STEP 4 OF 10 · SOLAR POWER ⚡', es: 'PASO 4 DE 10 · ENERGÍA SOLAR ⚡' },
     title: {
-      en: 'Choose Solar Panels & Check Eclipse Power',
-      es: 'Elige paneles solares para sobrevivir los eclipses en LEO',
+      en: 'Deploy Solar Wings to Survive LEO Eclipses',
+      es: 'Abre las alas solares para no quedarte sin batería en la sombra ☀️',
     },
     why: {
-      en: 'In LEO you spend ~35 min in Earth’s shadow every 92 min. Your solar wings must recharge batteries fast.',
-      es: 'En LEO pasas ~35 min a oscuras cada 92 min. Tus alas solares deben generar suficiente potencia para recargar baterías.',
+      en: 'In orbit, Earth blocks the Sun for ~35 minutes every hour and a half! Deployable solar wings recharge batteries super fast.',
+      es: 'En el espacio, la Tierra tapa al Sol durante 35 minutos cada hora y media. Las alas solares recargan las baterías para no congelarte.',
     },
     inactivityHint: {
-      en: 'Select a deployable solar array in Step 2 (EPS) on the left panel.',
-      es: 'Elige un panel solar desplegable en el acordeón Energía EPS del panel izquierdo.',
+      en: 'Select Deployable Solar Array in the Power list on the left panel.',
+      es: 'Elige "Alas Solares Desplegables" en la lista de energía del panel izquierdo.',
     },
     targetPhase: 'CML_1',
     activeZone: 'EPS',
   },
   {
     index: 4,
-    badge: { en: 'STEP 5 OF 10 · 35% RULE', es: 'PASO 5 DE 10 · REGLA DEL 35%' },
+    badge: { en: 'STEP 5 OF 10 · SAFETY 35% 🛡️', es: 'PASO 5 DE 10 · REGLA DEL 35% 🛡️' },
     title: {
-      en: 'Check Mass, Power & Budget Telemetry (≥35% Margin)',
-      es: 'Revisa tus 5 barras de telemetría y la regla del 35%',
+      en: 'Check 5 Vital Signs (Keep ≥35% Green Margin)',
+      es: 'Revisa tus 5 signos vitales y la regla del 35% de reserva 📊',
     },
     why: {
-      en: 'NASA CML requires ≥35% design margin at early stages so later weight or power growth never cancels the mission.',
-      es: 'La regla CML de NASA exige ≥35% de margen al inicio para que aumentos futuros de peso o consumo no cancelen la misión.',
+      en: 'NASA golden rule: never design to 100% capacity! Keep at least 35% extra battery and weight cushion so nothing breaks.',
+      es: 'Regla de oro de la NASA: nunca gastes el 100%. Guarda siempre al menos un 35% de batería y peso de sobra por si hay emergencias.',
     },
     inactivityHint: {
-      en: 'Inspect the 5 telemetry bars on the top-left, then click "Confirm Margins & Continue".',
-      es: 'Observa las 5 barras arriba a la izquierda y pulsa "Confirmar márgenes →" para pasar a Carga Útil.',
+      en: 'Inspect the 5 bars on the top-left, then click "Confirm Margins & Continue".',
+      es: 'Observa las 5 barras de arriba a la izquierda y pulsa el botón para avanzar a Carga Útil.',
     },
     targetPhase: 'CML_1',
     activeZone: 'RESOURCES',
