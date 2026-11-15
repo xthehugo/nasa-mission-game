@@ -186,14 +186,14 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {active && obj.cadetChallenge && (
                     <div className="border-l-2 border-[#5FF3FF] bg-[#5FF3FF]/5 pl-2 py-1 text-[10px] leading-snug text-slate-200">
                       <span className="font-mono text-[8.5px] tracking-wider text-[#5FF3FF] uppercase">
-                        {isEs ? '🎓 RETO FÍSICO CADETE: ' : '🎓 CADET CHALLENGE: '}
+                        {isEs ? '◈ RETO FÍSICO CADETE: ' : '◈ CADET CHALLENGE: '}
                       </span>
                       {obj.cadetChallenge[language]}
                     </div>
                   )}
                   {active && (
                     <p className="border-l-2 border-[#5FF3FF]/40 pl-2 text-[10px] leading-snug text-[#5FF3FF]">
-                      💡 {obj.realWorldBenchmark.keyTakeaway[language]}
+                      // {obj.realWorldBenchmark.keyTakeaway[language]}
                     </p>
                   )}
                 </div>
@@ -205,7 +205,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {active && obj.jplConstraints && (
                     <div className="border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 pl-2 py-1 text-[10px] leading-snug text-slate-200">
                       <span className="font-mono text-[8.5px] tracking-wider text-[#FFC15E] uppercase">
-                        {isEs ? '🛰️ RESTRICCIÓN JPL: ' : '🛰️ JPL CONSTRAINT: '}
+                        {isEs ? '◆ RESTRICCIÓN JPL: ' : '◆ JPL CONSTRAINT: '}
                       </span>
                       {obj.jplConstraints[language]}
                     </div>

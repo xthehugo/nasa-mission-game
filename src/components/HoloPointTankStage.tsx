@@ -390,8 +390,8 @@ export function HoloPointTankStage() {
         >
           {autoSpin
             ? isEs
-              ? '⏸ PAUSAR COFIA 360°'
-              : '⏸ PAUSE FAIRING 360°'
+              ? '|| PAUSAR COFIA 360°'
+              : '|| PAUSE FAIRING 360°'
             : isEs
               ? '▶ GIRAR COFIA 360°'
               : '▶ SPIN FAIRING 360°'}

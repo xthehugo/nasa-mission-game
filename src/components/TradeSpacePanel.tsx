@@ -91,7 +91,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
           return activeSynergies.length > 0 ? (
             <div className="border border-[#5FF3FF]/40 bg-[#07172C]/90 p-3 rounded space-y-2 font-mono">
               <div className="flex items-center justify-between text-[10px] text-[#5FF3FF] font-bold">
-                <span>⚡ {isEs ? 'COMBOS DE SINERGIA' : 'ACTIVE SYNERGIES'}</span>
+                <span>◈ {isEs ? 'COMBOS DE SINERGIA' : 'ACTIVE SYNERGIES'}</span>
                 <span className="bg-[#5FF3FF]/20 px-1.5 py-0.5 rounded text-[9px] text-[#5FF3FF]">
                   {activeSynergies.length} ACTIVE
                 </span>
@@ -105,7 +105,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             </div>
           ) : (
             <div className="border border-slate-800 bg-[#04080F]/60 p-2.5 rounded text-[10px] font-mono text-slate-400 leading-tight">
-              <span>⚡ {isEs ? '0 Sinergias Activas (Combina subsistemas para desbloquear bonos)' : '0 Active Synergies (Pair equipment to unlock bonuses)'}</span>
+              <span>// {isEs ? '0 Sinergias Activas (Combina subsistemas para desbloquear bonos)' : '0 Active Synergies (Pair equipment to unlock bonuses)'}</span>
             </div>
           );
         })()}

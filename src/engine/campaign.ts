@@ -225,7 +225,7 @@ export const EQUIPMENT_SYNERGIES: EquipmentSynergy[] = [
   {
     id: 'syn-optical-quantum',
     name: { en: 'Quantum Optical Link', es: 'Enlace Óptico Cuántico' },
-    badge: '⚡ OPTICAL + GNC',
+    badge: '[OPT] OPTICAL + GNC',
     description: {
       en: 'Precision Arcsec Sagitta Star Tracker aims the CubeLCT Laser Terminal directly at Earth.',
       es: 'El Star Tracker Arcsec Sagitta apunta con precisión de arco-segundo el terminal Láser CubeLCT.',
@@ -239,7 +239,7 @@ export const EQUIPMENT_SYNERGIES: EquipmentSynergy[] = [
   {
     id: 'syn-cryo-science',
     name: { en: 'Cryo-Optic Baseline', es: 'Criogénesis Óptica' },
-    badge: '❄️ CRYO + IR',
+    badge: '[CRYO] CRYO + IR',
     description: {
       en: 'Active cryocooler stabilizes the infrared spectrometer below 50 Kelvin.',
       es: 'El criorefrigerador activo estabiliza el espectrómetro IR por debajo de 50 Kelvin.',
@@ -253,7 +253,7 @@ export const EQUIPMENT_SYNERGIES: EquipmentSynergy[] = [
   {
     id: 'syn-deep-space-power',
     name: { en: 'Deep Space RTG Core', es: 'Núcleo RTG de Espacio Profundo' },
-    badge: '⚛️ RTG + BIPROP',
+    badge: '[NUC] RTG + BIPROP',
     description: {
       en: 'Next-Gen RTG provides constant decay heat to prevent bipropellant hydrazine freezing at >1.5 AU.',
       es: 'El RTG provee calor continuo que evita congelamiento de hidracina en espacio profundo.',
@@ -267,7 +267,7 @@ export const EQUIPMENT_SYNERGIES: EquipmentSynergy[] = [
   {
     id: 'syn-high-power-radar',
     name: { en: 'Heavy Radar Pulse Array', es: 'Matriz Radar de Alta Potencia' },
-    badge: '📡 SAR + MEGAFLEX',
+    badge: '[RF] SAR + MEGAFLEX',
     description: {
       en: 'Massive MegaFlex arrays provide peak kW bursts needed for synthetic aperture radar sweeps.',
       es: 'Alas MegaFlex entregan los picos de kW necesarios para barridos de radar SAR activo.',
@@ -281,7 +281,7 @@ export const EQUIPMENT_SYNERGIES: EquipmentSynergy[] = [
   {
     id: 'syn-green-prop-vadr',
     name: { en: 'Green Rideshare Synergy', es: 'Rideshare Limpio No-Tóxico' },
-    badge: '🌿 HAN + VADR',
+    badge: '[ECO] HAN + VADR',
     description: {
       en: 'Non-toxic HAN Green Monopropellant qualifies for low-cost NASA VADR rideshare launch.',
       es: 'Propelente verde HAN no tóxico califica para rideshare económico NASA VADR.',

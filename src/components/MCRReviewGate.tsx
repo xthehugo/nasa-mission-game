@@ -211,8 +211,8 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       ) : (
         <div className="border border-[#5FF3FF]/35 bg-[#5FF3FF]/8 p-2.5 text-[11px] leading-snug text-slate-200">
           {isEs
-            ? '🎓 Modo Cadete: las tarjetas en cian indican al menos ≥35% de margen seguro para despegar; si ves amarillo o rojo, usa las correcciones rápidas o ajusta en CML 3.'
-            : '🎓 Cadet Guide: cyan cards confirm ≥35% safety reserve for launch; yellow or red cards show exactly what to adjust in CML 3 or via Quick Fixes.'}
+            ? '[CADET] Modo Cadete: las tarjetas en cian indican al menos ≥35% de margen seguro para despegar; si ves amarillo o rojo, usa las correcciones rápidas o ajusta en CML 3.'
+            : '[CADET] Cadet Guide: cyan cards confirm ≥35% safety reserve for launch; yellow or red cards show exactly what to adjust in CML 3 or via Quick Fixes.'}
         </div>
       )}
 

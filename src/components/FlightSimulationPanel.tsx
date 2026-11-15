@@ -122,7 +122,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
         <div className="border border-[#5FF3FF]/40 bg-[#07172C]/90 p-3 rounded space-y-1.5">
           <div className="flex justify-between items-center text-[10px] uppercase">
             <span className="text-slate-300 font-bold">
-              {isEs ? '🛡️ INTEGRIDAD DE CASCO' : '🛡️ SPACECRAFT HULL'}
+              {isEs ? '[HULL] INTEGRIDAD DE CASCO' : '[HULL] SPACECRAFT HULL'}
             </span>
             <span
               className={`font-black ${
@@ -133,7 +133,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
                     : 'text-[#FF4D6D] animate-pulse'
               }`}
             >
-              {hullIntegrity}% {hullIntegrity <= 25 ? '⚠️ BREACH RISK' : ''}
+              {hullIntegrity}% {hullIntegrity <= 25 ? '[!] BREACH RISK' : ''}
             </span>
           </div>
           <div className="w-full bg-[#04080F] h-2.5 rounded-full overflow-hidden border border-slate-700">
@@ -222,8 +222,8 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase">
         <span className="text-[#FFC15E] font-bold">
           {isEs
-            ? `⚡ CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
-            : `⚡ ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
+            ? `▲ CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
+            : `▲ ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
         </span>
         <div className="flex items-center gap-2">
           {resolvedCount < simulationResult.dilemmas.length && (
@@ -251,7 +251,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
           }`}
         >
           <span className="font-bold">
-            ⏱️ {isEs ? 'CUENTA REGRESIVA DE CRISIS:' : 'CRISIS EMERGENCY TIMER:'}
+            [TIME] {isEs ? 'CUENTA REGRESIVA DE CRISIS:' : 'CRISIS EMERGENCY TIMER:'}
           </span>
           <span className="text-sm font-black tracking-widest">{crisisTimer}s</span>
         </div>
@@ -276,7 +276,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
                   T+{dilemma.missionDay}D · {dilemma.title[language]}
                 </span>
                 <span className={hasDecided ? 'text-[#5FF3FF]' : 'text-[#FF4D6D] animate-pulse'}>
-                  {hasDecided ? '✓ OK' : isEs ? '⚠️ ALERTA EN VIVO' : '⚠️ LIVE ALERT'}
+                  {hasDecided ? '✓ OK' : isEs ? '[!] ALERTA EN VIVO' : '[!] LIVE ALERT'}
                 </span>
               </div>
               <p className="mt-1 text-[11px] font-light text-slate-300">

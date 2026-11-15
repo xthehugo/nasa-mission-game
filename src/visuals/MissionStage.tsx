@@ -25,14 +25,14 @@ const FAIL_POINT = 0.55;
 
 const T = {
   en: {
-    launch: '🚀 LAUNCH',
+    launch: '▲ LAUNCH',
     launchAnyway: 'LAUNCH ANYWAY',
     reset: '↺ RESET',
     viewSplit: 'SPLIT VIEW',
     viewMap: 'ORBITAL MAP',
     viewAscent: 'FAIRING & STRESS',
     viewCharts: 'CHARTS',
-    autoFix: '🔧 AUTO-FIX & RELAUNCH',
+    autoFix: '[FIX] AUTO-FIX & RELAUNCH',
     alt: 'Altitude',
     vel: 'Velocity',
     dv: 'ΔV used / required',
@@ -81,14 +81,14 @@ const T = {
     },
   },
   es: {
-    launch: '🚀 LANZAR',
+    launch: '▲ LANZAR',
     launchAnyway: 'LANZAR DE TODAS FORMAS',
     reset: '↺ REINICIAR',
     viewSplit: 'VISTA DUAL',
     viewMap: 'MAPA ORBITAL',
     viewAscent: 'COFIA Y TENSIÓN',
     viewCharts: 'GRÁFICOS',
-    autoFix: '🔧 AUTO-REPARAR FALLO Y RELANZAR',
+    autoFix: '[FIX] AUTO-REPARAR FALLO Y RELANZAR',
     alt: 'Altitud',
     vel: 'Velocidad',
     dv: 'ΔV usado / requerido',

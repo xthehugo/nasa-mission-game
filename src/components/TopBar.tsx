@@ -105,7 +105,7 @@ export function TopBar() {
             }}
             className="border border-[#5FF3FF] bg-[#5FF3FF]/15 px-2.5 py-1 font-bold text-[#5FF3FF] hover:bg-[#5FF3FF]/30 shadow-[0_0_12px_rgba(95,243,255,0.25)] transition rounded"
           >
-            🗺️ {isEs ? 'CAMPAÑA' : 'CAMPAIGN'}
+            ◈ {isEs ? 'CAMPAÑA' : 'CAMPAIGN'}
           </button>
 
           <button
@@ -116,7 +116,7 @@ export function TopBar() {
             }}
             className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2.5 py-1 font-bold text-[#FFC15E] hover:bg-[#FFC15E]/30 shadow-[0_0_12px_rgba(255,193,94,0.25)] transition rounded"
           >
-            ✨ GEMINI AI
+            ✦ GEMINI AI
           </button>
 
           <div className="border border-[#FFC15E]/40 px-2.5 py-1 text-[#FFC15E]">
@@ -151,7 +151,7 @@ export function TopBar() {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isEs ? '🎓 CADETE' : '🎓 CADET'}
+              ◈ {isEs ? 'CADETE' : 'CADET'}
             </button>
             <button
               type="button"
@@ -165,7 +165,7 @@ export function TopBar() {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isEs ? '🛰️ ING. JPL' : '🛰️ JPL ENG'}
+              ◆ {isEs ? 'ING. JPL' : 'JPL ENG'}
             </button>
           </div>
 

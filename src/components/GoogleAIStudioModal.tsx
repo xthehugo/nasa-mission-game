@@ -155,11 +155,11 @@ VEREDICTO DE VUELO: [ ${verdict} ] · PUNTUACIÓN: ${scores.compositeGlobalScore
 ═══════════════════════════════════════════════════════
 
 1. ANÁLISIS DE MÁRGENES CRÍTICOS:
-• Masa Estructural: Margen del ${massMargin.toFixed(1)}% ${massMargin >= 20 ? '✓ NOMINAL' : '⚠️ ALERTA: Inferior al umbral NASA JPL (20%)'}
+• Masa Estructural: Margen del ${massMargin.toFixed(1)}% ${massMargin >= 20 ? '✓ NOMINAL' : '[!] ALERTA: Inferior al umbral NASA JPL (20%)'}
 • Propulsión Delta-V: ${metrics.deltaV_available_ms.toFixed(0)} m/s disponibles vs ${metrics.deltaV_required_ms.toFixed(0)} m/s requeridos (Margen: ${deltaVMargin.toFixed(1)}%)
 • Balance de Potencia EPS: ${powerGen.toFixed(1)} W vs ${powerLoad.toFixed(1)} W (Margen: ${powerMargin.toFixed(1)}%)
-• Margen de Enlace Telecom: ${linkMargin.toFixed(1)} dB ${isLinkSafe ? '✓ Cobertura cerrada' : '⚠️ RIESGO: Desvanecimiento de señal'}
-• Volumen y Cofia: ${metrics.volume.used_U.toFixed(1)}U usados de ${metrics.volume.maxFairing_U}U máx ${metrics.volume.isCompliant ? '✓ COMPATIBLE' : '⚠️ EXCESO'}
+• Margen de Enlace Telecom: ${linkMargin.toFixed(1)} dB ${isLinkSafe ? '✓ Cobertura cerrada' : '[!] RIESGO: Desvanecimiento de señal'}
+• Volumen y Cofia: ${metrics.volume.used_U.toFixed(1)}U usados de ${metrics.volume.maxFairing_U}U máx ${metrics.volume.isCompliant ? '✓ COMPATIBLE' : '[!] EXCESO'}
 
 2. RECOMENDACIONES DE INGENIERÍA JPL:
 ${!isDeltaVSafe ? '• Reemplazar propulsor por un sistema de mayor impulso específico (Isp) o aligerar cargas útiles secundarias.\n' : ''}${!isPowerSafe ? '• Considerar paneles solares desplegables de alta eficiencia o modo de hibernación en eclipse.\n' : ''}${!isLinkSafe ? '• Ampliar a antena parche de banda X o terminal óptico para asegurar SNR > 3.0 dB.\n' : ''}• Estado de subsistemas compatible con los estándares de diseño concurrentes de la misión.`
@@ -169,11 +169,11 @@ FLIGHT VERDICT: [ ${verdict} ] · COMPOSITE SCORE: ${scores.compositeGlobalScore
 ═══════════════════════════════════════════════════════
 
 1. CRITICAL SUBSYSTEM MARGIN REVIEW:
-• Structural Mass: ${massMargin.toFixed(1)}% Margin ${massMargin >= 20 ? '✓ NOMINAL' : '⚠️ WARNING: Below NASA JPL standard (20%)'}
+• Structural Mass: ${massMargin.toFixed(1)}% Margin ${massMargin >= 20 ? '✓ NOMINAL' : '[!] WARNING: Below NASA JPL standard (20%)'}
 • Propulsion Delta-V: ${metrics.deltaV_available_ms.toFixed(0)} m/s vs ${metrics.deltaV_required_ms.toFixed(0)} m/s required (Margin: ${deltaVMargin.toFixed(1)}%)
 • EPS Power Balance: ${powerGen.toFixed(1)} W gen vs ${powerLoad.toFixed(1)} W load (Margin: ${powerMargin.toFixed(1)}%)
-• Telecom Link Margin: ${linkMargin.toFixed(1)} dB ${isLinkSafe ? '✓ Signal closure' : '⚠️ WARNING: High risk of signal fade'}
-• Fairing & Volume: ${metrics.volume.used_U.toFixed(1)}U used of ${metrics.volume.maxFairing_U}U max ${metrics.volume.isCompliant ? '✓ COMPLIANT' : '⚠️ OVERFLOW'}
+• Telecom Link Margin: ${linkMargin.toFixed(1)} dB ${isLinkSafe ? '✓ Signal closure' : '[!] WARNING: High risk of signal fade'}
+• Fairing & Volume: ${metrics.volume.used_U.toFixed(1)}U used of ${metrics.volume.maxFairing_U}U max ${metrics.volume.isCompliant ? '✓ COMPLIANT' : '[!] OVERFLOW'}
 
 2. JPL TEAM X RECOMMENDATIONS:
 ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or shed non-essential payload mass.\n' : ''}${!isPowerSafe ? '• Consider deployable high-efficiency solar arrays or implement deep eclipse power save modes.\n' : ''}${!isLinkSafe ? '• Switch to X-band patch antenna or optical terminal to guarantee SNR > 3.0 dB.\n' : ''}• Architecture conforms to concurrent engineering guidelines.`;
@@ -209,7 +209,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#5FF3FF]/30 bg-gradient-to-r from-[#5FF3FF]/15 via-transparent to-[#FFC15E]/10">
           <div className="flex items-center gap-3">
-            <span className="text-xl">✨</span>
+            <span className="text-xl text-[#FFC15E] font-bold">✦</span>
             <div>
               <h2
                 id="ai-studio-modal-title"
@@ -253,7 +253,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                   : 'text-slate-300 hover:text-[#5FF3FF] hover:bg-[#5FF3FF]/10 border border-slate-700'
               }`}
             >
-              📊 {language === 'es' ? 'AUDITORÍA TELEMETRÍA' : 'TELEMETRY AUDIT'}
+              [AUDIT] {language === 'es' ? 'AUDITORÍA TELEMETRÍA' : 'TELEMETRY AUDIT'}
             </button>
 
             <button
@@ -268,7 +268,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                   : 'text-slate-300 hover:text-[#5FF3FF] hover:bg-[#5FF3FF]/10 border border-slate-700'
               }`}
             >
-              🎲 {language === 'es' ? 'GENERADOR PROCEDURAL' : 'PROCEDURAL MISSIONS'}
+              [GEN] {language === 'es' ? 'GENERADOR PROCEDURAL' : 'PROCEDURAL MISSIONS'}
             </button>
           </div>
 
@@ -316,8 +316,8 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                       ? 'PROCESANDO CON GEMINI...'
                       : 'ANALYZING WITH GEMINI...'
                     : language === 'es'
-                      ? '🚀 EJECUTAR DIAGNÓSTICO IA'
-                      : '🚀 RUN AI DIAGNOSTIC'}
+                      ? '▶ EJECUTAR DIAGNÓSTICO IA'
+                      : '▶ RUN AI DIAGNOSTIC'}
                 </button>
               </div>
 
@@ -327,7 +327,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                   aiReport
                 ) : (
                   <div className="flex flex-col items-center justify-center h-48 text-slate-500 text-center">
-                    <span className="text-3xl mb-2">🛰️</span>
+                    <span className="text-2xl mb-2 font-bold text-[#5FF3FF]">[SAT · TELEMETRY]</span>
                     <p className="font-bold">
                       {language === 'es'
                         ? 'LISTO PARA AUDITORÍA DE VUELO'
@@ -366,7 +366,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                   >
                     <div>
                       <span className="text-[10px] text-[#FFC15E] font-bold tracking-widest uppercase block mb-1">
-                        🪐 {preset.destination}
+                        ◈ {preset.destination}
                       </span>
                       <h4 className="text-xs font-bold text-[#F4F6F8] mb-2">{preset.title}</h4>
                       <p className="text-[11px] text-slate-300 mb-3">{preset.objective}</p>
@@ -381,7 +381,7 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
                       </div>
 
                       <div className="p-2 mb-3 rounded bg-[#FF4D6D]/10 border border-[#FF4D6D]/30 text-[10px] text-[#FF4D6D]">
-                        <span className="font-bold">⚠️ HAZARD:</span> {preset.hazard}
+                        <span className="font-bold">[!] HAZARD:</span> {preset.hazard}
                       </div>
                     </div>
 
@@ -403,8 +403,8 @@ ${!isDeltaVSafe ? '• Upgrade propulsion to higher specific impulse (Isp) or sh
         <div className="px-6 py-3 bg-[#02050A] border-t border-[#5FF3FF]/20 flex items-center justify-between text-[11px] text-slate-400">
           <span>
             {language === 'es'
-              ? '⚡ Funciona online con clave Gemini API o con el motor offline de inteligencia determinista JPL.'
-              : '⚡ Operates live with Gemini API key or with our offline deterministic JPL intelligence engine.'}
+              ? '[INFO] Funciona online con clave Gemini API o con el motor offline de inteligencia determinista JPL.'
+              : '[INFO] Operates live with Gemini API key or with our offline deterministic JPL intelligence engine.'}
           </span>
           <span className="text-[#5FF3FF] font-bold">GOOGLE AI STUDIO · GEMINI 2.5 FLASH</span>
         </div>

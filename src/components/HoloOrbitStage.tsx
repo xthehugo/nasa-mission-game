@@ -416,7 +416,7 @@ export function HoloOrbitStage() {
             {/* Reference Sunlight Direction & Planetary Umbra / Eclipse Cone */}
             <line x1="16" y1={CY} x2={CX - BODY_R - 8} y2={CY} stroke="#FFC15E" strokeOpacity="0.22" strokeDasharray="3 4" />
             <text x="36" y={CY - 8} className="font-mono text-[7px]" fill="#FFC15E" fillOpacity="0.7">
-              ☀ SOLAR FLUX
+              [SOL] SOLAR FLUX
             </text>
             {dest.eclipseFraction > 0 && (
               <g>
@@ -738,14 +738,14 @@ export function HoloOrbitStage() {
               fill={inEclipse ? '#38bdf8' : losBlocked ? '#f87171' : '#86efac'}
             >
               {inEclipse
-                ? '🌑 ECLIPSE'
+                ? '● ECLIPSE'
                 : losBlocked
                   ? isEs
-                    ? '📡 OCULTACIÓN LIMBO'
-                    : '📡 LIMB OCCULTED'
+                    ? '[RF] OCULTACIÓN LIMBO'
+                    : '[RF] LIMB OCCULTED'
                   : isEs
-                    ? '☀ SOL · LOS ACTIVO'
-                    : '☀ SUNLIT · LOS LOCKED'}
+                    ? '☼ SOL · LOS ACTIVO'
+                    : '☼ SUNLIT · LOS LOCKED'}
             </text>
           </g>
         )}
@@ -783,8 +783,8 @@ export function HoloOrbitStage() {
                   ? '▶ REANUDAR'
                   : '▶ RESUME'
                 : isEs
-                  ? '⏸ PAUSAR ÓRBITA'
-                  : '⏸ PAUSE ORBIT'}
+                  ? '|| PAUSAR ÓRBITA'
+                  : '|| PAUSE ORBIT'}
             </button>
 
             {!isL2 && (

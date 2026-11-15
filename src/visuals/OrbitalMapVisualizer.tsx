@@ -217,7 +217,7 @@ export default function OrbitalMapVisualizer({ destination, lang = 'en', classNa
         {content}
       </svg>
       <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-slate-200">
-        <span className={tile}>📍 {name}</span>
+        <span className={tile}>◈ {name}</span>
         <span className={tile}>ΔV: {destination ? destination.requiredDeltaV_ms.toLocaleString() : '—'} m/s</span>
         <span className={tile}>
           {lang === 'es' ? 'Luz (1 vía)' : 'Light time'}: {destination ? fmtLight(destination.oneWayLightTimeSec) : '—'}

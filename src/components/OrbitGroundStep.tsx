@@ -180,7 +180,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 {experienceMode === 'CADET' ? (
                   <div className="mt-1 space-y-0.5 text-[10px] leading-snug">
                     <p className="text-slate-300">{dest.description[language]}</p>
-                    <p className="text-[#FFC15E]">⚠️ {dest.environmentHazard[language]}</p>
+                    <p className="text-[#FFC15E]">[!] {dest.environmentHazard[language]}</p>
                   </div>
                 ) : (
                   <div className="mt-1 font-mono text-[8.5px] text-slate-400">

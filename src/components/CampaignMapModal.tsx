@@ -57,8 +57,8 @@ export const CampaignMapModal: React.FC = () => {
                 className="text-lg font-black tracking-widest text-[#5FF3FF] uppercase"
               >
                 {language === 'es'
-                  ? '🗺️ MATRIZ DE CAMPAÑA SOLAR · NASA CONTRACTS'
-                  : '🗺️ SOLAR SYSTEM CAMPAIGN · NASA CONTRACTS'}
+                  ? '◈ MATRIZ DE CAMPAÑA SOLAR · NASA CONTRACTS'
+                  : '◈ SOLAR SYSTEM CAMPAIGN · NASA CONTRACTS'}
               </h2>
               <p className="text-xs text-slate-400 tracking-wider">
                 {language === 'es'
@@ -163,7 +163,7 @@ export const CampaignMapModal: React.FC = () => {
 
                     {/* Boss / Mission Threat Hazard */}
                     <div className="p-2 mb-3 rounded bg-[#FF4D6D]/10 border border-[#FF4D6D]/30 text-[11px] text-[#FF4D6D]">
-                      <span className="font-bold">⚠️ {language === 'es' ? 'AMENAZA:' : 'HAZARD:'} </span>
+                      <span className="font-bold">[!] {language === 'es' ? 'AMENAZA:' : 'HAZARD:'} </span>
                       {contract.bossThreat[language]}
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export const CampaignMapModal: React.FC = () => {
 
                     {!isUnlocked ? (
                       <span className="text-[10px] text-slate-400 uppercase bg-slate-900 px-2 py-1.5 rounded border border-slate-800">
-                        🔒 {contract.requiredXPToUnlock} XP REQ
+                        [LOCK] {contract.requiredXPToUnlock} XP REQ
                       </span>
                     ) : (
                       <button
@@ -209,8 +209,8 @@ export const CampaignMapModal: React.FC = () => {
         <div className="px-6 py-3 bg-[#02050A] border-t border-[#5FF3FF]/20 flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
           <span>
             {language === 'es'
-              ? '💡 Completa cada misión con Grado A o S en CML 6 (Simulación) para ganar 3 estrellas y máxima XP.'
-              : '💡 Complete missions with Grade A or S in CML 6 (Simulation) to earn 3 stars and maximum XP.'}
+              ? '[NOTE] Completa cada misión con Grado A o S en CML 6 (Simulación) para ganar 3 estrellas y máxima XP.'
+              : '[NOTE] Complete missions with Grade A or S in CML 6 (Simulation) to earn 3 stars and maximum XP.'}
           </span>
           <span className="text-[#5FF3FF] font-semibold">
             NASA SPACE APPS CHALLENGE 2026 SPECIAL EDITION

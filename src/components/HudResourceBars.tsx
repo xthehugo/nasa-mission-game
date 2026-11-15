@@ -150,9 +150,9 @@ export function HudResourceBars() {
           >
             {isCadet
               ? isEs
-                ? '🎓 GUÍA ESTUDIANTE'
-                : '🎓 STUDENT GUIDE'
-              : '🛰️ JPL MEV/MGA'}
+                ? '◈ GUÍA ESTUDIANTE'
+                : '◈ STUDENT GUIDE'
+              : '◆ JPL MEV/MGA'}
           </span>
         </div>
       </div>

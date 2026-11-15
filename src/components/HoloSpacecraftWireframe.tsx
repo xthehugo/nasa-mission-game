@@ -960,8 +960,8 @@ export function HoloSpacecraftWireframe() {
           >
             {autoSpin
               ? isEs
-                ? '⏸ PAUSAR 360°'
-                : '⏸ PAUSE 360°'
+                ? '|| PAUSAR 360°'
+                : '|| PAUSE 360°'
               : isEs
                 ? '▶ GIRO 360°'
                 : '▶ SPIN 360°'}
