@@ -4,6 +4,7 @@ import { useMissionStore } from '../store';
 import { computeLevelStars, playHoloTone } from './holoAudio';
 import SubsystemStressHeatmap from './SubsystemStressHeatmap';
 import DeploymentTimelineStepper from './DeploymentTimelineStepper';
+import EngineeringHistogramCard from './EngineeringHistogramCard';
 import type { FailureMode } from '../visuals/SpacecraftBlueprint';
 
 export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
@@ -218,6 +219,17 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
             {isEs ? 'CERTIFICADO & RECOMPENSAS XP →' : 'CERTIFICATE & XP REWARDS →'}
           </button>
         </div>
+
+        {/* Poly Bridge Post-Flight Engineering Histogram & 3-Star Efficiency */}
+        <EngineeringHistogramCard
+          metrics={metrics}
+          benchmark={objective.realWorldBenchmark}
+          missionSuccess={simulationResult.missionSuccess}
+          scienceScore={simulationResult.scienceScore}
+          crisesSolvedCount={resolvedCount}
+          totalCrisesCount={simulationResult.dilemmas.length}
+          lang={language}
+        />
 
         {/* 5-Phase Flight Log */}
         <div className="space-y-1.5">

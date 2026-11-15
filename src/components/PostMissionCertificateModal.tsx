@@ -16,6 +16,7 @@ import {
 import { findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone } from './holoAudio';
+import EngineeringHistogramCard from './EngineeringHistogramCard';
 
 export function PostMissionCertificateModal() {
   const {
@@ -43,6 +44,9 @@ export function PostMissionCertificateModal() {
   const show = Boolean(isCertificateOpen && simulationResult);
 
   const objective = findObjectiveById(selection.objectiveId);
+  const resolvedCount = simulationResult
+    ? simulationResult.dilemmas.filter((d) => Boolean(resolvedCrises[d.id])).length
+    : 0;
   const allCrisesOptimal =
     Boolean(simulationResult?.dilemmas.length) &&
     Boolean(
@@ -214,6 +218,18 @@ export function PostMissionCertificateModal() {
                 <X className="h-4 w-4" />
               </button>
             </div>
+
+            {/* Poly Bridge Engineering Histogram & 3-Star Breakdown */}
+            <EngineeringHistogramCard
+              metrics={metrics}
+              benchmark={objective.realWorldBenchmark}
+              missionSuccess={simulationResult.missionSuccess}
+              scienceScore={simulationResult.scienceScore}
+              crisesSolvedCount={resolvedCount}
+              totalCrisesCount={simulationResult.dilemmas.length}
+              lang={language}
+              className="mt-4"
+            />
 
             <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
               {badges.map((b) => {
