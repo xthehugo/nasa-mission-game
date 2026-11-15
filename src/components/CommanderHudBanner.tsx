@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ChevronDown, Film, Volume2, Zap } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Film, HelpCircle, Volume2, Zap } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
@@ -13,8 +13,11 @@ import {
   COMMANDER_PHASE_BEATS,
   formatCommanderBeat,
   formatStoryText,
-  LEVEL1_INTERACTIVE_TOUR,
 } from './narrativeConfig';
+import {
+  LEVEL1_TOTAL_STEPS,
+  LEVEL1_TUTORIAL_STEPS,
+} from './level1TutorialConfig';
 
 export function CommanderHudBanner() {
   const {
@@ -26,7 +29,9 @@ export function CommanderHudBanner() {
     engineerName,
     missionCustomName,
     activeCinematicId,
+    activeCampaignLevelId,
     level1TutorialStep,
+    tutorialFeedback,
     metrics,
     concurrentConflicts,
     activeRandomEvent,
@@ -35,7 +40,9 @@ export function CommanderHudBanner() {
     reducedMotion,
     soundEnabled,
     openCinematic,
+    setPhase,
     setLevel1TutorialStep,
+    setTutorialFeedback,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -43,9 +50,11 @@ export function CommanderHudBanner() {
   const activeCallsign = isCadet ? cadetName : engineerName;
   const beat = COMMANDER_PHASE_BEATS[phase];
 
-  const isLevel1GuidedTour = phase === 'CML_1' && level1TutorialStep < 5;
+  const isLevel1GuidedTour =
+    activeCampaignLevelId === 'contract-leo-bionutrients' &&
+    level1TutorialStep < LEVEL1_TOTAL_STEPS;
   const activeTourStep = isLevel1GuidedTour
-    ? LEVEL1_INTERACTIVE_TOUR[level1TutorialStep]
+    ? LEVEL1_TUTORIAL_STEPS[level1TutorialStep]
     : null;
 
   const extraKg =
@@ -68,7 +77,7 @@ export function CommanderHudBanner() {
   let vegaText = '';
   if (activeTourStep) {
     vegaText = formatStoryText(
-      activeTourStep.instruction[language],
+      activeTourStep.why[language],
       cadetName,
       engineerName,
       missionCustomName,
@@ -278,66 +287,134 @@ export function CommanderHudBanner() {
         </div>
       </div>
 
-      {/* Level 01 Interactive Guided Tour (Compact + Inactivity Hint) */}
+      {/* Level 01 Interactive 10-Step Tutorial (Progress + Objective + Feedback + Inactivity Hint) */}
       {activeTourStep && (
-        <div className="border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 px-3 py-2">
-          <div className="flex items-center justify-between gap-2 font-mono text-[11px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
+        <div
+          className={`pointer-events-auto relative z-30 border-l-2 bg-[#061224]/95 px-3 py-2.5 ${
+            idleHint
+              ? 'border-[#FFC15E] ring-2 ring-[#FFC15E]/60 shadow-[0_0_22px_rgba(255,193,94,0.28)]'
+              : 'border-[#5FF3FF] bg-[#FFC15E]/8'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 font-mono text-[10.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
             <span>{activeTourStep.badge[language]}</span>
-            <button
-              type="button"
-              onClick={() => setLevel1TutorialStep(5)}
-              className="text-[10px] text-slate-400 underline hover:text-white"
-            >
-              {isEs ? 'Saltar tour' : 'Skip tour'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setIsSpeaking(true);
+                  speakCharacterLine(
+                    `${activeTourStep.title[language]}. ${activeTourStep.why[language]}`,
+                    language,
+                    isCadet ? 'VEGA' : 'ROSTOVA',
+                    true,
+                    () => setIsSpeaking(false),
+                  );
+                }}
+                title={isEs ? 'Repetir explicación del paso actual' : 'Repeat current step guidance'}
+                className="inline-flex items-center gap-1 text-[10px] text-[#5FF3FF] hover:text-white"
+              >
+                <HelpCircle className="h-3 w-3" />
+                <span>{isEs ? 'Ayuda' : 'Help'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTutorialFeedback(null);
+                  setLevel1TutorialStep(LEVEL1_TOTAL_STEPS);
+                }}
+                className="text-[10px] text-slate-400 underline hover:text-white"
+              >
+                {isEs ? 'Saltar tutorial' : 'Skip tutorial'}
+              </button>
+            </div>
           </div>
-          <p className="mt-0.5 text-[13px] font-medium leading-snug text-white">
+
+          {/* Tutorial progress bar */}
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden bg-slate-800/90">
+            <div
+              className="h-full bg-[#5FF3FF] transition-all duration-300"
+              style={{
+                width: `${((level1TutorialStep + 1) / LEVEL1_TOTAL_STEPS) * 100}%`,
+              }}
+            />
+          </div>
+
+          <p className="mt-2 text-[13.5px] font-semibold leading-snug text-white">
             {activeTourStep.title[language]}
           </p>
+
+          {tutorialFeedback && (
+            <div
+              className={`mt-1.5 border px-2.5 py-1.5 font-mono text-[11px] leading-snug ${
+                tutorialFeedback.isError
+                  ? 'border-[#FFC15E]/70 bg-[#FFC15E]/15 text-[#FFC15E]'
+                  : 'border-[#5FF3FF]/60 bg-[#5FF3FF]/12 text-[#5FF3FF]'
+              }`}
+            >
+              {tutorialFeedback[language]}
+            </div>
+          )}
+
           {idleHint && (
-            <p className="mt-1 font-mono text-[11px] text-[#FFC15E]">
-              {isEs
-                ? 'Pista: haz clic en una opción iluminada para ver cómo cambia la nave.'
-                : 'Hint: click any highlighted option to see the spacecraft update.'}
+            <p className="mt-1.5 border border-[#FFC15E]/50 bg-[#FFC15E]/12 px-2 py-1 font-mono text-[11px] text-[#FFC15E]">
+              {activeTourStep.inactivityHint[language]}
             </p>
           )}
+
           <div className="mt-2 flex items-center justify-between gap-2">
             {level1TutorialStep === 0 ? (
               <button
                 type="button"
                 onClick={() => {
                   playHoloTone('STEP', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'Great! Now inspect the BioNutrients-2 contract card.',
+                    es: '¡Bien! Ahora toca la tarjeta del contrato BioNutrients-2.',
+                  });
                   setLevel1TutorialStep(1);
                 }}
                 className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
               >
                 {isEs
-                  ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
-                  : 'GOT IT · CONTINUE TO CHASSIS →'}
+                  ? 'ENTENDIDO · LEER CONTRATO →'
+                  : 'GOT IT · READ CONTRACT →'}
               </button>
-            ) : level1TutorialStep < 4 ? (
-              <>
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] text-[#5FF3FF] uppercase">
-                  <Zap className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
-                  <span>
-                    {isEs ? 'SENSOR ACTIVO' : 'SENSOR ACTIVE'}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setLevel1TutorialStep((level1TutorialStep + 1) as 2 | 3 | 4)}
-                  className="shrink-0 border border-[#5FF3FF]/40 px-2.5 py-0.5 font-mono text-[10px] text-slate-200 hover:text-white"
-                >
-                  {isEs ? 'Siguiente →' : 'Next →'}
-                </button>
-              </>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.1em] text-[#5FF3FF] uppercase">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
+            ) : level1TutorialStep === 4 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STAR', soundEnabled);
+                  setTutorialFeedback({
+                    en: '35% margin rule understood! Next: equip your science payload.',
+                    es: '¡Regla del 35% clara! Ahora activa tu carga útil científica.',
+                  });
+                  setLevel1TutorialStep(5);
+                  setPhase('CML_3');
+                }}
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+              >
+                {isEs
+                  ? 'CONFIRMAR MÁRGENES (≥35%) E IR A CARGA ÚTIL →'
+                  : 'CONFIRM MARGINS (≥35%) & GO TO PAYLOAD →'}
+              </button>
+            ) : activeTourStep.isFinalExam ? (
+              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.08em] text-[#FFC15E] uppercase">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   {isEs
-                    ? '¡LISTO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
-                    : 'DONE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+                    ? 'EXAMEN SIN HALO: COMPLETA EL VUELO Y ABRE EL CERTIFICADO'
+                    : 'NO-HALO EXAM: COMPLETE FLIGHT & OPEN CERTIFICATE'}
+                </span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.08em] text-[#5FF3FF] uppercase">
+                <Zap className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
+                <span>
+                  {isEs
+                    ? 'COMPLETA LA ACCIÓN ILUMINADA PARA AVANZAR'
+                    : 'COMPLETE THE HIGHLIGHTED ACTION TO ADVANCE'}
                 </span>
               </span>
             )}

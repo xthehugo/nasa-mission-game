@@ -89,8 +89,10 @@ export const CampaignMapModal: React.FC = () => {
     setPhase('CML_1');
 
     if (isFirstIntroCampaign) {
-      // Step 1 of interactive tutorial with ASTRA robot guide
-      setLevel1TutorialStep(1);
+      // Step 1 of 10-step interactive tutorial
+      setLevel1TutorialStep(0);
+    } else {
+      setLevel1TutorialStep(10);
     }
 
     appendDecisionLog({

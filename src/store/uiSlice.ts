@@ -92,6 +92,7 @@ export interface UISlice {
   seenCinematics: Record<string, boolean>;
   tutorialStepIndex: number;
   level1TutorialStep: number;
+  tutorialFeedback: { en: string; es: string; isError?: boolean } | null;
   robotHoverZone: RobotSpotlightZone | null;
   missionCustomName: string;
   hasCompletedOnboarding: boolean;
@@ -147,6 +148,7 @@ export interface UISlice {
   closeCinematic: () => void;
   setTutorialStepIndex: (idx: number) => void;
   setLevel1TutorialStep: (step: number) => void;
+  setTutorialFeedback: (fb: { en: string; es: string; isError?: boolean } | null) => void;
   setRobotHoverZone: (zone: RobotSpotlightZone | null) => void;
   advanceToAct2Jpl: (engineerName?: string, missionName?: string) => void;
   completeStoryAndUnlockSandbox: () => void;
@@ -252,6 +254,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   seenCinematics: {},
   tutorialStepIndex: 0,
   level1TutorialStep: 0,
+  tutorialFeedback: null,
   robotHoverZone: null,
   missionCustomName: 'Ícaro-Pionero',
   hasCompletedOnboarding: false,
@@ -312,7 +315,10 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
       return {
         phase,
         tutorialStepIndex: 0,
-        level1TutorialStep: phase === 'CML_1' ? s.level1TutorialStep : 5,
+        level1TutorialStep:
+          s.activeCampaignLevelId === 'contract-leo-bionutrients'
+            ? s.level1TutorialStep
+            : 10,
         maxUnlockedLevel: Math.max(s.maxUnlockedLevel, PHASE_ORDER[phase]),
         activeCinematicId: shouldPlay ? transId : s.activeCinematicId,
         seenCinematics:
@@ -329,8 +335,6 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
     set((s) => ({
       cubesatFormFactor,
       tutorialStepIndex: s.phase === 'CML_1' ? 1 : s.tutorialStepIndex,
-      level1TutorialStep:
-        s.phase === 'CML_1' && s.level1TutorialStep <= 1 ? 2 : s.level1TutorialStep,
     })),
   setActiveSubsystemTab: (activeSubsystemTab) => set({ activeSubsystemTab }),
   setRightPanelTab: (rightPanelTab) => set({ rightPanelTab }),
@@ -409,6 +413,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
     }),
   setTutorialStepIndex: (tutorialStepIndex) => set({ tutorialStepIndex }),
   setLevel1TutorialStep: (level1TutorialStep) => set({ level1TutorialStep }),
+  setTutorialFeedback: (tutorialFeedback) => set({ tutorialFeedback }),
   setRobotHoverZone: (robotHoverZone) => set({ robotHoverZone }),
   advanceToAct2Jpl: () =>
     set((s) => {

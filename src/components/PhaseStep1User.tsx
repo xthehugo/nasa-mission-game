@@ -33,6 +33,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     language,
     experienceMode,
     phase,
+    activeCampaignLevelId,
     level1TutorialStep,
     robotHoverZone,
     cubesatFormFactor,
@@ -46,8 +47,11 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     setSubsystem,
     setObjective,
     setLevel1TutorialStep,
+    setTutorialFeedback,
     appendDecisionLog,
   } = useMissionStore();
+
+  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < 10;
 
   const isEs = language === 'es';
   const [inspectingEps, setInspectingEps] = useState<SubsystemOption | null>(null);
@@ -79,13 +83,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
 
   if (level1TutorialStep !== prevTutorialStep) {
     setPrevTutorialStep(level1TutorialStep);
-    if (phase === 'CML_1') {
+    if (phase === 'CML_1' && activeCampaignLevelId === 'contract-leo-bionutrients') {
       if (level1TutorialStep === 1) {
-        setOpenLeftSection('CHASSIS');
-      } else if (level1TutorialStep === 2) {
-        setOpenLeftSection('EPS');
-      } else if (level1TutorialStep === 3) {
         setRightTab('CONTRACTS');
+      } else if (level1TutorialStep === 2) {
+        setOpenLeftSection('CHASSIS');
+      } else if (level1TutorialStep === 3) {
+        setOpenLeftSection('EPS');
       }
     }
   }
@@ -107,14 +111,16 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const activeEps = findSubsystemById(selection.epsId) ?? epsOptions[0];
   const activeChassis = CHASSIS_OPTS.find((c) => c.id === cubesatFormFactor) ?? CHASSIS_OPTS[0];
   const highlightChassis =
-    (phase === 'CML_1' && level1TutorialStep === 1) || robotHoverZone === 'CHASSIS';
+    (isL1Tut && phase === 'CML_1' && level1TutorialStep === 2) || robotHoverZone === 'CHASSIS';
   const highlightEps =
-    (phase === 'CML_1' && level1TutorialStep === 2) || robotHoverZone === 'EPS';
+    (isL1Tut && phase === 'CML_1' && level1TutorialStep === 3) || robotHoverZone === 'EPS';
   const highlightMission =
-    (phase === 'CML_1' && level1TutorialStep === 3) || robotHoverZone === 'MISSION';
-  const chassisCompleted = phase === 'CML_1' && level1TutorialStep > 1;
-  const epsCompleted = phase === 'CML_1' && level1TutorialStep > 2;
-  const epsLockedHint = phase === 'CML_1' && level1TutorialStep < 2;
+    (isL1Tut && phase === 'CML_1' && level1TutorialStep === 1) || robotHoverZone === 'MISSION';
+  const chassisCompleted = isL1Tut && level1TutorialStep > 2;
+  const epsCompleted = isL1Tut && level1TutorialStep > 3;
+  const epsLockedHint = isL1Tut && level1TutorialStep < 3;
+  const chassisDimmed = isL1Tut && phase === 'CML_1' && level1TutorialStep !== 2;
+  const epsDimmed = isL1Tut && phase === 'CML_1' && level1TutorialStep !== 3;
 
   if (zone === 'LEFT') {
     const isChassisOpen = openLeftSection === 'CHASSIS';
@@ -128,13 +134,15 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           data-astra-zone="CHASSIS"
           className={`transition-all ${
             highlightChassis
-              ? 'border border-[#FFC15E] bg-[#FFC15E]/5 p-2.5 shadow-[0_0_24px_rgba(255,193,94,0.18)]'
-              : chassisCompleted && !isChassisOpen
-                ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-85'
-                : 'border-b border-[#5FF3FF]/15 pb-2.5'
+              ? 'border border-[#FFC15E] bg-[#FFC15E]/5 p-2.5 shadow-[0_0_24px_rgba(255,193,94,0.22)]'
+              : chassisDimmed
+                ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-40 pointer-events-none select-none'
+                : chassisCompleted && !isChassisOpen
+                  ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-85'
+                  : 'border-b border-[#5FF3FF]/15 pb-2.5'
           }`}
         >
-          {phase === 'CML_1' && level1TutorialStep === 1 && (
+          {isL1Tut && phase === 'CML_1' && level1TutorialStep === 2 && (
             <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
               <ArrowLeft className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
               <span>
@@ -198,10 +206,28 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                         onClick={() => {
                           setCubesatFormFactor(ch.id);
                           triggerPickFeedback(ch.id);
-                          if (level1TutorialStep <= 1) {
-                            setLevel1TutorialStep(2);
-                          }
                           playHoloTone('STEP', soundEnabled);
+                          if (isL1Tut && level1TutorialStep === 2) {
+                            if (ch.id === '3U') {
+                              setTutorialFeedback({
+                                en: '3U Chassis selected: volume & structural mass updated cleanly in fairing.',
+                                es: 'Chasis 3U listo: mira cómo se actualizó la nave, la masa y el volumen en cofia.',
+                              });
+                              setLevel1TutorialStep(3);
+                            } else if (ch.id === '1.5U' || ch.id === '2U') {
+                              setTutorialFeedback({
+                                en: `${ch.id} tested! Notice the tighter volume/mass. Now pick 3U to fit BioNutrients-2.`,
+                                es: `¡Probaste ${ch.id}! Mira cómo cambió la masa y el volumen. Ahora elige 3U para que quepa BioNutrients-2.`,
+                                isError: true,
+                              });
+                            } else {
+                              setTutorialFeedback({
+                                en: 'CUSTOM Deep Space bus is oversized for this LEO tutorial. Select 3U!',
+                                es: 'CUSTOM es demasiado grande y costoso para este tutorial LEO. ¡Elige 3U!',
+                                isError: true,
+                              });
+                            }
+                          }
                         }}
                         className={`group flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-all duration-300 ${
                           active
@@ -233,13 +259,15 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           data-astra-zone="EPS"
           className={`transition-all ${
             highlightEps
-              ? 'border border-[#FFC15E] bg-[#FFC15E]/5 p-2.5 shadow-[0_0_24px_rgba(255,193,94,0.18)]'
-              : epsLockedHint && !isEpsOpen
-                ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-65'
-                : 'border-b border-[#5FF3FF]/15 pb-2.5'
+              ? 'border border-[#FFC15E] bg-[#FFC15E]/5 p-2.5 shadow-[0_0_24px_rgba(255,193,94,0.22)]'
+              : epsDimmed
+                ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-40 pointer-events-none select-none'
+                : epsLockedHint && !isEpsOpen
+                  ? 'border-b border-[#5FF3FF]/15 pb-2.5 opacity-65'
+                  : 'border-b border-[#5FF3FF]/15 pb-2.5'
           }`}
         >
-          {phase === 'CML_1' && level1TutorialStep === 2 && (
+          {isL1Tut && phase === 'CML_1' && level1TutorialStep === 3 && (
             <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
               <ArrowLeft className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
               <span>
@@ -324,10 +352,22 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                           onClick={() => {
                             setSubsystem('EPS', opt.id);
                             triggerPickFeedback(opt.id);
-                            if (level1TutorialStep <= 2) {
-                              setLevel1TutorialStep(3);
-                            }
                             playHoloTone('STEP', soundEnabled);
+                            if (isL1Tut && level1TutorialStep === 3) {
+                              if (opt.id === 'eps-body-mounted' || opt.powerGenerated1AU_W < 18) {
+                                setTutorialFeedback({
+                                  en: `${opt.name.en} (+${opt.powerGenerated1AU_W}W) is too weak for 16 daily LEO eclipses. Try Deployable Wings!`,
+                                  es: `${opt.name.es} (+${opt.powerGenerated1AU_W}W) no alcanza para los 16 eclipses diarios en LEO. ¡Prueba Alas Desplegables!`,
+                                  isError: true,
+                                });
+                              } else {
+                                setTutorialFeedback({
+                                  en: `${opt.name.en} (+${opt.powerGenerated1AU_W}W) equipped! Power margin updated. Now review the 35% rule.`,
+                                  es: `¡${opt.name.es} (+${opt.powerGenerated1AU_W}W) equipado! Mira cómo subió el margen de energía. Ahora revisa la regla del 35%.`,
+                                });
+                                setLevel1TutorialStep(4);
+                              }
+                            }
                           }}
                           className="flex-1 px-2.5 py-2 text-left"
                         >
@@ -414,13 +454,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           : ''
       }`}
     >
-      {phase === 'CML_1' && level1TutorialStep === 3 && (
+      {isL1Tut && phase === 'CML_1' && level1TutorialStep === 1 && (
         <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase">
           <ArrowLeft className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
           <span>
             {isEs
-              ? 'PASO ACTIVO · ELIGE UNA MISIÓN'
-              : 'ACTIVE STEP · CHOOSE A MISSION'}
+              ? 'PASO ACTIVO · TOCA EL CONTRATO BIONUTRIENTS-2'
+              : 'ACTIVE STEP · CLICK BIONUTRIENTS-2 CONTRACT'}
           </span>
         </div>
       )}
@@ -498,10 +538,23 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                 key={obj.id}
                 type="button"
                 onClick={() => {
+                  if (isL1Tut && level1TutorialStep === 1 && obj.id !== 'obj-earth-bionutrients') {
+                    setTutorialFeedback({
+                      en: 'For the Level 1 Tutorial, click the BioNutrients-2 contract card.',
+                      es: 'En el Tutorial del Nivel 1 debes tocar la tarjeta de BioNutrients-2.',
+                      isError: true,
+                    });
+                    playHoloTone('ALARM', soundEnabled);
+                    return;
+                  }
                   setObjective(obj.id);
                   triggerPickFeedback(obj.id);
-                  if (level1TutorialStep <= 3) {
-                    setLevel1TutorialStep(4);
+                  if (isL1Tut && level1TutorialStep === 1) {
+                    setTutorialFeedback({
+                      en: `Contract confirmed: LEO 400 km, budget $${obj.baseBudgetMillions}M. Now test & pick your CubeSat chassis.`,
+                      es: `Contrato confirmado: LEO 400 km y presupuesto $${obj.baseBudgetMillions}M. Ahora prueba y elige tu chasis CubeSat.`,
+                    });
+                    setLevel1TutorialStep(2);
                   }
                   playHoloTone('STEP', soundEnabled);
                   appendDecisionLog({

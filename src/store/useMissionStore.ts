@@ -107,6 +107,8 @@ export const useMissionStore = create<MissionStoreState>()(
       launchSimulation: () => {
         const {
           phase,
+          activeCampaignLevelId,
+          level1TutorialStep,
           experienceMode,
           storyChapter,
           seenCinematics,
@@ -125,6 +127,10 @@ export const useMissionStore = create<MissionStoreState>()(
         set({
           phase: 'SIMULATION',
           tutorialStepIndex: 0,
+          level1TutorialStep:
+            activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep === 7
+              ? 8
+              : level1TutorialStep,
           simIsPlaying: true,
           simSpeed: 1,
           maxUnlockedLevel: Math.max(maxUnlockedLevel, 6),
@@ -138,18 +144,36 @@ export const useMissionStore = create<MissionStoreState>()(
       },
 
       resolveCrisis: (crisisId, optionId) => {
-        const { selection, metrics, resolvedCrises, simulationResult, appendDecisionLog } =
-          get();
+        const {
+          selection,
+          metrics,
+          resolvedCrises,
+          simulationResult,
+          appendDecisionLog,
+          activeCampaignLevelId,
+          level1TutorialStep,
+        } = get();
         const nextCrises = { ...resolvedCrises, [crisisId]: optionId };
         const nextSim = runMissionSimulation(selection, metrics, nextCrises);
         const dilemma = (simulationResult ?? nextSim).dilemmas.find(
           (d) => d.id === crisisId,
         );
         const opt = dilemma?.options.find((o) => o.id === optionId);
+        const advanceTutorialExam =
+          activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep === 8;
 
         set({
           resolvedCrises: nextCrises,
           simulationResult: nextSim,
+          ...(advanceTutorialExam
+            ? {
+                level1TutorialStep: 9,
+                tutorialFeedback: {
+                  en: 'Crisis solved! Final step (no halo): finish the flight and open your Certificate.',
+                  es: '¡Crisis resuelta! Examen final (sin halo): completa el vuelo y abre tu Certificado.',
+                },
+              }
+            : {}),
         });
 
         if (dilemma && opt) {

@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, ArrowLeft, Check, Lock } from 'lucide-react';
 import {
+  LEVEL1_TOTAL_STEPS,
+  LEVEL1_TUTORIAL_STEPS,
+} from './components/level1TutorialConfig';
+import {
   AstraFloatingCompanion,
   CampaignMapModal,
   COMMANDER_PHASE_BEATS,
@@ -54,6 +58,7 @@ export function App() {
     language,
     experienceMode,
     phase,
+    activeCampaignLevelId,
     level1TutorialStep,
     robotHoverZone,
     maxUnlockedLevel,
@@ -139,6 +144,27 @@ export function App() {
   const nextPhase = NEXT_PHASE[phase];
   const currentIdx = LEVELS.findIndex((l) => l.id === phase);
   const beat = COMMANDER_PHASE_BEATS[phase];
+  const isL1Tut =
+    activeCampaignLevelId === 'contract-leo-bionutrients' &&
+    level1TutorialStep < LEVEL1_TOTAL_STEPS;
+  const tutStep = isL1Tut ? LEVEL1_TUTORIAL_STEPS[level1TutorialStep] : null;
+  const tutGating = Boolean(isL1Tut && tutStep && !tutStep.isFinalExam);
+  const leftZoneAllowed =
+    !tutGating ||
+    tutStep?.activeZone === 'RESOURCES' ||
+    tutStep?.activeZone === 'CHASSIS' ||
+    tutStep?.activeZone === 'EPS' ||
+    tutStep?.activeZone === 'LEFT_PANEL';
+  const resourcesDimmed = tutGating && tutStep?.activeZone !== 'RESOURCES';
+  const leftPhaseDimmed =
+    tutGating &&
+    tutStep?.activeZone !== 'CHASSIS' &&
+    tutStep?.activeZone !== 'EPS' &&
+    tutStep?.activeZone !== 'LEFT_PANEL';
+  const rightStepDimmed =
+    tutGating &&
+    tutStep?.activeZone !== 'MISSION' &&
+    tutStep?.activeZone !== 'RIGHT_PANEL';
 
   const goToLevel = (target: CMLPhase) => {
     playHoloTone('STEP', soundEnabled);
@@ -215,53 +241,60 @@ export function App() {
         <section
           data-astra-zone="LEFT_PANEL"
           className={`order-2 space-y-2.5 transition-all lg:order-1 lg:col-span-3 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${
-            robotHoverZone === 'LEFT_PANEL'
-              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
-              : ''
+            !leftZoneAllowed
+              ? 'opacity-40 pointer-events-none select-none'
+              : robotHoverZone === 'LEFT_PANEL'
+                ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+                : ''
           }`}
         >
           <div
             data-astra-zone="RESOURCES"
             className={`transition-all ${
-              phase === 'CML_1' && level1TutorialStep === 0
-                ? 'border border-[#FFC15E] bg-[#FFC15E]/10 p-2 shadow-[0_0_20px_rgba(255,193,94,0.2)]'
-                : robotHoverZone === 'RESOURCES'
-                  ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
-                  : ''
+              tutGating && tutStep?.activeZone === 'RESOURCES'
+                ? 'border border-[#FFC15E] bg-[#FFC15E]/10 p-2 shadow-[0_0_24px_rgba(255,193,94,0.28)]'
+                : resourcesDimmed
+                  ? 'opacity-40 pointer-events-none select-none'
+                  : robotHoverZone === 'RESOURCES'
+                    ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+                    : ''
             }`}
           >
-            {phase === 'CML_1' && level1TutorialStep === 0 && (
+            {isL1Tut && phase === 'CML_1' && level1TutorialStep === 4 && (
               <div className="mb-1.5 space-y-1 border-b border-[#FFC15E]/30 pb-1.5">
                 <div className="font-mono text-[9px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5">
                   <ArrowLeft className="h-3 w-3 shrink-0 text-[#FFC15E]" />
                   <span>
                     {isEs
-                      ? 'PASO 1/5: TUS 5 SIGNOS VITALES'
-                      : 'STEP 1/5: YOUR 5 VITAL SIGNS'}
+                      ? 'PASO 5/10: REGLA DEL 35% EN TELEMETRÍA'
+                      : 'STEP 5/10: 35% RULE IN TELEMETRY'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    playHoloTone('STEP', soundEnabled);
-                    setLevel1TutorialStep(1);
+                    playHoloTone('STAR', soundEnabled);
+                    setLevel1TutorialStep(5);
+                    setPhase('CML_3');
                   }}
                   className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 py-1 font-mono text-[8.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
                 >
                   {isEs
-                    ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
-                    : 'GOT IT · CONTINUE TO CHASSIS →'}
+                    ? 'CONFIRMAR MÁRGENES E IR A CARGA ÚTIL →'
+                    : 'CONFIRM MARGINS & GO TO PAYLOAD →'}
                 </button>
               </div>
             )}
             <HudResourceBars />
           </div>
-          {phase === 'CML_1' && <PhaseStep1User zone="LEFT" />}
-          {phase === 'CML_2' && <OrbitGroundStep zone="LEFT" />}
-          {phase === 'CML_3' && <TradeSpacePanel zone="LEFT" />}
-          {phase === 'CML_4' && <PointDesignStep zone="LEFT" />}
-          {phase === 'CML_5' && <MCRReviewGate zone="LEFT" />}
-          {phase === 'SIMULATION' && <FlightSimulationPanel zone="LEFT" />}
+          <div className={leftPhaseDimmed ? 'opacity-40 pointer-events-none select-none transition-opacity' : ''}>
+            {phase === 'CML_1' && <PhaseStep1User zone="LEFT" />}
+            {phase === 'CML_2' && <OrbitGroundStep zone="LEFT" />}
+            {phase === 'CML_3' && <TradeSpacePanel zone="LEFT" />}
+            {phase === 'CML_4' && <PointDesignStep zone="LEFT" />}
+            {phase === 'CML_5' && <MCRReviewGate zone="LEFT" />}
+            {phase === 'SIMULATION' && <FlightSimulationPanel zone="LEFT" />}
+          </div>
         </section>
 
         {/* CENTER ZONE: Hero Hologram Stage */}
@@ -313,7 +346,7 @@ export function App() {
           </div>
 
           {nextPhase && (() => {
-            const cml1TourPending = phase === 'CML_1' && level1TutorialStep < 4;
+            const cml1TourPending = isL1Tut && phase === 'CML_1' && level1TutorialStep < 5;
             const cml1PhysicsIssue =
               phase === 'CML_1' &&
               (!metrics.volume.isCompliant ||
@@ -393,12 +426,14 @@ export function App() {
           }`}
         >
           <CommanderHudBanner />
-          {phase === 'CML_1' && <PhaseStep1User zone="RIGHT" />}
-          {phase === 'CML_2' && <OrbitGroundStep zone="RIGHT" />}
-          {phase === 'CML_3' && <TradeSpacePanel zone="RIGHT" />}
-          {phase === 'CML_4' && <PointDesignStep zone="RIGHT" />}
-          {phase === 'CML_5' && <MCRReviewGate zone="RIGHT" />}
-          {phase === 'SIMULATION' && <FlightSimulationPanel zone="RIGHT" />}
+          <div className={rightStepDimmed ? 'opacity-40 pointer-events-none select-none transition-opacity' : ''}>
+            {phase === 'CML_1' && <PhaseStep1User zone="RIGHT" />}
+            {phase === 'CML_2' && <OrbitGroundStep zone="RIGHT" />}
+            {phase === 'CML_3' && <TradeSpacePanel zone="RIGHT" />}
+            {phase === 'CML_4' && <PointDesignStep zone="RIGHT" />}
+            {phase === 'CML_5' && <MCRReviewGate zone="RIGHT" />}
+            {phase === 'SIMULATION' && <FlightSimulationPanel zone="RIGHT" />}
+          </div>
         </section>
       </main>
 
@@ -406,9 +441,11 @@ export function App() {
       <footer
         data-astra-zone="FOOTER_LEVELS"
         className={`relative z-10 shrink-0 border-t border-[#5FF3FF]/15 bg-[#04080F]/95 px-4 py-2.5 transition-all sm:px-7 ${
-          robotHoverZone === 'FOOTER_LEVELS'
-            ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
-            : ''
+          tutGating
+            ? 'opacity-40 pointer-events-none select-none'
+            : robotHoverZone === 'FOOTER_LEVELS'
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+              : ''
         }`}
       >
         <nav aria-label="Mission Levels" className="mx-auto grid max-w-[1600px] grid-cols-3 gap-3 sm:grid-cols-6">

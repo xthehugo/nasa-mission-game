@@ -38,14 +38,22 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     language,
     experienceMode,
     activeSubsystemTab,
+    activeCampaignLevelId,
+    level1TutorialStep,
     selection,
+    metrics,
     concurrentConflicts,
     soundEnabled,
+    setPhase,
     setActiveSubsystemTab,
     togglePayload,
     setSubsystem,
+    setLevel1TutorialStep,
+    setTutorialFeedback,
     appendDecisionLog,
   } = useMissionStore();
+
+  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < 10;
 
   const [hoveredOpt, setHoveredOpt] = useState<SubsystemOption | null>(null);
   const [inspectingOpt, setInspectingOpt] = useState<SubsystemOption | null>(null);
@@ -227,6 +235,29 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                     },
                     impact: 'POSITIVE',
                   });
+                  if (isL1Tut && level1TutorialStep === 5 && opt.category === 'PAYLOAD') {
+                    setTutorialFeedback({
+                      en: `Payload SWaP-C updated (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Next: make a Telecom/Thermal trade-off!`,
+                      es: `Carga útil SWaP-C actualizada (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Ahora haz un trade-off en Telecom o Térmico.`,
+                    });
+                    setActiveSubsystemTab('TELECOM');
+                    setLevel1TutorialStep(6);
+                  } else if (isL1Tut && level1TutorialStep === 6 && opt.category !== 'PAYLOAD') {
+                    if (metrics.wetMass_kg > metrics.launchCapacity_kg) {
+                      setTutorialFeedback({
+                        en: `Watch mass! ${opt.name.en} (+${opt.massCBE_kg} kg) pushes mass over launcher cap. Try a lighter option.`,
+                        es: `¡Cuidado con la masa! ${opt.name.es} (+${opt.massCBE_kg} kg) supera el límite. Prueba una opción más ligera.`,
+                        isError: true,
+                      });
+                    } else {
+                      setTutorialFeedback({
+                        en: `Trade-off complete (${opt.name.en}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). Moving to MCR Gate!`,
+                        es: `Trade-off aplicado (${opt.name.es}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). ¡Pasamos a Revisión MCR!`,
+                      });
+                      setLevel1TutorialStep(7);
+                      setPhase('CML_5');
+                    }
+                  }
                 }}
                 className="flex-1 p-2.5 text-left flex flex-col justify-between cursor-pointer"
               >
