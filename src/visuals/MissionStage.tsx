@@ -8,6 +8,7 @@ import OrbitalMapVisualizer from './OrbitalMapVisualizer';
 import SpacecraftBlueprint, { type FailureMode } from './SpacecraftBlueprint';
 import TelemetryStripCharts, { type TelemetrySample } from './TelemetryStripCharts';
 import SubsystemStressHeatmap from '../components/SubsystemStressHeatmap';
+import DeploymentTimelineStepper from '../components/DeploymentTimelineStepper';
 
 interface Props {
   destination: OrbitalDestination | null;
@@ -602,6 +603,14 @@ export default function MissionStage({
           </div>
         </div>
 
+        {/* Poly Bridge Multi-Phase Staging & Mechanical Deployment Timeline */}
+        <DeploymentTimelineStepper
+          tRatio={snap.tRatio}
+          isFailed={stage === 'FAILURE'}
+          failRatio={failAt / Math.max(1, totalNominalMs)}
+          lang={lang}
+        />
+
         {/* Poly Bridge Real-Time Mission Progress Scrubber */}
         <div className="flex items-center gap-3 border border-[#5FF3FF]/20 bg-[#04080F]/80 px-3 py-1.5 rounded font-mono text-[10px]">
           <span className="text-[#5FF3FF] font-bold shrink-0">{clock}</span>
@@ -718,6 +727,7 @@ export default function MissionStage({
                     failureMode={failureMode}
                     failedActive={stage === 'FAILURE'}
                     fuelRemainingPct={snap.fuelPct}
+                    tRatio={snap.tRatio}
                   />
                 </div>
 

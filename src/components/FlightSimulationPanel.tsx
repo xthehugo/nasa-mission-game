@@ -3,6 +3,7 @@ import { CAMPAIGN_CONTRACTS, findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import { computeLevelStars, playHoloTone } from './holoAudio';
 import SubsystemStressHeatmap from './SubsystemStressHeatmap';
+import DeploymentTimelineStepper from './DeploymentTimelineStepper';
 import type { FailureMode } from '../visuals/SpacecraftBlueprint';
 
 export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
@@ -181,6 +182,13 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
           volume={metrics.volume}
           failureMode={failureMode}
           failedActive={hullIntegrity <= 0}
+          lang={language}
+        />
+
+        {/* Poly Bridge Multi-Phase Staging Stepper */}
+        <DeploymentTimelineStepper
+          tRatio={resolvedCount / Math.max(1, simulationResult.dilemmas.length)}
+          isFailed={hullIntegrity <= 0}
           lang={language}
         />
 

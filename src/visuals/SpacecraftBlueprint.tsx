@@ -17,6 +17,7 @@ interface Props {
   failureMode?: FailureMode;
   failedActive?: boolean;
   fuelRemainingPct?: number;
+  tRatio?: number;
 }
 
 export default function SpacecraftBlueprint({
@@ -27,6 +28,7 @@ export default function SpacecraftBlueprint({
   failureMode = 'NONE',
   failedActive = false,
   fuelRemainingPct = 100,
+  tRatio,
 }: Props) {
   const { used_U, maxFairing_U, isCompliant } = volume;
   const ratio = maxFairing_U > 0 ? used_U / maxFairing_U : 0;
@@ -51,6 +53,12 @@ export default function SpacecraftBlueprint({
   const isDeltaVOut = failedActive && failureMode === 'DELTAV_DEPLETION';
   const isPowerFreeze = failedActive && failureMode === 'POWER_FREEZE';
   const isTumble = failedActive && failureMode === 'TELECOM_TUMBLE';
+
+  // Multi-Phase Mechanical Deployment State
+  const isStowed = tRatio !== undefined && tRatio < 0.38 && !isFairingSnap;
+  const isRfSilence = tRatio !== undefined && tRatio >= 0.18 && tRatio < 0.38;
+  const isAdcsLocked = tRatio !== undefined && tRatio >= 0.58 && !isTumble;
+  const isMainBurn = tRatio !== undefined && tRatio >= 0.80 && clampedFuel > 0 && !isDeltaVOut;
 
   const wingStress = isFairingSnap ? Math.max(effectiveStress, 128) : effectiveStress * 0.62;
   const pafStress = isMassBuckle ? Math.max(effectiveStress, 135) : effectiveStress * 0.96;
@@ -86,6 +94,11 @@ export default function SpacecraftBlueprint({
             <rect width="10" height="10" fill={isPowerFreeze ? '#0f3a60' : '#1d4ed8'} />
             <path d="M10 0H0V10" fill="none" stroke={isPowerFreeze ? '#7dd3fc' : '#93c5fd'} strokeWidth="0.6" />
           </pattern>
+          <linearGradient id="mainBurnPlume" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#5FF3FF" />
+            <stop offset="45%" stopColor="#FFC15E" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
         </defs>
 
         {/* Poly Bridge Top Structural Stress Bar */}
@@ -149,7 +162,7 @@ export default function SpacecraftBlueprint({
           className={isTumble ? 'craft-tumble' : ''}
           transform={isMassBuckle ? 'translate(0, 11) rotate(7, 150, 350)' : undefined}
         >
-          {/* Ala solar izquierda (cizallada en colision o caida en congelacion) */}
+          {/* Ala solar izquierda (cizallada, plegada o desplegada) */}
           <g
             transform={
               isFairingSnap
@@ -159,37 +172,79 @@ export default function SpacecraftBlueprint({
                   : undefined
             }
           >
-            <line
-              x1={isFairingSnap ? -18 : 70}
-              y1={isFairingSnap ? 0 : wingY}
-              x2={isFairingSnap ? 14 : 105}
-              y2={isFairingSnap ? 0 : wingY}
-              stroke={getStressColor(wingStress)}
-              strokeWidth="2.4"
-            />
-            <rect
-              x={isFairingSnap ? -72 : 10}
-              y={isFairingSnap ? -14 : wingY - 14}
-              width="60"
-              height="28"
-              fill="url(#solarCells)"
-              stroke={isFairingSnap ? '#FF4D6D' : isPowerFreeze ? '#38bdf8' : '#60a5fa'}
-              strokeWidth={isFairingSnap ? 2 : 1.2}
-            />
+            {isStowed ? (
+              <g>
+                <rect
+                  x="82"
+                  y={wingY - 20}
+                  width="20"
+                  height="40"
+                  fill="url(#solarCells)"
+                  stroke="#FFC15E"
+                  strokeWidth="1.2"
+                  strokeDasharray="2 1"
+                />
+                <line x1="82" y1={wingY} x2="105" y2={wingY} stroke="#FFC15E" strokeWidth="1.8" />
+                <text x="78" y={wingY - 24} fill="#FFC15E" fontSize="6.5" fontWeight="bold">
+                  {es ? 'PLEGADO' : 'STOWED'}
+                </text>
+              </g>
+            ) : (
+              <g>
+                <line
+                  x1={isFairingSnap ? -18 : 70}
+                  y1={isFairingSnap ? 0 : wingY}
+                  x2={isFairingSnap ? 14 : 105}
+                  y2={isFairingSnap ? 0 : wingY}
+                  stroke={getStressColor(wingStress)}
+                  strokeWidth="2.4"
+                />
+                <rect
+                  x={isFairingSnap ? -72 : 10}
+                  y={isFairingSnap ? -14 : wingY - 14}
+                  width="60"
+                  height="28"
+                  fill="url(#solarCells)"
+                  stroke={isFairingSnap ? '#FF4D6D' : isPowerFreeze ? '#38bdf8' : '#60a5fa'}
+                  strokeWidth={isFairingSnap ? 2 : 1.2}
+                />
+              </g>
+            )}
           </g>
 
-          {/* Ala solar derecha (caida en congelacion) */}
+          {/* Ala solar derecha (plegada o desplegada) */}
           <g transform={isPowerFreeze ? `rotate(22, 195, ${wingY})` : undefined}>
-            <line x1="195" y1={wingY} x2="230" y2={wingY} stroke={getStressColor(wingStress)} strokeWidth="2.4" />
-            <rect
-              x="230"
-              y={wingY - 14}
-              width="60"
-              height="28"
-              fill="url(#solarCells)"
-              stroke={isPowerFreeze ? '#38bdf8' : '#60a5fa'}
-              strokeWidth="1.2"
-            />
+            {isStowed ? (
+              <g>
+                <rect
+                  x="198"
+                  y={wingY - 20}
+                  width="20"
+                  height="40"
+                  fill="url(#solarCells)"
+                  stroke="#FFC15E"
+                  strokeWidth="1.2"
+                  strokeDasharray="2 1"
+                />
+                <line x1="195" y1={wingY} x2="218" y2={wingY} stroke="#FFC15E" strokeWidth="1.8" />
+                <text x="222" y={wingY - 24} fill="#FFC15E" fontSize="6.5" fontWeight="bold">
+                  {es ? 'PLEGADO' : 'STOWED'}
+                </text>
+              </g>
+            ) : (
+              <g>
+                <line x1="195" y1={wingY} x2="230" y2={wingY} stroke={getStressColor(wingStress)} strokeWidth="2.4" />
+                <rect
+                  x="230"
+                  y={wingY - 14}
+                  width="60"
+                  height="28"
+                  fill="url(#solarCells)"
+                  stroke={isPowerFreeze ? '#38bdf8' : '#60a5fa'}
+                  strokeWidth="1.2"
+                />
+              </g>
+            )}
           </g>
 
           {/* Bandas del chasis */}
@@ -223,16 +278,33 @@ export default function SpacecraftBlueprint({
 
           <rect x="105" y={bodyTop} width="90" height={bodyH} fill="none" stroke={bodyStrokeColor} strokeWidth="2.2" />
 
-          {/* Antena + haz desalineado en TELECOM_TUMBLE */}
+          {/* Antena + haz desalineado en TELECOM_TUMBLE / RF SILENCE / CARRIER LOCK */}
           <line x1="150" y1={bodyTop} x2="150" y2={bodyTop - 18} stroke={getStressColor(adcsStress)} strokeWidth="2" />
           <circle
             cx="150"
             cy={bodyTop - 22}
             r="6"
             fill="none"
-            stroke={isTumble ? '#FF4D6D' : '#cbd5e1'}
+            stroke={isTumble ? '#FF4D6D' : isAdcsLocked ? '#5FF3FF' : '#cbd5e1'}
             strokeWidth="2"
           />
+          {isRfSilence && (
+            <g>
+              <rect x="106" y={bodyTop - 36} width="88" height="11" rx="2" fill="#0b1329" stroke="#FFC15E" strokeWidth="0.8" />
+              <text x="150" y={bodyTop - 28} textAnchor="middle" fill="#FFC15E" fontSize="6.5" fontWeight="bold">
+                {es ? 'SILENCIO RF 30-MIN' : 'NASA 30M RF SILENCE'}
+              </text>
+            </g>
+          )}
+          {isAdcsLocked && !isTumble && (
+            <g>
+              <path d={`M 140 ${bodyTop - 28} A 12 12 0 0 1 160 ${bodyTop - 28}`} fill="none" stroke="#5FF3FF" strokeWidth="1.4" opacity="0.85" />
+              <path d={`M 134 ${bodyTop - 34} A 18 18 0 0 1 166 ${bodyTop - 34}`} fill="none" stroke="#5FF3FF" strokeWidth="1.1" opacity="0.5" />
+              <text x="150" y={bodyTop - 40} textAnchor="middle" fill="#5FF3FF" fontSize="6.8" fontWeight="bold">
+                DSN CARRIER LOCK
+              </text>
+            </g>
+          )}
           {isTumble && (
             <g>
               <line
@@ -250,8 +322,26 @@ export default function SpacecraftBlueprint({
             </g>
           )}
 
-          {/* Tobera + chispas de flameout en DELTAV_DEPLETION */}
-          <path d="M135 356 L150 372 L165 356 Z" fill={isDeltaVOut ? '#7f1d1d' : '#94a3b8'} />
+          {/* Tobera + pluma de encendido Hohmann o chispas de flameout */}
+          <path d="M135 356 L150 372 L165 356 Z" fill={isDeltaVOut ? '#7f1d1d' : isMainBurn ? '#5FF3FF' : '#94a3b8'} />
+          {isMainBurn && (
+            <g className="spark-flicker">
+              <polygon points="140,372 160,372 150,404" fill="url(#mainBurnPlume)" />
+              <text x="150" y="416" textAnchor="middle" fill="#5FF3FF" fontSize="7.5" fontWeight="bold">
+                {es ? 'INYECCIÓN HOHMANN ΔV' : 'HOHMANN ΔV BURN'}
+              </text>
+            </g>
+          )}
+          {isDeltaVOut && (
+            <g className="spark-flicker">
+              <circle cx="144" cy="378" r="2.5" fill="#FFC15E" />
+              <circle cx="155" cy="382" r="2" fill="#FF4D6D" />
+              <circle cx="148" cy="386" r="1.8" fill="#f97316" />
+              <text x="150" y="398" textAnchor="middle" fill="#FF4D6D" fontSize="8" fontWeight="bold">
+                COPV 0% · FLAMEOUT
+              </text>
+            </g>
+          )}
           {isDeltaVOut && (
             <g className="spark-flicker">
               <circle cx="144" cy="378" r="2.5" fill="#FFC15E" />
