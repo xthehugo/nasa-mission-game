@@ -473,7 +473,7 @@ export function AstraFloatingCompanion() {
       }}
       transition={{ type: 'spring', stiffness: 220, damping: 24 }}
       style={{ position: 'fixed' }}
-      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4"
+      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4 pointer-events-none"
     >
       {/* Glowing Neon Robot Mascot ASTRA (Left of the card, just like the reference image) */}
       <motion.button
@@ -485,13 +485,13 @@ export function AstraFloatingCompanion() {
         animate={{ y: [0, -5, 0] }}
         transition={{ repeat: Infinity, duration: 2.6, ease: 'easeInOut' }}
         title={isEs ? 'Descansar en la esquina' : 'Rest in corner'}
-        className="mt-2 shrink-0 cursor-pointer focus:outline-none"
+        className="mt-2 shrink-0 cursor-pointer focus:outline-none pointer-events-auto"
       >
         <RobotSvgIcon className="h-16 w-16 sm:h-20 sm:w-20" />
       </motion.button>
 
       {/* ASTRA Cyan-Bordered Dialog Box (Matching the reference image) */}
-      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5">
+      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5 pointer-events-auto">
         {/* Top-right subtle close/minimize button + step indicator */}
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="font-mono text-[9px] tracking-[0.16em] text-[#5FF3FF]/80 uppercase">

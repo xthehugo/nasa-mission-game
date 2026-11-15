@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Fingerprint } from 'lucide-react';
+import { CheckCircle2, Fingerprint, Sparkles, Wrench } from 'lucide-react';
+import { findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import type { MCRStatus } from '../types/mission';
 import { playHoloTone } from './holoAudio';
@@ -17,6 +18,7 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     experienceMode,
     commanderName,
     missionCustomName,
+    selection,
     metrics,
     preFlightVerdict,
     mcrSignedAuthorized,
@@ -24,6 +26,9 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     soundEnabled,
     toggleLaserScan,
     setSubsystem,
+    setGroundStation,
+    togglePayload,
+    runFullVVSuite,
     setMcrSignedAuthorized,
     appendDecisionLog,
     launchSimulation,
@@ -118,28 +123,201 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           </div>
         </div>
 
-        {(metrics.dryMass.status !== 'GREEN' || metrics.power.status !== 'GREEN' || metrics.telecom.status !== 'GREEN') && (
-          <div className="border border-[#FFC15E]/40 p-2.5 space-y-1.5">
-            <div className="font-mono text-[9px] text-[#FFC15E] uppercase">
-              {isEs ? 'CORRECCIONES RÁPIDAS' : 'QUICK MARGIN FIXES'}
+        {(() => {
+          const destId = selection.destinationId;
+          const isJupiter = destId === 'dest-jupiter';
+          const isDeepSpace =
+            destId === 'dest-jupiter' || destId === 'dest-mars' || destId === 'dest-l2';
+          const activeObj = findObjectiveById(selection.objectiveId);
+          const missingPayloads = activeObj.requiredPayloadIds.filter(
+            (id) => !selection.payloadIds.includes(id),
+          );
+          const deltaVLow = metrics.deltaV_available_ms < metrics.deltaV_required_ms;
+          const massOrFairingFail =
+            metrics.dryMass.status !== 'GREEN' ||
+            !metrics.volume.isCompliant ||
+            metrics.wetMass_kg > metrics.launchCapacity_kg;
+          const powerFail = metrics.power.status !== 'GREEN';
+          const telecomFail = metrics.telecom.status !== 'GREEN';
+          const testingFail = !preFlightVerdict.passed;
+          const hasAnyDiscrepancy =
+            massOrFairingFail ||
+            powerFail ||
+            telecomFail ||
+            deltaVLow ||
+            missingPayloads.length > 0 ||
+            testingFail;
+
+          const handleFixAll = () => {
+            if (massOrFairingFail) {
+              setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+            }
+            if (powerFail) {
+              setSubsystem('EPS', isJupiter ? 'eps-rtg' : 'eps-megaflex');
+              setSubsystem('THERMAL', 'therm-active');
+            }
+            if (telecomFail) {
+              setSubsystem(
+                'TELECOM',
+                destId === 'dest-l2' ? 'telecom-cubelct-laser' : 'telecom-xka',
+              );
+              setGroundStation(
+                isJupiter
+                  ? 'gs-dsn-70m'
+                  : isDeepSpace
+                    ? 'gs-dsn-34m'
+                    : 'gs-near-earth',
+              );
+            }
+            if (deltaVLow) {
+              setSubsystem('PROPULSION', 'prop-biprop');
+              if (destId !== 'dest-leo') setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+            }
+            for (const pid of missingPayloads) {
+              togglePayload(pid);
+            }
+            runFullVVSuite();
+            playHoloTone('STAR', soundEnabled);
+            appendDecisionLog({
+              phase: 'CML_5',
+              label: {
+                en: 'Applied All MCR Margin & V&V Fixes',
+                es: 'Aplicadas Todas las Correcciones MCR y V&V',
+              },
+              impact: 'POSITIVE',
+            });
+          };
+
+          if (!hasAnyDiscrepancy) {
+            return (
+              <div className="border border-[#10B981]/50 bg-[#10B981]/15 p-2.5 font-mono text-[10px] text-[#10B981] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" />
+                <span>
+                  {isEs
+                    ? 'MÁRGENES MCR Y V&V ÓPTIMOS · AUTORIZADO PARA FIRMAR DESPEGUE'
+                    : 'MCR & V&V MARGINS OPTIMAL · AUTHORIZED TO SIGN FOR LAUNCH'}
+                </span>
+              </div>
+            );
+          }
+
+          return (
+            <div className="border border-[#FFC15E]/50 bg-[#04080F]/90 p-2.5 space-y-2">
+              <div className="flex items-center justify-between font-mono text-[9px] text-[#FFC15E] uppercase font-bold">
+                <span className="flex items-center gap-1">
+                  <Wrench className="h-3 w-3" />
+                  <span>{isEs ? 'CORRECCIONES TÉCNICAS MCR' : 'MCR TECHNICAL CORRECTIONS'}</span>
+                </span>
+                <span className="text-slate-400">DISCREPANCIAS DETECTADAS</span>
+              </div>
+
+              {/* Master Fix-All Button */}
+              <button
+                type="button"
+                onClick={handleFixAll}
+                className="w-full border-2 border-[#10B981] bg-[#10B981]/25 px-3 py-2 font-mono text-[10px] font-bold text-[#10B981] uppercase hover:bg-[#10B981]/35 shadow-[0_0_16px_rgba(16,185,129,0.3)] transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[#10B981]" />
+                <span>
+                  {isEs
+                    ? '⚡ AUTO-RESOLVER TODAS LAS DISCREPANCIAS MCR'
+                    : '⚡ AUTO-RESOLVE ALL MCR DISCREPANCIES'}
+                </span>
+              </button>
+
+              <div className="space-y-1">
+                {massOrFairingFail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
+                  >
+                    + {isEs ? 'ESCALAR LANZADOR A FALCON 9 (COFIA 24U)' : 'UPGRADE LAUNCHER TO FALCON 9 (24U FAIRING)'}
+                  </button>
+                )}
+
+                {powerFail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('EPS', isJupiter ? 'eps-rtg' : 'eps-megaflex');
+                      setSubsystem('THERMAL', 'therm-active');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
+                  >
+                    + {isJupiter
+                      ? isEs
+                        ? 'EQUIPAR GENERADOR RTG 5.2 AU + TÉRMICO ACTIVO'
+                        : 'EQUIP 5.2 AU RTG POWER + ACTIVE THERMAL'
+                      : isEs
+                        ? 'DESPLEGAR ALAS SOLARES MEGA-FLEX (350W)'
+                        : 'DEPLOY MEGA-FLEX SOLAR WINGS (350W)'}
+                  </button>
+                )}
+
+                {telecomFail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('TELECOM', destId === 'dest-l2' ? 'telecom-cubelct-laser' : 'telecom-xka');
+                      setGroundStation(isJupiter ? 'gs-dsn-70m' : isDeepSpace ? 'gs-dsn-34m' : 'gs-near-earth');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
+                  >
+                    + {isEs
+                      ? `EQUIPAR BANDA X/KA + ESTACIÓN ${isJupiter ? 'DSN 70M' : isDeepSpace ? 'DSN 34M' : 'NEN'}`
+                      : `EQUIP X/KA DISH + ${isJupiter ? 'DSN 70M' : isDeepSpace ? 'DSN 34M' : 'NEN'} STATION`}
+                  </button>
+                )}
+
+                {deltaVLow && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('PROPULSION', 'prop-biprop');
+                      if (destId !== 'dest-leo') setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
+                  >
+                    + {isEs ? 'PROPULSIÓN BIPROPELENTE (3,673 M/S ΔV)' : 'BIPROPELLANT SYSTEM (3,673 M/S ΔV)'}
+                  </button>
+                )}
+
+                {missingPayloads.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      for (const pid of missingPayloads) togglePayload(pid);
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#FFC15E]/40 bg-[#FFC15E]/10 py-1 px-2 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 text-left cursor-pointer"
+                  >
+                    + {isEs ? 'EQUIPAR INSTRUMENTO CIENTÍFICO OBLIGATORIO' : 'EQUIP REQUIRED SCIENCE PAYLOAD'}
+                  </button>
+                )}
+
+                {testingFail && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      runFullVVSuite();
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="w-full border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 py-1 px-2 font-mono text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 text-left cursor-pointer"
+                  >
+                    + {isEs ? 'APROBAR SUITE AMBIENTAL CSLI & INHIBICIÓN 35 MIN' : 'PASS CSLI ENVIRONMENTAL SUITE & 35 MIN INHIBIT'}
+                  </button>
+                )}
+              </div>
             </div>
-            {metrics.dryMass.status !== 'GREEN' && (
-              <button type="button" onClick={() => setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9')} className="w-full border border-[#FFC15E]/30 py-1 font-mono text-[9.5px] text-[#FFC15E] hover:bg-[#FFC15E]/10">
-                + {isEs ? 'ESCALAR LANZADOR FALCON 9' : 'UPGRADE TO FALCON 9'}
-              </button>
-            )}
-            {metrics.power.status !== 'GREEN' && (
-              <button type="button" onClick={() => setSubsystem('EPS', 'eps-megaflex')} className="w-full border border-[#FFC15E]/30 py-1 font-mono text-[9.5px] text-[#FFC15E] hover:bg-[#FFC15E]/10">
-                + {isEs ? 'DESPLEGAR ALAS MEGA-FLEX' : 'DEPLOY MEGA-FLEX SOLAR'}
-              </button>
-            )}
-            {metrics.telecom.status !== 'GREEN' && (
-              <button type="button" onClick={() => setSubsystem('TELECOM', 'telecom-xka')} className="w-full border border-[#FFC15E]/30 py-1 font-mono text-[9.5px] text-[#FFC15E] hover:bg-[#FFC15E]/10">
-                + {isEs ? 'EQUIPAR ANTENA BANDA X/KA' : 'EQUIP X/KA HIGH-GAIN'}
-              </button>
-            )}
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }

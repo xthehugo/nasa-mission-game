@@ -71,7 +71,7 @@ export const CAMPAIGN_CONTRACTS: CampaignContract[] = [
     code: 'CONTRACT-03 · GEO',
     tier: 3,
     destinationId: 'dest-geo',
-    objectiveId: 'obj-helio-lunar-trailblazer',
+    objectiveId: 'obj-geo-goes-weather',
     title: {
       en: 'GMAT R2026a GEO: Hohmann 3,673 m/s Transfer',
       es: 'GMAT R2026a GEO: Transferencia Hohmann 3,673 m/s',

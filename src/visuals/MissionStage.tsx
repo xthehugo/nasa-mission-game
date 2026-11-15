@@ -425,10 +425,12 @@ export default function MissionStage({
   };
 
   const handleAutoFix = () => {
-    if (failureMode === 'NONE' || !onQuickFix) return;
-    onQuickFix(failureMode);
+    if (!onQuickFix) return;
+    const modeToFix = failureMode !== 'NONE' ? failureMode : 'FAIRING_COLLISION';
+    onQuickFix(modeToFix);
     setElapsedMs(0);
     setSimPlaying(true);
+    setSimSpeed(1);
   };
 
   const titleColor =
@@ -517,6 +519,17 @@ export default function MissionStage({
               <div style={{ fontSize: embedded ? 11 : 13, fontWeight: 700, color: '#FF4D6D' }}>
                 {nogoMessage}
               </div>
+            )}
+            {(stage === 'FAILURE' || (stage === 'IDLE' && failed)) && onQuickFix && (
+              <button
+                type="button"
+                onClick={handleAutoFix}
+                className="mt-1 flex items-center gap-1.5 border-2 border-[#10B981] bg-[#10B981]/25 px-3 py-1 font-mono text-[10.5px] font-bold text-[#10B981] uppercase hover:bg-[#10B981]/35 shadow-[0_0_16px_rgba(16,185,129,0.35)] rounded transition cursor-pointer"
+                title={lang === 'es' ? 'Auto-corregir subsistemas en fallo y relanzar' : 'Auto-fix failing subsystems and relaunch'}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>{t.autoFix}</span>
+              </button>
             )}
           </div>
 

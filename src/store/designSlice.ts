@@ -45,7 +45,7 @@ export interface DesignSlice {
 
 export const EXTRA_SCENARIO_PRESETS: Record<string, MissionSelection> = {
   'preset-gmat-geo': {
-    ...PRESET_MISSION_SELECTIONS['obj-helio-lunar-trailblazer'],
+    ...PRESET_MISSION_SELECTIONS['obj-geo-goes-weather'],
     destinationId: 'dest-geo',
   },
   'preset-fairing-overflow': {
@@ -178,6 +178,12 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
     scores: INITIAL_SCORES,
 
     setObjective: (objectiveId) => {
+      const preset = PRESET_MISSION_SELECTIONS[objectiveId];
+      if (preset) {
+        applySelection(preset, { syncOrbit: true, syncFormFactor: true });
+        return;
+      }
+
       const objective = findObjectiveById(objectiveId);
       const dest = findDestinationById(objective.targetDestinationId);
       const gsId =
@@ -195,6 +201,10 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
           objectiveId,
           destinationId: dest.id,
           groundStationId: gsId,
+          payloadIds:
+            objective.requiredPayloadIds.length > 0
+              ? objective.requiredPayloadIds
+              : get().selection.payloadIds,
         },
         { syncOrbit: true, syncFormFactor: true },
       );

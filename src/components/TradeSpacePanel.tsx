@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Info, Maximize2 } from 'lucide-react';
+import { Check, Info, Maximize2, Plus } from 'lucide-react';
 import {
   computeActiveSynergies,
   findObjectiveById,
+  findSubsystemById,
   getSubsystemsByCategory,
 } from '../engine';
 import { equippedIdForCategory, useMissionStore } from '../store';
@@ -61,6 +62,24 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
         <div className="space-y-1">
           {TABS.map((tab, i) => {
             const active = activeSubsystemTab === tab.id;
+            let equippedSummary = '';
+            if (tab.id === 'PAYLOAD') {
+              const names = selection.payloadIds
+                .map((id) => findSubsystemById(id)?.name[language])
+                .filter(Boolean);
+              equippedSummary =
+                names.length > 0
+                  ? names.join(', ')
+                  : isEs
+                    ? 'Sin instrumentos'
+                    : 'No payloads';
+            } else {
+              const eqId = equippedIdForCategory(selection, tab.id);
+              const eqOpt = eqId ? findSubsystemById(eqId) : null;
+              equippedSummary =
+                eqOpt?.name[language] ?? (isEs ? 'No equipado' : 'Not equipped');
+            }
+
             return (
               <button
                 key={tab.id}
@@ -70,16 +89,24 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                   setActiveSubsystemTab(tab.id);
                   playHoloTone('STEP', soundEnabled);
                 }}
-                className={`flex w-full items-center justify-between border-l-2 px-3 py-2 text-left font-mono text-[11px] transition ${
+                className={`group flex w-full flex-col border-l-2 px-3 py-2 text-left font-mono text-[11px] transition ${
                   active
                     ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white'
                     : 'border-[#5FF3FF]/15 text-slate-400 hover:border-[#5FF3FF]/50 hover:text-slate-200'
                 }`}
               >
-                <span>0{i + 1} · {tab.label[language]}</span>
-                <span className="text-[9px] text-[#5FF3FF]">
-                  {active ? (isEs ? 'ACTIVO' : 'ACTIVE') : ''}
-                </span>
+                <div className="flex w-full items-center justify-between">
+                  <span>0{i + 1} · {tab.label[language]}</span>
+                  <span className="text-[9px] text-[#5FF3FF]">
+                    {active ? (isEs ? 'ACTIVO' : 'ACTIVE') : ''}
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-[9.5px] font-sans">
+                  <span className="text-[#5FF3FF] font-mono mr-1">▸</span>
+                  <span className={active ? 'text-[#5FF3FF] font-medium' : 'text-slate-400'}>
+                    {equippedSummary}
+                  </span>
+                </div>
               </button>
             );
           })}
@@ -203,32 +230,69 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 }}
                 className="flex-1 p-2.5 text-left flex flex-col justify-between cursor-pointer"
               >
-                <div className="flex items-start justify-between gap-1.5">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-medium text-white">{opt.name[language]}</span>
                       {selected && (
-                        <span className="font-mono text-[8.5px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1.5 py-0.2 rounded border border-[#5FF3FF]/40 font-bold">
+                        <span className="font-mono text-[8.5px] bg-[#10B981]/25 text-[#10B981] px-1.5 py-0.2 rounded border border-[#10B981]/40 font-bold">
                           {isEs ? '✓ EQUIPADO' : '✓ EQUIPPED'}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Info / Dossier modal trigger button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setInspectingOpt(opt);
-                      playHoloTone('STEP', soundEnabled);
-                    }}
-                    className="shrink-0 flex items-center gap-1 border border-[#5FF3FF]/30 bg-[#04080F] px-1.5 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition"
-                    title={isEs ? 'Abrir ficha técnica y carrusel' : 'Open specs & carousel'}
-                  >
-                    <Info className="h-2.5 w-2.5" />
-                    <span>{isEs ? 'DETALLES' : 'SPECS'}</span>
-                  </button>
+                  {/* Explicit Action Buttons */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (opt.category === 'PAYLOAD') togglePayload(opt.id);
+                        else setSubsystem(opt.category, opt.id);
+                        playHoloTone('STAR', soundEnabled);
+                        appendDecisionLog({
+                          phase: 'CML_3',
+                          label: {
+                            en: `${opt.category}: ${opt.name.en} ($${opt.cost_MillionsUSD}M)`,
+                            es: `${opt.category}: ${opt.name.es} ($${opt.cost_MillionsUSD}M)`,
+                          },
+                          impact: 'POSITIVE',
+                        });
+                      }}
+                      className={`px-2 py-0.5 font-mono text-[9px] font-bold rounded border transition uppercase flex items-center gap-1 cursor-pointer ${
+                        selected
+                          ? 'border-[#10B981] bg-[#10B981]/25 text-[#10B981] hover:bg-[#10B981]/35'
+                          : 'border-[#5FF3FF] bg-[#5FF3FF]/20 text-[#5FF3FF] hover:bg-[#5FF3FF]/40 shadow-[0_0_12px_rgba(95,243,255,0.22)]'
+                      }`}
+                    >
+                      {selected ? (
+                        <>
+                          <Check className="h-3 w-3 text-[#10B981]" />
+                          <span>{isEs ? 'EQUIPADO' : 'EQUIPPED'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 text-[#5FF3FF]" />
+                          <span>{isEs ? 'EQUIPAR' : 'EQUIP'}</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInspectingOpt(opt);
+                        playHoloTone('STEP', soundEnabled);
+                      }}
+                      className="shrink-0 flex items-center gap-1 border border-[#5FF3FF]/30 bg-[#04080F] px-1.5 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition cursor-pointer"
+                      title={isEs ? 'Abrir ficha técnica y carrusel' : 'Open specs & carousel'}
+                    >
+                      <Info className="h-2.5 w-2.5" />
+                      <span>{isEs ? 'DETALLES' : 'SPECS'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Metric Chips Row */}
@@ -290,6 +354,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
         onEquip={(opt) => {
           if (opt.category === 'PAYLOAD') togglePayload(opt.id);
           else setSubsystem(opt.category, opt.id);
+          setInspectingOpt(null);
           appendDecisionLog({
             phase: 'CML_3',
             label: {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Check, Info } from 'lucide-react';
 import {
+  CAMPAIGN_CONTRACTS,
   findObjectiveById,
   findSubsystemById,
   getSubsystemsByCategory,
@@ -285,6 +286,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       <div className="space-y-2">
         {SCIENCE_OBJECTIVES.map((obj) => {
           const active = selection.objectiveId === obj.id;
+          const contract = CAMPAIGN_CONTRACTS.find((c) => c.objectiveId === obj.id);
           return (
             <button
               key={obj.id}
@@ -311,8 +313,20 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               }`}
             >
               <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em] uppercase">
-                <span className="text-[#5FF3FF]">{DISCIPLINES[obj.discipline][language]}</span>
-                <span className="text-[#FFC15E]">${obj.baseBudgetMillions}M</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[#5FF3FF]">{DISCIPLINES[obj.discipline][language]}</span>
+                  {contract && (
+                    <span className="font-mono text-[7.5px] border border-[#5FF3FF]/40 bg-[#5FF3FF]/15 px-1 py-0.2 rounded text-[#5FF3FF]">
+                      {contract.code}
+                    </span>
+                  )}
+                  {active && (
+                    <span className="font-mono text-[8px] bg-[#10B981]/20 text-[#10B981] px-1 py-0.2 rounded border border-[#10B981]/40 font-bold">
+                      {isEs ? '✓ SINCRONIZADA' : '✓ SYNCHRONIZED'}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[#FFC15E] font-bold">${obj.baseBudgetMillions}M</span>
               </div>
               <div className="mt-1 text-xs font-light leading-snug text-slate-100">
                 {obj.title[language]}

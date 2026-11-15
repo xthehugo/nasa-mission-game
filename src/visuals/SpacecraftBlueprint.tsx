@@ -112,14 +112,56 @@ export default function SpacecraftBlueprint({
         <rect x="218" y="15" width="60" height="9" rx="2" fill="#1e293b" />
         <rect x="218" y="15" width={Math.max(2, (60 * barWidth) / 100)} height="9" rx="2" fill={stressHex} />
 
-        {/* Cofia (fairing) con grieta en colision */}
+        {/* Cofia (fairing) con costillas compuestas CAD */}
         <path
           d="M78 364 L78 168 Q78 68 150 48 Q222 68 222 168 L222 364 Z"
-          fill={isCompliant && !isFairingSnap ? 'rgba(34,197,94,0.05)' : 'rgba(255,77,109,0.12)'}
+          fill={isCompliant && !isFairingSnap ? 'rgba(95,243,255,0.04)' : 'rgba(255,77,109,0.12)'}
           stroke={isFairingSnap ? '#FF4D6D' : bodyStrokeColor}
-          strokeWidth="2.6"
+          strokeWidth="2.4"
           className={!isCompliant || isFairingSnap ? 'fairing-alert' : ''}
         />
+
+        {/* Costillas estructurales de la cofia compuesta */}
+        <path d="M84 140 Q150 115 216 140" fill="none" stroke="#5FF3FF" strokeWidth="0.8" strokeDasharray="3 3" opacity={0.3} />
+        <path d="M96 100 Q150 80 204 100" fill="none" stroke="#5FF3FF" strokeWidth="0.8" strokeDasharray="3 3" opacity={0.25} />
+        {/* Onda de choque aerodinámica Max-Q */}
+        <path d="M150 36 L130 52 M150 36 L170 52" stroke="#5FF3FF" strokeWidth="1" opacity={0.4} />
+
+        {/* Cotas técnicas de holgura dinámica 50 mm (NASA-STD-5001B) */}
+        <g opacity={0.85}>
+          {/* Cota Izquierda: pared de cofia x=78 a borde de chasis x=105 */}
+          <line x1="78" y1="230" x2="105" y2="230" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <line x1="78" y1="226" x2="78" y2="234" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <line x1="105" y1="226" x2="105" y2="234" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <text
+            x="91"
+            y="225"
+            textAnchor="middle"
+            fill={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'}
+            fontSize="6.8"
+            fontWeight="bold"
+            fontFamily="monospace"
+          >
+            {!isCompliant || isFairingSnap ? '<50mm' : '≥50mm'}
+          </text>
+
+          {/* Cota Derecha: borde de chasis x=195 a pared de cofia x=222 */}
+          <line x1="195" y1="230" x2="222" y2="230" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <line x1="195" y1="226" x2="195" y2="234" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <line x1="222" y1="226" x2="222" y2="234" stroke={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'} strokeWidth="1" />
+          <text
+            x="208"
+            y="225"
+            textAnchor="middle"
+            fill={!isCompliant || isFairingSnap ? '#FF4D6D' : '#5FF3FF'}
+            fontSize="6.8"
+            fontWeight="bold"
+            fontFamily="monospace"
+          >
+            {!isCompliant || isFairingSnap ? '<50mm' : '≥50mm'}
+          </text>
+        </g>
+
         {isFairingSnap && (
           <g>
             <path
@@ -275,6 +317,33 @@ export default function SpacecraftBlueprint({
             rx="2"
             fill={clampedFuel <= 5 ? '#FF4D6D' : clampedFuel < 25 ? '#FFC15E' : '#5FF3FF'}
           />
+
+          {/* Cercha estructural en cruz Poly Bridge (Internal X-Brace Truss) */}
+          <line
+            x1="105"
+            y1={bodyTop}
+            x2="195"
+            y2={baseBottom}
+            stroke={getStressColor(effectiveStress * 0.75)}
+            strokeWidth="1.2"
+            strokeDasharray="4 2"
+            opacity={0.55}
+          />
+          <line
+            x1="195"
+            y1={bodyTop}
+            x2="105"
+            y2={baseBottom}
+            stroke={getStressColor(effectiveStress * 0.75)}
+            strokeWidth="1.2"
+            strokeDasharray="4 2"
+            opacity={0.55}
+          />
+          {/* Nodos de esquina del marco estructural */}
+          <circle cx="105" cy={bodyTop} r="3" fill={getStressColor(effectiveStress * 0.75)} />
+          <circle cx="195" cy={bodyTop} r="3" fill={getStressColor(effectiveStress * 0.75)} />
+          <circle cx="105" cy={baseBottom} r="3" fill={getStressColor(pafStress)} />
+          <circle cx="195" cy={baseBottom} r="3" fill={getStressColor(pafStress)} />
 
           <rect x="105" y={bodyTop} width="90" height={bodyH} fill="none" stroke={bodyStrokeColor} strokeWidth="2.2" />
 

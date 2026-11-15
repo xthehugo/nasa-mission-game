@@ -25,7 +25,7 @@ import {
   TradeSpacePanel,
 } from './components';
 import { playHoloTone } from './components/holoAudio';
-import { findDestinationById } from './engine';
+import { findDestinationById, findObjectiveById } from './engine';
 import { useMissionStore } from './store';
 import type { CMLPhase } from './types/mission';
 import { MissionStage } from './visuals';
@@ -63,15 +63,19 @@ export function App() {
     setPhase,
     setSubsystem,
     setGroundStation,
+    togglePayload,
     setLevel1TutorialStep,
     launchSimulation,
   } = useMissionStore();
 
   const handleQuickFixFailure = (mode: FailureMode) => {
     const destId = selection.destinationId;
+    const isJupiter = destId === 'dest-jupiter';
     const isDeepSpace =
       destId === 'dest-jupiter' || destId === 'dest-mars' || destId === 'dest-l2';
+    const activeObj = findObjectiveById(selection.objectiveId);
 
+    // 1. Target direct failure mode
     switch (mode) {
       case 'FAIRING_COLLISION':
       case 'MASS_BUCKLING':
@@ -84,19 +88,46 @@ export function App() {
         }
         break;
       case 'POWER_FREEZE':
-        setSubsystem('EPS', destId === 'dest-jupiter' ? 'eps-rtg' : 'eps-megaflex');
+        setSubsystem('EPS', isJupiter ? 'eps-rtg' : 'eps-megaflex');
         setSubsystem('THERMAL', 'therm-active');
         break;
       case 'TELECOM_TUMBLE':
-        setSubsystem('TELECOM', 'telecom-xka');
+        setSubsystem('TELECOM', destId === 'dest-l2' ? 'telecom-cubelct-laser' : 'telecom-xka');
         setSubsystem('ADCS', 'adcs-sagitta-star');
         setGroundStation(
-          isDeepSpace ? 'gs-dsn-70m' : destId === 'dest-leo' ? 'gs-commercial' : 'gs-near-earth',
+          isJupiter ? 'gs-dsn-70m' : isDeepSpace ? 'gs-dsn-34m' : 'gs-near-earth',
         );
         break;
       default:
         break;
     }
+
+    // 2. Also proactively resolve any other compounding technical violations
+    if (!metrics.volume.isCompliant || metrics.wetMass_kg > metrics.launchCapacity_kg) {
+      setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+    }
+    if (metrics.deltaV_available_ms < metrics.deltaV_required_ms) {
+      setSubsystem('PROPULSION', 'prop-biprop');
+      if (destId !== 'dest-leo') setSubsystem('LAUNCH_VEHICLE', 'lv-falcon9');
+    }
+    if (metrics.power.status === 'RED') {
+      setSubsystem('EPS', isJupiter ? 'eps-rtg' : 'eps-megaflex');
+      setSubsystem('THERMAL', 'therm-active');
+    }
+    if (metrics.telecom.status === 'RED') {
+      setSubsystem('TELECOM', destId === 'dest-l2' ? 'telecom-cubelct-laser' : 'telecom-xka');
+      setGroundStation(isJupiter ? 'gs-dsn-70m' : isDeepSpace ? 'gs-dsn-34m' : 'gs-near-earth');
+    }
+
+    // Ensure required science payload is equipped
+    const missingPayloads = activeObj.requiredPayloadIds.filter(
+      (id) => !selection.payloadIds.includes(id),
+    );
+    for (const pid of missingPayloads) {
+      togglePayload(pid);
+    }
+
+    playHoloTone('STAR', soundEnabled);
     launchSimulation();
   };
 

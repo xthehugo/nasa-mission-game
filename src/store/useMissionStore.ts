@@ -125,6 +125,8 @@ export const useMissionStore = create<MissionStoreState>()(
         set({
           phase: 'SIMULATION',
           tutorialStepIndex: 0,
+          simIsPlaying: true,
+          simSpeed: 1,
           maxUnlockedLevel: Math.max(maxUnlockedLevel, 6),
           simulationResult: result,
           activeCinematicId: shouldPlay ? transId : activeCinematicId,
