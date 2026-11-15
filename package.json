@@ -4,12 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "node --env-file=.env.local ./node_modules/vite/bin/vite.js",
+    "dev": "node --env-file=.env.local ./node_modules/vite/bin/vite.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "node --env-file=.env.local ./node_modules/vite/bin/vite.js preview",
+    "voices:generate": "node --env-file=.env.local scripts/generateVoices.mjs"
   },
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.78.0",
     "@tailwindcss/vite": "^4.3.5",
     "framer-motion": "^14.14.0",
     "lucide-react": "^1.73.0",

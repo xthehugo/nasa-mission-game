@@ -16,6 +16,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     soundEnabled,
     resolveCrisis,
     setCertificateOpen,
+    openCinematic,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -151,6 +152,34 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
           );
         })}
       </div>
+
+      {isCadet ? (
+        <button
+          type="button"
+          onClick={() => {
+            playHoloTone('ALARM', soundEnabled);
+            openCinematic('ACT1_CLIMAX_JPL_TWIST');
+          }}
+          className="w-full border border-[#FF4D6D] bg-[#FF4D6D]/15 py-2.5 px-2 font-mono text-[10px] font-bold tracking-[0.12em] text-[#FF4D6D] uppercase shadow-[0_0_20px_rgba(255,77,109,0.25)] hover:bg-[#FF4D6D]/25"
+        >
+          {isEs
+            ? '🚨 ALERTA OMEGA: PASAR A CAPÍTULO II (INGENIERO JPL) →'
+            : '🚨 OMEGA ALERT: ADVANCE TO CHAPTER II (JPL ENGINEER) →'}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            playHoloTone('STAR', soundEnabled);
+            openCinematic('ACT2_FINALE_SANDBOX');
+          }}
+          className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/15 py-2.5 px-2 font-mono text-[10px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase shadow-[0_0_20px_rgba(95,243,255,0.25)] hover:bg-[#5FF3FF]/25"
+        >
+          {isEs
+            ? '📡 BALIZA ÍCARO-1: DESENLACE Y MODO LIBRE (SANDBOX) →'
+            : '📡 ICARUS-1 BEACON: GRAND FINALE & FREE SANDBOX →'}
+        </button>
+      )}
 
       <button
         type="button"

@@ -30,8 +30,10 @@ export function TopBar() {
   const {
     language,
     experienceMode,
+    storyChapter,
     phase,
-    commanderName,
+    cadetName,
+    engineerName,
     missionCustomName,
     metrics,
     concurrentConflicts,
@@ -42,7 +44,7 @@ export function TopBar() {
     soundEnabled,
     setLanguage,
     setExperienceMode,
-    reopenOnboarding,
+    setStoryChapter,
     setTelemetryOpen,
     setPitchModalOpen,
     loadPreset,
@@ -55,6 +57,13 @@ export function TopBar() {
 
   const isEs = language === 'es';
   const meta = LEVEL_META[phase];
+  const activeCallsign = experienceMode === 'CADET' ? cadetName : engineerName;
+  const chapterTag =
+    storyChapter === 'FREE_SANDBOX'
+      ? isEs ? 'MODO LIBRE · FORJA INFINITA' : 'FREE SANDBOX'
+      : experienceMode === 'CADET'
+        ? isEs ? `CAPÍTULO I · CADETE ${cadetName}` : `CHAPTER I · CADET ${cadetName}`
+        : isEs ? `CAPÍTULO II · ING. ${engineerName}` : `CHAPTER II · ENG. ${engineerName}`;
   const extraKg =
     phase === 'CML_4'
       ? computeTankExtraMassKg(metrics, tankFillPercent, oxidizerFillPercent)
@@ -68,11 +77,14 @@ export function TopBar() {
   );
 
   return (
-    <header className="border-b border-[#5FF3FF]/20 px-4 py-3 sm:px-6">
+    <header
+      data-astra-zone="TOP_BAR"
+      className="border-b border-[#5FF3FF]/20 px-4 py-3 sm:px-6"
+    >
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
-            {isEs ? `NIVEL ${meta.num} DE 06 · ${meta.code}` : `LEVEL ${meta.num} OF 06 · ${meta.code}`} · CMDR {commanderName} // {missionCustomName}
+            {isEs ? `NIVEL ${meta.num} DE 06 · ${meta.code}` : `LEVEL ${meta.num} OF 06 · ${meta.code}`} · {chapterTag} // {missionCustomName} ({activeCallsign})
           </div>
           <h1 className="mt-0.5 text-2xl font-light tracking-tight text-white sm:text-3xl">
             {meta.title[language]}
@@ -103,30 +115,47 @@ export function TopBar() {
             <button
               type="button"
               onClick={() => {
+                setStoryChapter('ACT_1_CADET');
                 setExperienceMode('CADET');
                 playHoloTone('STEP', soundEnabled);
               }}
               className={`px-2 py-1 transition ${
-                experienceMode === 'CADET'
+                storyChapter !== 'FREE_SANDBOX' && experienceMode === 'CADET'
                   ? 'bg-[#5FF3FF]/20 text-[#5FF3FF] font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isEs ? '🎓 CADETE' : '🎓 CADET'}
+              {isEs ? `🎓 ACTO I (${cadetName})` : `🎓 ACT I (${cadetName})`}
             </button>
             <button
               type="button"
               onClick={() => {
+                setStoryChapter('ACT_2_JPL');
                 setExperienceMode('JPL_ENGINEER');
                 playHoloTone('STEP', soundEnabled);
               }}
               className={`border-l border-[#5FF3FF]/25 px-2 py-1 transition ${
-                experienceMode === 'JPL_ENGINEER'
+                storyChapter !== 'FREE_SANDBOX' && experienceMode === 'JPL_ENGINEER'
                   ? 'bg-[#FFC15E]/20 text-[#FFC15E] font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isEs ? '🛰️ ING. JPL' : '🛰️ JPL ENG'}
+              {isEs ? `🛰️ ACTO II (${engineerName})` : `🛰️ ACT II (${engineerName})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStoryChapter('FREE_SANDBOX');
+                unlockAllLevels();
+                playHoloTone('STAR', soundEnabled);
+              }}
+              className={`border-l border-[#5FF3FF]/25 px-2 py-1 transition ${
+                storyChapter === 'FREE_SANDBOX'
+                  ? 'bg-emerald-500/20 text-emerald-300 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isEs ? '★ MODO LIBRE' : '★ SANDBOX'}
             </button>
           </div>
 
@@ -181,14 +210,6 @@ export function TopBar() {
             className="border border-[#5FF3FF]/25 px-2 py-1 text-[#5FF3FF]"
           >
             {language.toUpperCase()}
-          </button>
-
-          <button
-            type="button"
-            onClick={reopenOnboarding}
-            className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-300 hover:border-[#5FF3FF]"
-          >
-            {isEs ? 'PERFIL' : 'PROFILE'}
           </button>
 
           <button

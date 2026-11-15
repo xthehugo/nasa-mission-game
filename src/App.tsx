@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  AstraFloatingCompanion,
   COMMANDER_PHASE_BEATS,
   CommanderHudBanner,
   CommanderOnboardingModal,
@@ -15,6 +16,7 @@ import {
   PhaseStep1User,
   PointDesignStep,
   PostMissionCertificateModal,
+  StoryCinematicModal,
   TelemetryModalDrawer,
   TopBar,
   TradeSpacePanel,
@@ -48,6 +50,8 @@ export function App() {
     language,
     experienceMode,
     phase,
+    level1TutorialStep,
+    robotHoverZone,
     maxUnlockedLevel,
     selection,
     metrics,
@@ -56,6 +60,7 @@ export function App() {
     setPhase,
     setSubsystem,
     setGroundStation,
+    setLevel1TutorialStep,
     launchSimulation,
   } = useMissionStore();
 
@@ -119,8 +124,46 @@ export function App() {
       {/* 3-Zone Holographic Stage (Center Hologram first on mobile) */}
       <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-start gap-6 px-4 py-5 sm:px-6 lg:grid-cols-12">
         {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls */}
-        <section className="order-2 space-y-4 lg:order-1 lg:col-span-3">
-          <HudResourceBars />
+        <section
+          data-astra-zone="LEFT_PANEL"
+          className={`order-2 space-y-4 transition-all lg:order-1 lg:col-span-3 ${
+            robotHoverZone === 'LEFT_PANEL'
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+              : ''
+          }`}
+        >
+          <div
+            data-astra-zone="RESOURCES"
+            className={`transition-all ${
+              (phase === 'CML_1' && level1TutorialStep === 0) ||
+              robotHoverZone === 'RESOURCES'
+                ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+                : ''
+            }`}
+          >
+            {phase === 'CML_1' && level1TutorialStep === 0 && (
+              <div className="mb-2 space-y-1.5 border border-[#FFC15E] bg-[#FFC15E]/15 p-2">
+                <div className="font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
+                  {isEs
+                    ? '👈 PASO 1/5: ESTOS SON LOS 5 SIGNOS VITALES DE TU NAVE'
+                    : '👈 STEP 1/5: THESE ARE THE 5 VITAL SIGNS OF YOUR SPACECRAFT'}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playHoloTone('STEP', soundEnabled);
+                    setLevel1TutorialStep(1);
+                  }}
+                  className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 py-1 font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+                >
+                  {isEs
+                    ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
+                    : 'GOT IT · CONTINUE TO CHASSIS →'}
+                </button>
+              </div>
+            )}
+            <HudResourceBars />
+          </div>
           {phase === 'CML_1' && <PhaseStep1User zone="LEFT" />}
           {phase === 'CML_2' && <OrbitGroundStep zone="LEFT" />}
           {phase === 'CML_3' && <TradeSpacePanel zone="LEFT" />}
@@ -130,7 +173,14 @@ export function App() {
         </section>
 
         {/* CENTER ZONE: Hero Hologram Stage */}
-        <section className="order-1 flex flex-col items-center justify-center py-2 lg:order-2 lg:col-span-6">
+        <section
+          data-astra-zone="HOLOGRAM"
+          className={`order-1 flex flex-col items-center justify-center py-2 transition-all lg:order-2 lg:col-span-6 ${
+            robotHoverZone === 'HOLOGRAM'
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
+              : ''
+          }`}
+        >
           <div className="mb-3 w-full border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1.5 text-center font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF]">
             <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
             <span className="text-slate-200">
@@ -168,24 +218,49 @@ export function App() {
           </AnimatePresence>
 
           {nextPhase && (
-            <button
-              type="button"
-              onClick={() => goToLevel(nextPhase)}
-              className="mt-4 border border-[#5FF3FF] bg-[#5FF3FF]/10 px-6 py-2 font-mono text-[11px] tracking-[0.18em] text-[#5FF3FF] uppercase shadow-[0_0_20px_rgba(95,243,255,0.18)] transition hover:bg-[#5FF3FF]/20"
-            >
-              {nextPhase === 'SIMULATION'
-                ? isEs
-                  ? 'LANZAR MISIÓN · 06 →'
-                  : 'LAUNCH MISSION · 06 →'
-                : isEs
-                  ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →`
-                  : `NEXT LEVEL · 0${currentIdx + 2} →`}
-            </button>
+            <div className="mt-4 flex flex-col items-center gap-1.5">
+              {phase === 'CML_1' && level1TutorialStep === 4 && (
+                <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase animate-pulse">
+                  {isEs
+                    ? '👈 PASO 5/5: ¡PLANO COMPLETADO! PULSA AQUÍ PARA IR AL NIVEL 02'
+                    : '👈 STEP 5/5: BLUEPRINT COMPLETE! CLICK HERE FOR LEVEL 02'}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (phase === 'CML_1' && level1TutorialStep < 5) {
+                    setLevel1TutorialStep(5);
+                  }
+                  goToLevel(nextPhase);
+                }}
+                className={`border px-6 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition ${
+                  phase === 'CML_1' && level1TutorialStep === 4
+                    ? 'border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] ring-2 ring-[#FFC15E] shadow-[0_0_28px_rgba(255,193,94,0.35)] animate-pulse'
+                    : 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-[#5FF3FF] shadow-[0_0_20px_rgba(95,243,255,0.18)] hover:bg-[#5FF3FF]/20'
+                }`}
+              >
+                {nextPhase === 'SIMULATION'
+                  ? isEs
+                    ? 'LANZAR MISIÓN · 06 →'
+                    : 'LAUNCH MISSION · 06 →'
+                  : isEs
+                    ? `SIGUIENTE NIVEL · 0${currentIdx + 2} →`
+                    : `NEXT LEVEL · 0${currentIdx + 2} →`}
+              </button>
+            </div>
           )}
         </section>
 
         {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
-        <section className="order-3 space-y-4 lg:col-span-3">
+        <section
+          data-astra-zone="RIGHT_PANEL"
+          className={`order-3 space-y-4 transition-all lg:col-span-3 ${
+            robotHoverZone === 'RIGHT_PANEL'
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+              : ''
+          }`}
+        >
           <CommanderHudBanner />
           {phase === 'CML_1' && <PhaseStep1User zone="RIGHT" />}
           {phase === 'CML_2' && <OrbitGroundStep zone="RIGHT" />}
@@ -197,7 +272,14 @@ export function App() {
       </main>
 
       {/* Bottom 6-Level Progressive Navigation Strip */}
-      <footer className="border-t border-[#5FF3FF]/20 px-4 py-3 sm:px-6">
+      <footer
+        data-astra-zone="FOOTER_LEVELS"
+        className={`border-t border-[#5FF3FF]/20 px-4 py-3 transition-all sm:px-6 ${
+          robotHoverZone === 'FOOTER_LEVELS'
+            ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+            : ''
+        }`}
+      >
         <nav aria-label="Mission Levels" className="mx-auto grid max-w-[1600px] grid-cols-3 gap-2 sm:grid-cols-6">
           {LEVELS.map((lvl, idx) => {
             const active = phase === lvl.id;
@@ -223,7 +305,9 @@ export function App() {
         </nav>
       </footer>
 
+      <AstraFloatingCompanion />
       <CommanderOnboardingModal />
+      <StoryCinematicModal />
       <PostMissionCertificateModal />
       <TelemetryModalDrawer />
       <NarrativePitchModal />
