@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { Pause, Play, RotateCcw } from 'lucide-react';
+import { useMissionStore } from '../store';
+import { playHoloTone } from '../components/holoAudio';
 import type { Language, OrbitalDestination, PhysicsMetrics, VolumeMetrics } from '../types/mission';
 import OrbitalMapVisualizer from './OrbitalMapVisualizer';
 import SpacecraftBlueprint, { type FailureMode } from './SpacecraftBlueprint';
@@ -17,7 +20,6 @@ interface Props {
 
 type Stage = 'IDLE' | 'COUNTDOWN' | 'LAUNCH_ASCENT' | 'FAILURE' | 'CRUISE' | 'ORBIT_INSERTION';
 type EmbeddedView = 'SPLIT' | 'MAP' | 'BLUEPRINT' | 'CHARTS';
-type SimSpeed = 0.5 | 1 | 2;
 
 const COUNTDOWN_MS = 3000;
 const ASCENT_MS = 6000;
@@ -277,18 +279,25 @@ export default function MissionStage({
             : 'NONE';
 
   const failed = failureMode !== 'NONE';
-  const [running, setRunning] = useState<boolean>(() => embedded);
+  const {
+    simIsPlaying,
+    simSpeed,
+    setSimPlaying,
+    toggleSimPlaying,
+    setSimSpeed,
+    soundEnabled,
+  } = useMissionStore();
+
   const [elapsedMs, setElapsedMs] = useState<number>(0);
-  const [speed, setSpeed] = useState<SimSpeed>(1);
   const [embeddedView, setEmbeddedView] = useState<EmbeddedView>('SPLIT');
-  const speedRef = useRef<number>(1);
+  const speedRef = useRef<number>(simSpeed);
 
   useEffect(() => {
-    speedRef.current = speed;
-  }, [speed]);
+    speedRef.current = simSpeed;
+  }, [simSpeed]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!simIsPlaying) return;
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
@@ -299,7 +308,7 @@ export default function MissionStage({
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [running]);
+  }, [simIsPlaying]);
 
   const layers = useMemo(
     () => [
@@ -322,7 +331,7 @@ export default function MissionStage({
         ? ascentEnd + cruiseMs * FAIL_POINT
         : totalNominalMs;
 
-  const stage: Stage = !running && elapsedMs === 0
+  const stage: Stage = elapsedMs === 0 && !simIsPlaying
     ? 'IDLE'
     : elapsedMs < COUNTDOWN_MS
       ? 'COUNTDOWN'
@@ -402,20 +411,21 @@ export default function MissionStage({
   ];
 
   const toggle = () => {
-    if (!running && elapsedMs === 0) {
-      setElapsedMs(0);
-      setRunning(true);
-    } else {
-      setRunning(false);
-      setElapsedMs(0);
-    }
+    playHoloTone('STEP', soundEnabled);
+    toggleSimPlaying();
+  };
+
+  const handleRewind = () => {
+    playHoloTone('STEP', soundEnabled);
+    setElapsedMs(0);
+    setSimPlaying(true);
   };
 
   const handleAutoFix = () => {
     if (failureMode === 'NONE' || !onQuickFix) return;
     onQuickFix(failureMode);
     setElapsedMs(0);
-    setRunning(true);
+    setSimPlaying(true);
   };
 
   const titleColor =
@@ -434,7 +444,6 @@ export default function MissionStage({
             : 'none'
         : 'none';
 
-  const isStarted = running || elapsedMs > 0;
   const showChartsOnly = embedded && embeddedView === 'CHARTS';
   const showMap = !showChartsOnly && (!embedded || embeddedView !== 'BLUEPRINT');
   const showBlueprint = !showChartsOnly && (!embedded || embeddedView !== 'MAP');
@@ -510,22 +519,54 @@ export default function MissionStage({
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
             {controls}
 
-            {/* Selector de velocidad estilo Poly Bridge */}
-            <div className="flex border border-[#5FF3FF]/25 bg-[#04080F]/90 p-0.5 font-mono text-[9.5px]">
-              {([0.5, 1, 2] as const).map((spd) => (
-                <button
-                  key={spd}
-                  type="button"
-                  onClick={() => setSpeed(spd)}
-                  className={`px-2 py-1 transition ${
-                    speed === spd
-                      ? 'bg-[#FFC15E]/20 text-[#FFC15E]'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {spd === 0.5 ? '0.5× SLOW-MO' : `${spd}×`}
-                </button>
-              ))}
+            {/* Poly Bridge Time Control Transport Bar */}
+            <div className="flex items-center gap-1 border border-[#5FF3FF]/30 bg-[#04080F]/90 p-1 font-mono text-[9.5px] rounded">
+              {/* Play / Pause Toggle */}
+              <button
+                type="button"
+                onClick={toggle}
+                className={`flex items-center gap-1 px-2.5 py-1 font-bold rounded transition cursor-pointer ${
+                  simIsPlaying
+                    ? 'border border-[#5FF3FF]/50 bg-[#5FF3FF]/20 text-[#5FF3FF] shadow-[0_0_12px_rgba(95,243,255,0.25)]'
+                    : 'border border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] animate-pulse'
+                }`}
+                title={simIsPlaying ? 'Pausar simulación física' : 'Reanudar simulación física'}
+              >
+                {simIsPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                <span>{simIsPlaying ? (lang === 'es' ? 'PAUSA' : 'PAUSE') : (lang === 'es' ? 'PLAY' : 'PLAY')}</span>
+              </button>
+
+              {/* Rewind to T-00 */}
+              <button
+                type="button"
+                onClick={handleRewind}
+                className="flex items-center gap-1 border border-slate-700 bg-slate-900/60 px-2 py-1 text-slate-300 hover:text-white hover:border-slate-500 rounded transition cursor-pointer"
+                title={lang === 'es' ? 'Reiniciar simulación desde T-0' : 'Restart simulation from T-0'}
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span className="hidden sm:inline">{lang === 'es' ? 'REINICIAR' : 'RESTART'}</span>
+              </button>
+
+              {/* Poly Bridge Speed Selector (0.5x, 1x, 2x, 4x Warp) */}
+              <div className="flex items-center border-l border-slate-700 pl-1 ml-0.5 gap-0.5">
+                {([0.5, 1, 2, 4] as const).map((spd) => (
+                  <button
+                    key={spd}
+                    type="button"
+                    onClick={() => {
+                      playHoloTone('STEP', soundEnabled);
+                      setSimSpeed(spd);
+                    }}
+                    className={`px-1.5 py-1 rounded transition cursor-pointer ${
+                      simSpeed === spd
+                        ? 'border border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] font-bold'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {spd === 0.5 ? '0.5×' : spd === 4 ? '4× WARP' : `${spd}×`}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {embedded && (
@@ -553,35 +594,27 @@ export default function MissionStage({
                 ))}
               </div>
             )}
-
-            <button
-              type="button"
-              onClick={toggle}
-              className={embedded ? 'font-mono text-[10px] tracking-[0.14em] uppercase' : undefined}
-              style={{
-                padding: embedded ? '6px 12px' : '8px 18px',
-                borderRadius: embedded ? 2 : 8,
-                fontWeight: 700,
-                background: isStarted
-                  ? '#1e293b'
-                  : failed
-                    ? 'rgba(255,77,109,0.2)'
-                    : embedded
-                      ? 'rgba(95,243,255,0.16)'
-                      : '#ef4444',
-                border:
-                  !isStarted && failed
-                    ? '1px solid #FF4D6D'
-                    : embedded
-                      ? '1px solid #5FF3FF'
-                      : '1px solid transparent',
-                color: !isStarted && failed ? '#FF4D6D' : embedded ? '#5FF3FF' : '#fff',
-                cursor: 'pointer',
-              }}
-            >
-              {isStarted ? t.reset : failed ? t.launchAnyway : t.launch}
-            </button>
           </div>
+        </div>
+
+        {/* Poly Bridge Real-Time Mission Progress Scrubber */}
+        <div className="flex items-center gap-3 border border-[#5FF3FF]/20 bg-[#04080F]/80 px-3 py-1.5 rounded font-mono text-[10px]">
+          <span className="text-[#5FF3FF] font-bold shrink-0">{clock}</span>
+          <div className="relative flex-1 h-2 bg-[#02050B] rounded-full overflow-hidden border border-slate-800">
+            <div
+              className={`h-full transition-all duration-100 ${
+                stage === 'FAILURE'
+                  ? 'bg-gradient-to-r from-[#FF4D6D] to-red-600'
+                  : stage === 'ORBIT_INSERTION'
+                    ? 'bg-gradient-to-r from-[#5FF3FF] to-[#10B981]'
+                    : 'bg-gradient-to-r from-[#5FF3FF]/60 to-[#5FF3FF]'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(0, snap.tRatio * 100))}%` }}
+            />
+          </div>
+          <span className="text-slate-400 text-[9px] shrink-0">
+            {Math.round(snap.tRatio * 100)}%
+          </span>
         </div>
 
         {/* Vista principal: mapa + nave con mapa de tensiones OR graficos expandidos */}

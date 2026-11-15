@@ -24,6 +24,8 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     addXP,
     recordContractResult,
     openCinematic,
+    simIsPlaying,
+    simSpeed,
   } = useMissionStore();
 
   const [crisisTimer, setCrisisTimer] = useState(15);
@@ -43,7 +45,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
 
   // Emergency countdown timer for active unresolved flight crises
   useEffect(() => {
-    if (!simulationResult || resolvedCount >= simulationResult.dilemmas.length) return;
+    if (!simulationResult || resolvedCount >= simulationResult.dilemmas.length || !simIsPlaying) return;
 
     const interval = setInterval(() => {
       setCrisisTimer((prev) => {
@@ -68,7 +70,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
         }
         return prev - 1;
       });
-    }, 1000);
+    }, Math.max(250, Math.round(1000 / simSpeed)));
 
     return () => clearInterval(interval);
   }, [
@@ -76,6 +78,8 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     simulationResult,
     resolvedCrises,
     soundEnabled,
+    simIsPlaying,
+    simSpeed,
     damageHull,
     resolveCrisis,
     appendDecisionLog,
@@ -221,11 +225,20 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     <div className="space-y-3 font-mono">
       {/* Orbital Crises Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase">
-        <span className="text-[#FFC15E] font-bold">
-          {isEs
-            ? `▲ CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
-            : `▲ ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[#FFC15E] font-bold">
+            {isEs
+              ? `▲ CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
+              : `▲ ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
+          </span>
+          <span className={`px-2 py-0.5 rounded text-[9px] border font-bold ${
+            simIsPlaying
+              ? 'border-[#5FF3FF]/50 bg-[#5FF3FF]/10 text-[#5FF3FF]'
+              : 'border-[#FFC15E]/60 bg-[#FFC15E]/10 text-[#FFC15E] animate-pulse'
+          }`}>
+            {simIsPlaying ? `▶ ${simSpeed}×` : (isEs ? '⏸ PAUSA' : '⏸ PAUSE')}
+          </span>
+        </div>
         <div className="flex items-center gap-2">
           {resolvedCount < simulationResult.dilemmas.length && (
             <button

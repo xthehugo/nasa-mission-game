@@ -113,6 +113,8 @@ export interface UISlice {
   reducedMotion: boolean;
   soundEnabled: boolean;
   activeRandomEvent: RandomEventType;
+  simIsPlaying: boolean;
+  simSpeed: 0.5 | 1 | 2 | 4;
 
   setLanguage: (language: Language) => void;
   setExperienceMode: (mode: ExperienceMode) => void;
@@ -172,6 +174,9 @@ export interface UISlice {
   toggleReducedMotion: () => void;
   toggleSound: () => void;
   triggerRandomEvent: () => void;
+  setSimPlaying: (playing: boolean) => void;
+  toggleSimPlaying: () => void;
+  setSimSpeed: (speed: 0.5 | 1 | 2 | 4) => void;
 }
 
 export const DEFAULT_MISSION_STATEMENT_EN =
@@ -266,6 +271,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   reducedMotion: false,
   soundEnabled: true,
   activeRandomEvent: 'NONE',
+  simIsPlaying: true,
+  simSpeed: 1,
 
   setLanguage: (language) =>
     set((s) => {
@@ -522,4 +529,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
       const idx = EVENT_CYCLE.indexOf(s.activeRandomEvent);
       return { activeRandomEvent: EVENT_CYCLE[(idx + 1) % EVENT_CYCLE.length] };
     }),
+  setSimPlaying: (simIsPlaying) => set({ simIsPlaying }),
+  toggleSimPlaying: () => set((s) => ({ simIsPlaying: !s.simIsPlaying })),
+  setSimSpeed: (simSpeed) => set({ simSpeed }),
 });
