@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
+import { playHoloTone } from './holoAudio';
 
 export function PostMissionCertificateModal() {
   const {
@@ -30,6 +31,8 @@ export function PostMissionCertificateModal() {
     resolvedCrises,
     simulationResult,
     decisionLog,
+    reducedMotion,
+    soundEnabled,
     isCertificateOpen,
     setCertificateOpen,
   } = useMissionStore();
@@ -141,6 +144,7 @@ export function PostMissionCertificateModal() {
     const text = buildReportText();
     if (!text) return;
     void navigator.clipboard.writeText(text);
+    playHoloTone('STEP', soundEnabled);
     setCopiedSummary(true);
     window.setTimeout(() => setCopiedSummary(false), 1800);
   };
@@ -157,6 +161,7 @@ export function PostMissionCertificateModal() {
       link.download = `ORBITAL-FORGE-${missionCustomName.replace(/\s+/g, '-')}-Certificate.txt`;
       link.click();
       URL.revokeObjectURL(url);
+      playHoloTone('STAR', soundEnabled);
       setDownloaded(true);
     } catch (err) {
       console.warn('Unable to download mission certificate file:', err);
@@ -167,33 +172,45 @@ export function PostMissionCertificateModal() {
     <AnimatePresence>
       {show && simulationResult && (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={reducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
+          exit={reducedMotion ? undefined : { opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#04080F]/90 p-4 backdrop-blur-md"
         >
           <motion.div
-            initial={{ scale: 0.94, y: 16 }}
+            initial={reducedMotion ? false : { scale: 0.96, y: 12 }}
             animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-amber-400/40 bg-[#070e1f] p-6 shadow-[0_0_60px_rgba(251,191,36,0.16)]"
+            exit={reducedMotion ? undefined : { scale: 0.97, opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.22 }}
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto border border-[#FFC15E]/55 bg-[#04080F] p-6 shadow-[0_0_55px_rgba(255,193,94,0.16)]"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div className="flex items-start justify-between gap-3 border-b border-[#5FF3FF]/20 pb-4">
               <div>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-300">
+                <div className="font-mono text-[10px] tracking-[0.22em] text-[#FFC15E] uppercase">
                   {isEs
-                    ? 'Certificado de Arquitecto de Misión ORBITAL FORGE (Estándar JPL CML)'
-                    : 'ORBITAL FORGE Mission Architect Certificate (JPL CML Standard)'}
-                </span>
-                <h2 className="mt-1 text-xl font-black text-white">CMDR {commanderName} · {missionCustomName}</h2>
-                <p className="mt-0.5 font-mono text-xs text-cyan-300">
+                    ? 'SYS.ARCHIVE // CERTIFICADO DE ARQUITECTO DE MISIÓN (JPL CML)'
+                    : 'SYS.ARCHIVE // MISSION ARCHITECT CERTIFICATE (JPL CML)'}
+                </div>
+                <h2 className="mt-1 text-xl font-light tracking-tight text-white">
+                  CMDR {commanderName} · {missionCustomName}
+                </h2>
+                <p className="mt-1 font-mono text-[11px] tracking-[0.14em] text-[#5FF3FF] uppercase">
                   {experienceMode === 'CADET'
                     ? isEs ? 'Modo Cadete (Historia)' : 'Cadet Story Mode'
                     : isEs ? 'Modo Ingeniero JPL (Hardcore)' : 'JPL Hardcore Mode'}{' '}
-                  · {isEs ? 'Calificación' : 'Grade'}: <strong className="text-amber-300">{simulationResult.overallGrade}</strong> ({simulationResult.scienceScore}/100)
+                  · {isEs ? 'Calificación' : 'Grade'}:{' '}
+                  <strong className="text-[#FFC15E]">{simulationResult.overallGrade}</strong> ({simulationResult.scienceScore}/100)
                 </p>
               </div>
-              <button type="button" onClick={() => setCertificateOpen(false)} className="rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white">
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setCertificateOpen(false);
+                }}
+                aria-label={isEs ? 'Cerrar certificado' : 'Close certificate'}
+                className="border border-[#5FF3FF]/35 bg-[#04080F] p-1.5 text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -202,12 +219,27 @@ export function PostMissionCertificateModal() {
               {badges.map((b) => {
                 const Icon = b.icon;
                 return (
-                  <div key={b.id} className={`flex items-center gap-3 rounded-2xl border p-3 ${b.earned ? 'border-amber-400/50 bg-amber-500/10 text-amber-100' : 'border-slate-800 bg-slate-950/60 text-slate-500 opacity-65'}`}>
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${b.earned ? 'bg-amber-400/20 text-amber-300' : 'bg-slate-900 text-slate-600'}`}>
+                  <div
+                    key={b.id}
+                    className={`flex items-center gap-3 border p-3 ${
+                      b.earned
+                        ? 'border-[#FFC15E]/50 bg-[#FFC15E]/10 text-[#FFC15E]'
+                        : 'border-[#5FF3FF]/15 bg-[#04080F] text-slate-500 opacity-65'
+                    }`}
+                  >
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center border ${
+                        b.earned
+                          ? 'border-[#FFC15E]/40 bg-[#FFC15E]/15 text-[#FFC15E]'
+                          : 'border-[#5FF3FF]/15 bg-[#04080F] text-slate-600'
+                      }`}
+                    >
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-extrabold">{b.title[language]}</div>
+                      <div className="font-mono text-[11px] font-bold tracking-[0.1em] uppercase">
+                        {b.title[language]}
+                      </div>
                       <div className="text-[11px] opacity-85">{b.desc[language]}</div>
                     </div>
                   </div>
@@ -215,8 +247,8 @@ export function PostMissionCertificateModal() {
               })}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 text-xs">
-              <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-cyan-300">
+            <div className="mt-4 border border-[#5FF3FF]/25 bg-[#04080F] p-3.5 text-xs">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
                 <Medal className="h-4 w-4" />
                 <span>{isEs ? 'Comparativa NASA Real:' : 'NASA Benchmark:'} {objective.realWorldBenchmark.missionName}</span>
               </div>
@@ -227,8 +259,8 @@ export function PostMissionCertificateModal() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 text-xs">
-              <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-amber-300">
+            <div className="mt-4 border border-[#FFC15E]/30 bg-[#04080F] p-3.5 text-xs">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase">
                 <Sparkles className="h-4 w-4" />
                 <span>
                   {isEs
@@ -237,13 +269,13 @@ export function PostMissionCertificateModal() {
                 </span>
               </div>
               {recommendations.length === 0 ? (
-                <p className="mt-1.5 text-emerald-300">
+                <p className="mt-2 font-mono text-[11px] text-[#5FF3FF]">
                   {isEs
                     ? '¡Excelencia de Arquitectura alcanzada! Cumpliste márgenes ≥35%, rigor V&V y las 3 decisiones óptimas en vuelo.'
                     : 'Mission Architect Optimization Achieved! All ≥35% margins, V&V checks, and 3 flight crises cleared optimally.'}
                 </p>
               ) : (
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-slate-300">
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-300">
                   {recommendations.map((rec, idx) => (
                     <li key={idx}>{rec[language]}</li>
                   ))}
@@ -251,23 +283,38 @@ export function PostMissionCertificateModal() {
               )}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5">
-              <div className="mb-2 flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-emerald-300">
+            <div className="mt-4 border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+              <div className="mb-2 flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
                 <History className="h-4 w-4" />
                 <span>{isEs ? 'Bitácora de Decisiones (Tu Legado)' : 'Decision Legacy Timeline'}</span>
               </div>
               <div className="max-h-40 space-y-1.5 overflow-y-auto pr-1 text-xs">
                 {decisionLog.map((entry) => (
-                  <div key={entry.id} className="flex items-start gap-2 rounded-lg bg-slate-900/75 px-2.5 py-1.5">
+                  <div
+                    key={entry.id}
+                    className="flex items-start gap-2 border-l-2 border-[#5FF3FF]/40 bg-[#04080F] px-2.5 py-1.5"
+                  >
                     <span className="font-mono text-[10px] text-slate-400">{entry.timestamp}</span>
-                    <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9px] text-cyan-300">{entry.phase}</span>
-                    <span className={entry.impact === 'CRITICAL' ? 'text-rose-200' : entry.impact === 'WARNING' ? 'text-amber-200' : 'text-slate-200'}>{entry.label[language]}</span>
+                    <span className="border border-[#5FF3FF]/30 px-1.5 py-0.5 font-mono text-[9px] text-[#5FF3FF]">
+                      {entry.phase}
+                    </span>
+                    <span
+                      className={
+                        entry.impact === 'CRITICAL'
+                          ? 'text-[#FF4D6D]'
+                          : entry.impact === 'WARNING'
+                            ? 'text-[#FFC15E]'
+                            : 'text-slate-200'
+                      }
+                    >
+                      {entry.label[language]}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#5FF3FF]/20 pt-4">
               <span className="max-w-xs font-mono text-[10px] leading-relaxed text-slate-400">
                 {isEs
                   ? 'Credencial educativa basada en datos abiertos NASA JPL CML, CubeSat 101, CSA y NASA GMAT R2026a (no oficial).'
@@ -277,9 +324,9 @@ export function PostMissionCertificateModal() {
                 <button
                   type="button"
                   onClick={handleCopyReport}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-4 py-2.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/20"
+                  className="inline-flex items-center gap-1.5 border border-[#5FF3FF] bg-[#5FF3FF]/10 px-4 py-2 font-mono text-[10px] tracking-[0.14em] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/20"
                 >
-                  {copiedSummary ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                  {copiedSummary ? <Check className="h-4 w-4 text-[#5FF3FF]" /> : <Copy className="h-4 w-4" />}
                   <span>
                     {copiedSummary
                       ? isEs
@@ -290,7 +337,11 @@ export function PostMissionCertificateModal() {
                         : 'Copy Shareable Report'}
                   </span>
                 </button>
-                <button type="button" onClick={handleDownloadCertificate} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2.5 text-xs font-black text-slate-950">
+                <button
+                  type="button"
+                  onClick={handleDownloadCertificate}
+                  className="inline-flex items-center gap-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-4 py-2 font-mono text-[10px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase transition hover:bg-[#FFC15E]/25"
+                >
                   {downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
                   <span>
                     {downloaded
@@ -298,8 +349,8 @@ export function PostMissionCertificateModal() {
                         ? 'Certificado Descargado'
                         : 'Certificate Downloaded'
                       : isEs
-                        ? 'Descargar Certificado ORBITAL FORGE (.txt)'
-                        : 'Download ORBITAL FORGE Certificate (.txt)'}
+                        ? 'Descargar Certificado (.txt)'
+                        : 'Download Certificate (.txt)'}
                   </span>
                 </button>
               </div>

@@ -26,9 +26,9 @@ import type { MCRStatus } from '../types/mission';
 import { MissionStage } from '../visuals';
 
 function statusColor(status: MCRStatus): string {
-  if (status === 'GREEN') return '#10b981';
-  if (status === 'YELLOW') return '#f59e0b';
-  return '#f43f5e';
+  if (status === 'GREEN') return '#5FF3FF';
+  if (status === 'YELLOW') return '#FFC15E';
+  return '#FF4D6D';
 }
 
 function clampScore(v: number): number {
@@ -99,46 +99,48 @@ export function TelemetryRightPanel() {
   ];
 
   return (
-    <aside className="flex flex-col gap-3 rounded-3xl border border-cyan-500/20 bg-slate-900/65 p-4 shadow-[0_0_32px_rgba(34,211,238,0.08)]">
+    <aside className="flex flex-col gap-3 border border-[#5FF3FF]/25 bg-[#04080F] p-4 shadow-[0_0_28px_rgba(95,243,255,0.08)]">
       {/* Flight Director Advice Banner */}
       <div
-        className={`rounded-2xl border bg-slate-950/85 p-3.5 ${
+        className={`border bg-[#04080F] p-3.5 ${
           metrics.flightDirectorAdvice.status === 'GREEN'
-            ? 'border-emerald-500/35'
+            ? 'border-[#5FF3FF]/40'
             : metrics.flightDirectorAdvice.status === 'YELLOW'
-              ? 'border-amber-500/40'
-              : 'border-rose-500/55 shadow-[0_0_20px_rgba(244,63,94,0.18)]'
+              ? 'border-[#FFC15E]/50'
+              : 'border-[#FF4D6D]/60 shadow-[0_0_20px_rgba(255,77,109,0.18)]'
         }`}
       >
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 font-mono text-xs font-extrabold text-white">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-[0.12em] text-white uppercase">
             <Activity
               className={`h-4 w-4 ${
                 metrics.flightDirectorAdvice.status === 'RED'
-                  ? 'animate-ping text-rose-400'
-                  : 'text-cyan-400'
+                  ? 'animate-ping text-[#FF4D6D]'
+                  : metrics.flightDirectorAdvice.status === 'YELLOW'
+                    ? 'text-[#FFC15E]'
+                    : 'text-[#5FF3FF]'
               }`}
             />
             <span>{metrics.flightDirectorAdvice.headline[language]}</span>
           </div>
-          <span className="font-mono text-[10px] text-slate-400">
+          <span className="border border-[#5FF3FF]/25 px-1.5 py-0.5 font-mono text-[9.5px] tracking-[0.12em] text-slate-300 uppercase">
             {concurrentConflicts.length} {isEs ? 'conflictos' : 'conflicts'}
           </span>
         </div>
-        <p className="mt-1 text-xs text-slate-300">
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
           {metrics.flightDirectorAdvice.humanExplanation[language]}
         </p>
       </div>
 
-      {/* Right Panel Mode Switcher: Live Visuals (Persona 3) vs Recharts Analytics */}
-      <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-slate-800 bg-slate-950 p-1">
+      {/* Mode Switcher: Live Visuals vs Recharts Analytics */}
+      <div className="grid grid-cols-2 gap-1.5 border border-[#5FF3FF]/25 bg-[#04080F] p-1">
         <button
           type="button"
           onClick={() => setRightPanelTab('VISUALS')}
-          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 border py-1.5 font-mono text-[10px] tracking-[0.15em] uppercase transition ${
             rightPanelTab === 'VISUALS'
-              ? 'bg-cyan-500/20 text-cyan-200 ring-1 ring-cyan-400/40'
-              : 'text-slate-400 hover:text-white'
+              ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 text-[#5FF3FF]'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Rocket className="h-3.5 w-3.5" />
@@ -147,10 +149,10 @@ export function TelemetryRightPanel() {
         <button
           type="button"
           onClick={() => setRightPanelTab('ANALYTICS')}
-          className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition ${
+          className={`flex items-center justify-center gap-1.5 border py-1.5 font-mono text-[10px] tracking-[0.15em] uppercase transition ${
             rightPanelTab === 'ANALYTICS'
-              ? 'bg-indigo-500/25 text-indigo-200 ring-1 ring-indigo-400/40'
-              : 'text-slate-400 hover:text-white'
+              ? 'border-[#FFC15E] bg-[#FFC15E]/15 text-[#FFC15E]'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <BarChart3 className="h-3.5 w-3.5" />
@@ -159,7 +161,7 @@ export function TelemetryRightPanel() {
       </div>
 
       {rightPanelTab === 'VISUALS' ? (
-        <div className="min-h-[540px] overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+        <div className="min-h-[540px] overflow-hidden border border-[#5FF3FF]/25 bg-[#04080F]">
           <MissionStage
             destination={destination}
             volume={metrics.volume}
@@ -171,47 +173,59 @@ export function TelemetryRightPanel() {
       ) : (
         <div className="flex flex-col gap-3">
           {/* Chart 1: CBE + MGA + Propellant Stacked BarChart */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-            <div className="mb-1.5 font-mono text-[11px] font-bold uppercase text-cyan-300">
+          <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+            <div className="mb-2 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
               {isEs ? 'CBE vs MGA vs Propelente y Lanzador (kg)' : 'CBE + MGA + Propellant vs Rocket Cap (kg)'}
             </div>
             <div className="h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={massStackData} margin={{ top: 6, right: 8, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#132238" />
+                  <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: 11 }}
+                    contentStyle={{
+                      backgroundColor: '#04080F',
+                      borderColor: '#5FF3FF',
+                      borderRadius: 0,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    }}
                     formatter={(v, k) => [`${Number(v ?? 0).toFixed(1)} kg`, String(k)]}
                   />
-                  <Bar dataKey="CBE" stackId="mass" fill="#22d3ee" />
-                  <Bar dataKey="MGA" stackId="mass" fill="#f59e0b" />
-                  <Bar dataKey="Propellant" stackId="mass" fill="#818cf8" />
-                  <Bar dataKey="Limit" fill="#475569" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="CBE" stackId="mass" fill="#5FF3FF" />
+                  <Bar dataKey="MGA" stackId="mass" fill="#FFC15E" />
+                  <Bar dataKey="Propellant" stackId="mass" fill="#38bdf8" />
+                  <Bar dataKey="Limit" fill="#475569" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Chart 2: MCR Margins vs 35% NASA Threshold */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-            <div className="mb-1.5 font-mono text-[11px] font-bold uppercase text-emerald-300">
+          <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+            <div className="mb-2 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase">
               {isEs ? 'Márgenes MCR vs Umbral NASA (≥35%)' : 'MCR Margins vs NASA Threshold (≥35%)'}
             </div>
             <div className="h-40 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={marginData} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#132238" />
                   <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                   <YAxis domain={[-40, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: 11 }}
+                    contentStyle={{
+                      backgroundColor: '#04080F',
+                      borderColor: '#5FF3FF',
+                      borderRadius: 0,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    }}
                     formatter={(v) => [`${Number(v ?? 0).toFixed(1)}%`, 'Margin']}
                   />
-                  <ReferenceLine y={35} stroke="#10b981" strokeDasharray="4 4" />
-                  <ReferenceLine y={25} stroke="#f59e0b" strokeDasharray="3 3" />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <ReferenceLine y={35} stroke="#5FF3FF" strokeDasharray="4 4" />
+                  <ReferenceLine y={25} stroke="#FFC15E" strokeDasharray="3 3" />
+                  <Bar dataKey="value">
                     {marginData.map((m) => (
                       <Cell key={m.name} fill={statusColor(m.status)} />
                     ))}
@@ -222,18 +236,18 @@ export function TelemetryRightPanel() {
           </div>
 
           {/* Chart 3: Trade Space 6-Axis RadarChart */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3">
-            <div className="mb-1 flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase text-indigo-300">
+          <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+            <div className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
               <RadarIcon className="h-3.5 w-3.5" />
               <span>{isEs ? 'Radar Balance Trade Space' : 'Trade Space Balance Radar'}</span>
             </div>
             <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData}>
-                  <PolarGrid stroke="#1e293b" />
+                  <PolarGrid stroke="#132238" />
                   <PolarAngleAxis dataKey="axis" tick={{ fill: '#cbd5e1', fontSize: 10 }} />
                   <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar dataKey="val" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.28} />
+                  <Radar dataKey="val" stroke="#5FF3FF" fill="#5FF3FF" fillOpacity={0.22} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>

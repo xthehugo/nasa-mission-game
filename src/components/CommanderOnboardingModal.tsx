@@ -10,9 +10,11 @@ import {
   Sparkles,
   UserCheck,
   Wrench,
+  X,
 } from 'lucide-react';
 import { useMissionStore } from '../store';
 import type { ExperienceMode } from '../types/mission';
+import { playHoloTone } from './holoAudio';
 
 function OnboardingContent() {
   const {
@@ -20,6 +22,8 @@ function OnboardingContent() {
     experienceMode,
     commanderName,
     missionCustomName,
+    reducedMotion,
+    soundEnabled,
     setLanguage,
     completeOnboarding,
   } = useMissionStore();
@@ -31,40 +35,57 @@ function OnboardingContent() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={reducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
+      exit={reducedMotion ? undefined : { opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#04080F]/90 p-4 backdrop-blur-md"
     >
       <motion.div
-        initial={{ scale: 0.94, y: 18, opacity: 0 }}
+        initial={reducedMotion ? false : { scale: 0.96, y: 12, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan-500/35 bg-[#070d1d] p-6 shadow-[0_0_60px_rgba(34,211,238,0.16)] sm:p-8"
+        transition={{ duration: reducedMotion ? 0 : 0.22 }}
+        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto border border-[#5FF3FF]/50 bg-[#04080F] p-6 shadow-[0_0_55px_rgba(95,243,255,0.16)] sm:p-7"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/40 bg-cyan-500/15 text-cyan-300">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#5FF3FF]/20 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center border border-[#5FF3FF]/45 bg-[#5FF3FF]/10 text-[#5FF3FF]">
               <Rocket className="h-5 w-5" />
             </div>
             <div>
-              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-cyan-300">
-                ORBITAL FORGE · NASA Space Apps 2026
-              </span>
-              <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl">
+              <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
+                SYS.CREDENTIAL // ORBITAL FORGE · NASA SPACE APPS 2026
+              </div>
+              <h1 className="mt-0.5 text-xl font-light tracking-tight text-white sm:text-2xl">
                 {isEs ? 'Credencial de Misión & Dificultad' : 'Mission Credential & Difficulty'}
               </h1>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setLanguage(isEs ? 'en' : 'es')}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs font-bold text-cyan-200 transition hover:border-cyan-400"
-          >
-            <Languages className="h-3.5 w-3.5 text-cyan-400" />
-            <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                setLanguage(isEs ? 'en' : 'es');
+              }}
+              className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/30 bg-[#04080F] px-2.5 py-1.5 font-mono text-[10px] tracking-[0.14em] text-[#5FF3FF] uppercase transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
+            >
+              <Languages className="h-3.5 w-3.5" />
+              <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                completeOnboarding(selectedMode, draftCommander, draftMission);
+              }}
+              aria-label={isEs ? 'Cerrar credencial' : 'Close credential'}
+              className="border border-[#5FF3FF]/30 bg-[#04080F] p-1.5 text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <p className="mt-3 text-xs leading-relaxed text-slate-300">
@@ -73,7 +94,7 @@ function OnboardingContent() {
             : 'You are the Flight Commander. Register your spacecraft callsign and choose your CML 1–5 engineering challenge:'}
         </p>
 
-        {/* 3-Step Mission Roadmap (Goldfish Clarity) */}
+        {/* 3-Step Mission Roadmap */}
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {[
             {
@@ -94,19 +115,19 @@ function OnboardingContent() {
           ].map((item) => (
             <div
               key={item.step}
-              className="rounded-xl border border-cyan-500/20 bg-slate-950/70 px-3 py-2"
+              className="border border-[#5FF3FF]/25 bg-[#04080F] px-3 py-2.5"
             >
-              <div className="font-mono text-[10px] font-bold text-cyan-300">
+              <div className="font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
                 {item.step} · {item.title[language]}
               </div>
-              <div className="text-[11px] text-slate-400">{item.desc[language]}</div>
+              <div className="mt-0.5 text-[11px] text-slate-400">{item.desc[language]}</div>
             </div>
           ))}
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 focus-within:border-cyan-400/70">
-            <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase text-cyan-300">
+          <label className="border border-[#5FF3FF]/30 bg-[#04080F] p-3.5 transition focus-within:border-[#5FF3FF]">
+            <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
               <UserCheck className="h-3.5 w-3.5" />
               {isEs ? 'Callsign / Nombre del Comandante' : 'Commander Callsign / Name'}
             </span>
@@ -118,12 +139,12 @@ function OnboardingContent() {
               value={draftCommander}
               onChange={(e) => setDraftCommander(e.target.value)}
               placeholder={isEs ? 'Ej. Orion' : 'e.g. Orion'}
-              className="mt-1.5 w-full bg-transparent text-sm font-bold text-white outline-none placeholder:text-slate-600"
+              className="mt-1.5 w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-600"
             />
           </label>
 
-          <label className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3.5 focus-within:border-amber-400/70">
-            <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase text-amber-300">
+          <label className="border border-[#FFC15E]/35 bg-[#04080F] p-3.5 transition focus-within:border-[#FFC15E]">
+            <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase">
               <Compass className="h-3.5 w-3.5" />
               {isEs ? 'Nombre Oficial de tu Misión' : 'Official Mission Name'}
             </span>
@@ -135,32 +156,33 @@ function OnboardingContent() {
               value={draftMission}
               onChange={(e) => setDraftMission(e.target.value)}
               placeholder={isEs ? 'Ej. Inti-1' : 'e.g. Inti-1'}
-              className="mt-1.5 w-full bg-transparent text-sm font-bold text-white outline-none placeholder:text-slate-600"
+              className="mt-1.5 w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-600"
             />
           </label>
         </div>
 
         <div className="mt-5 grid gap-3.5 sm:grid-cols-2">
-          <motion.button
+          <button
             type="button"
-            whileHover={{ scale: 1.015 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={() => setSelectedMode('CADET')}
-            className={`flex flex-col justify-between rounded-2xl border p-4 text-left transition ${
+            onClick={() => {
+              playHoloTone('STEP', soundEnabled);
+              setSelectedMode('CADET');
+            }}
+            className={`flex flex-col justify-between border p-4 text-left transition ${
               selectedMode === 'CADET'
-                ? 'border-cyan-400 bg-cyan-500/15 shadow-[0_0_24px_rgba(34,211,238,0.18)]'
-                : 'border-slate-800 bg-slate-950/75 hover:border-slate-700'
+                ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_24px_rgba(95,243,255,0.16)]'
+                : 'border-[#5FF3FF]/20 bg-[#04080F] hover:border-[#5FF3FF]/45'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-200">
+                <span className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/35 bg-[#5FF3FF]/10 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.14em] text-[#5FF3FF] uppercase">
                   <GraduationCap className="h-3.5 w-3.5" />
                   {isEs ? 'HISTORIA · EXPLORADOR' : 'STORY · EXPLORER'}
                 </span>
-                <Sparkles className="h-4 w-4 text-cyan-300" />
+                <Sparkles className="h-4 w-4 text-[#5FF3FF]" />
               </div>
-              <h2 className="mt-3 text-base font-extrabold text-white">
+              <h2 className="mt-3 text-base font-medium tracking-tight text-white">
                 {isEs ? 'Cadete Estudiante' : 'Cadet Explorer'}
               </h2>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
@@ -169,32 +191,37 @@ function OnboardingContent() {
                   : 'I am a Cadet: Learn by building my first mission with Commander Vega, intuitive analogies, part hints, and guided flight crises.'}
               </p>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[10px] text-cyan-300">
-              <span className="rounded bg-slate-900 px-2 py-0.5">{isEs ? 'Analogías CSA' : 'CSA Analogies'}</span>
-              <span className="rounded bg-slate-900 px-2 py-0.5">{isEs ? 'Pistas en Vuelo' : 'Flight Hints'}</span>
+            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] tracking-[0.12em] text-[#5FF3FF] uppercase">
+              <span className="border border-[#5FF3FF]/30 bg-[#04080F] px-2 py-0.5">
+                {isEs ? 'Analogías CSA' : 'CSA Analogies'}
+              </span>
+              <span className="border border-[#5FF3FF]/30 bg-[#04080F] px-2 py-0.5">
+                {isEs ? 'Pistas en Vuelo' : 'Flight Hints'}
+              </span>
             </div>
-          </motion.button>
+          </button>
 
-          <motion.button
+          <button
             type="button"
-            whileHover={{ scale: 1.015 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={() => setSelectedMode('JPL_ENGINEER')}
-            className={`flex flex-col justify-between rounded-2xl border p-4 text-left transition ${
+            onClick={() => {
+              playHoloTone('STEP', soundEnabled);
+              setSelectedMode('JPL_ENGINEER');
+            }}
+            className={`flex flex-col justify-between border p-4 text-left transition ${
               selectedMode === 'JPL_ENGINEER'
-                ? 'border-indigo-400 bg-indigo-500/18 shadow-[0_0_24px_rgba(129,140,248,0.2)]'
-                : 'border-slate-800 bg-slate-950/75 hover:border-slate-700'
+                ? 'border-[#FFC15E] bg-[#FFC15E]/12 shadow-[0_0_24px_rgba(255,193,94,0.16)]'
+                : 'border-[#5FF3FF]/20 bg-[#04080F] hover:border-[#FFC15E]/45'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-indigo-200">
+                <span className="inline-flex items-center gap-1.5 border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.14em] text-[#FFC15E] uppercase">
                   <Wrench className="h-3.5 w-3.5" />
                   {isEs ? 'REALISTA · HARDCORE' : 'REALISTIC · HARDCORE'}
                 </span>
-                <Cpu className="h-4 w-4 text-indigo-300" />
+                <Cpu className="h-4 w-4 text-[#FFC15E]" />
               </div>
-              <h2 className="mt-3 text-base font-extrabold text-white">
+              <h2 className="mt-3 text-base font-medium tracking-tight text-white">
                 {isEs ? 'Ingeniero JPL Team X' : 'JPL Team X Engineer'}
               </h2>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
@@ -203,36 +230,39 @@ function OnboardingContent() {
                   : 'I am a JPL Engineer: Unlock raw telemetry (TRL, CBE+MGA, ΔV, Eb/N0), strict 35% NASA margins, and blind crisis commands.'}
               </p>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[10px] text-indigo-300">
-              <span className="rounded bg-slate-900 px-2 py-0.5">CBE + MGA</span>
-              <span className="rounded bg-slate-900 px-2 py-0.5">MCR ≥35%</span>
-              <span className="rounded bg-slate-900 px-2 py-0.5">{isEs ? 'Sin Pistas' : 'Zero Hints'}</span>
+            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] tracking-[0.12em] text-[#FFC15E] uppercase">
+              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">CBE + MGA</span>
+              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">MCR ≥35%</span>
+              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">
+                {isEs ? 'Sin Pistas' : 'Zero Hints'}
+              </span>
             </div>
-          </motion.button>
+          </button>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4">
-          <span className="flex items-center gap-1.5 text-[11px] text-slate-400">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#5FF3FF]/20 pt-4">
+          <span className="flex items-center gap-1.5 font-mono text-[10px] text-slate-400">
+            <ShieldCheck className="h-4 w-4 text-[#5FF3FF]" />
             {isEs
               ? 'Puedes alternar dificultad y callsign en la barra superior cuando quieras.'
               : 'You can switch difficulty or callsign from the top bar at any time.'}
           </span>
 
-          <motion.button
+          <button
             type="button"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => completeOnboarding(selectedMode, draftCommander, draftMission)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 px-5 py-2.5 text-xs font-black text-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.3)]"
+            onClick={() => {
+              playHoloTone('STAR', soundEnabled);
+              completeOnboarding(selectedMode, draftCommander, draftMission);
+            }}
+            className="inline-flex items-center gap-2 border border-[#5FF3FF] bg-[#5FF3FF]/15 px-5 py-2.5 font-mono text-[11px] font-bold tracking-[0.18em] text-[#5FF3FF] uppercase shadow-[0_0_24px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/25"
           >
             <Rocket className="h-4 w-4" />
             <span>
               {isEs
-                ? `Asumir Mando: Misión ${draftMission.trim() || 'Inti-1'}`
+                ? `Asumir Mando: ${draftMission.trim() || 'Inti-1'}`
                 : `Assume Command: ${draftMission.trim() || 'Inti-1'}`}
             </span>
-          </motion.button>
+          </button>
         </div>
       </motion.div>
     </motion.div>
