@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Languages, Volume2, VolumeX, X } from 'lucide-react';
 import { useMissionStore } from '../store';
@@ -425,11 +425,13 @@ export function StoryCinematicModal() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [prevCinematicId, setPrevCinematicId] = useState(activeCinematicId);
   const [typedChars, setTypedChars] = useState(0);
+  const [voiceDone, setVoiceDone] = useState(false);
 
   if (activeCinematicId !== prevCinematicId) {
     setPrevCinematicId(activeCinematicId);
     setSlideIdx(0);
     setTypedChars(0);
+    setVoiceDone(false);
   }
 
   const scene = activeCinematicId ? STORY_CINEMATICS[activeCinematicId] : null;
@@ -465,46 +467,49 @@ export function StoryCinematicModal() {
   useEffect(() => {
     if (!activeCinematicId || !currentSlide || !fullDialogue) return;
     const timer = window.setTimeout(() => {
+      setVoiceDone(false);
       speakCharacterLine(
         fullDialogue,
         language,
         currentSlide.speaker,
         soundEnabled,
+        () => setVoiceDone(true),
       );
-    }, 120);
+    }, 110);
     return () => {
       window.clearTimeout(timer);
       stopCharacterVoice();
     };
   }, [activeCinematicId, safeIdx, language, soundEnabled, currentSlide, fullDialogue]);
 
-  if (!activeCinematicId || !scene || !currentSlide) return null;
-
   const isEs = language === 'es';
   const isLastSlide = safeIdx >= slides.length - 1;
   const shownText = fullDialogue.slice(0, typedChars);
 
   const speakerBadgeColor =
-    currentSlide.speaker === 'ROSTOVA'
+    currentSlide?.speaker === 'ROSTOVA'
       ? 'border-[#FF4D6D] text-[#FF4D6D] bg-[#FF4D6D]/15'
-      : currentSlide.speaker === 'VEGA'
+      : currentSlide?.speaker === 'VEGA'
         ? 'border-[#5FF3FF] text-[#5FF3FF] bg-[#5FF3FF]/15'
         : 'border-[#FFC15E] text-[#FFC15E] bg-[#FFC15E]/15';
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (typedChars < fullDialogue.length) {
       setTypedChars(fullDialogue.length);
       return;
     }
 
+    stopCharacterVoice();
+
     if (!isLastSlide) {
       playHoloTone('STEP', soundEnabled);
       setTypedChars(0);
+      setVoiceDone(false);
       setSlideIdx((i) => i + 1);
       return;
     }
 
-    stopCharacterVoice();
+    if (!scene) return;
 
     if (scene.requiresCadetNameInput) {
       playHoloTone('STAR', soundEnabled);
@@ -527,7 +532,33 @@ export function StoryCinematicModal() {
 
     playHoloTone('STEP', soundEnabled);
     closeCinematic();
-  };
+  }, [
+    typedChars,
+    fullDialogue.length,
+    isLastSlide,
+    soundEnabled,
+    scene,
+    closeCinematic,
+    loadPreset,
+    advanceToAct2Jpl,
+    completeStoryAndUnlockSandbox,
+  ]);
+
+  // Keyboard shortcut listener for space/enter continuation
+  useEffect(() => {
+    if (!activeCinematicId) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeCinematicId, handleNext]);
+
+  if (!activeCinematicId || !scene || !currentSlide) return null;
 
   return (
     <AnimatePresence>
@@ -685,12 +716,16 @@ export function StoryCinematicModal() {
               >
                 {typedChars < fullDialogue.length
                   ? isEs
-                    ? 'MOSTRAR TEXTO COMPLETO ⏭'
-                    : 'SHOW FULL TEXT ⏭'
+                    ? 'COMPLETAR TEXTO ►►'
+                    : 'COMPLETE TEXT ►►'
                   : !isLastSlide
                     ? isEs
-                      ? 'SIGUIENTE ESCENA →'
-                      : 'NEXT SCENE →'
+                      ? voiceDone
+                        ? 'SIGUIENTE ESCENA [ESPACIO] →'
+                        : 'SIGUIENTE ESCENA →'
+                      : voiceDone
+                        ? 'NEXT SCENE [SPACE] →'
+                        : 'NEXT SCENE →'
                     : scene.requiresCadetNameInput
                       ? isEs
                         ? `ENCENDER CONSOLA, CADETE ${cadetName} →`

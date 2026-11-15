@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { useMissionStore, type RobotSpotlightZone } from '../store';
 import type { CMLPhase } from '../types/mission';
+import { playHoloTone } from './holoAudio';
 import { COMMANDER_PHASE_BEATS } from './narrativeConfig';
 
 /**
@@ -339,6 +340,7 @@ export function AstraFloatingCompanion() {
     language,
     phase,
     activeCinematicId,
+    soundEnabled,
     setRobotHoverZone,
   } = useMissionStore();
 
@@ -429,6 +431,7 @@ export function AstraFloatingCompanion() {
         <button
           type="button"
           onClick={() => {
+            playHoloTone('STEP', soundEnabled);
             setIsOpen(true);
             setRobotHoverZone(effectiveZone);
             setViewportTick((t) => t + 1);
@@ -501,6 +504,7 @@ export function AstraFloatingCompanion() {
           <button
             type="button"
             onClick={() => {
+              playHoloTone('STEP', soundEnabled);
               setIsOpen(false);
               setRobotHoverZone(null);
             }}
@@ -528,6 +532,7 @@ export function AstraFloatingCompanion() {
             type="button"
             disabled={!customZoneOverride && safeStepIdx === 0}
             onClick={() => {
+              playHoloTone('STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
                 return;
@@ -546,6 +551,8 @@ export function AstraFloatingCompanion() {
           <button
             type="button"
             onClick={() => {
+              const isLast = !customZoneOverride && safeStepIdx === steps.length - 1;
+              playHoloTone(isLast ? 'STAR' : 'STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
                 setStepIdx((i) => (i + 1 < steps.length ? i + 1 : 0));

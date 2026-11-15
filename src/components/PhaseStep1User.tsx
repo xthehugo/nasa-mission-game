@@ -88,6 +88,9 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   type="button"
                   onClick={() => {
                     setCubesatFormFactor(ch.id);
+                    if (level1TutorialStep <= 1) {
+                      setLevel1TutorialStep(2);
+                    }
                     playHoloTone('STEP', soundEnabled);
                   }}
                   className={`w-full border-l-2 px-3 py-2 text-left transition ${
