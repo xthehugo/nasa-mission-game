@@ -9,6 +9,7 @@ import SpacecraftBlueprint, { type FailureMode } from './SpacecraftBlueprint';
 import TelemetryStripCharts, { type TelemetrySample } from './TelemetryStripCharts';
 import SubsystemStressHeatmap from '../components/SubsystemStressHeatmap';
 import DeploymentTimelineStepper from '../components/DeploymentTimelineStepper';
+import BlackBoxFailureAutopsyModal from '../components/BlackBoxFailureAutopsyModal';
 
 interface Props {
   destination: OrbitalDestination | null;
@@ -396,8 +397,6 @@ export default function MissionStage({
           : failureMode === 'DELTAV_DEPLETION'
             ? `${t.nogo.DELTAV_DEPLETION} (${metrics?.deltaV_available_ms} / ${metrics?.deltaV_required_ms} m/s)`
             : t.nogo[failureMode];
-
-  const anomalyInfo = failureMode === 'NONE' ? null : t.anomalies[failureMode];
 
   const cards: [string, string][] = [
     [t.alt, `${Math.round(snap.altKm).toLocaleString()} km`],
@@ -853,41 +852,25 @@ export default function MissionStage({
         />
       )}
 
-      {/* Banner de falla específico con botón AUTO-REPARAR */}
-      {stage === 'FAILURE' && anomalyInfo && (
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: 16,
-            transform: 'translateX(-50%)',
-            zIndex: 6,
-            width: 'min(94%, 600px)',
-            textAlign: 'center',
-            background:
-              failureMode === 'POWER_FREEZE'
-                ? 'rgba(12,74,110,0.94)'
-                : 'rgba(127,29,29,0.94)',
-            border: `1px solid ${failureMode === 'POWER_FREEZE' ? '#38bdf8' : '#FF4D6D'}`,
-            borderRadius: embedded ? 4 : 12,
-            padding: '10px 14px',
-            animation: 'pop .55s ease-out',
+      {/* Poly Bridge Black Box Slow-Mo Failure Autopsy Modal */}
+      {stage === 'FAILURE' && failureMode !== 'NONE' && (
+        <BlackBoxFailureAutopsyModal
+          failureMode={failureMode}
+          metrics={metrics}
+          volume={volume}
+          missionClock={clock}
+          stressPct={snap.stressPct}
+          altKm={snap.altKm}
+          velKmS={snap.velKmS}
+          fuelPct={snap.fuelPct}
+          lang={lang}
+          onQuickFix={onQuickFix ? handleAutoFix : undefined}
+          onRewindSlowMo={() => {
+            setElapsedMs(Math.max(0, failAt - 2500));
+            setSimSpeed(0.5);
+            setSimPlaying(true);
           }}
-        >
-          <div style={{ fontSize: embedded ? 13 : 17, fontWeight: 800 }}>{anomalyInfo.head}</div>
-          <div style={{ fontSize: embedded ? 11 : 12.5, marginTop: 4, color: '#e2e8f0' }}>
-            {anomalyInfo.lesson}
-          </div>
-          {onQuickFix && (
-            <button
-              type="button"
-              onClick={handleAutoFix}
-              className="mt-2.5 border border-[#5FF3FF] bg-[#04080F]/90 px-3.5 py-1.5 font-mono text-[10.5px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/20"
-            >
-              {t.autoFix}
-            </button>
-          )}
-        </div>
+        />
       )}
 
       {/* Cuenta regresiva */}
