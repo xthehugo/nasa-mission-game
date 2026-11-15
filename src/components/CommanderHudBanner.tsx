@@ -6,7 +6,7 @@ import {
   Film,
   Volume2,
 } from 'lucide-react';
-import { useMissionStore } from '../store';
+import { useMissionStore, type RobotSpotlightZone } from '../store';
 import {
   computeLevelStars,
   computeTankExtraMassKg,
@@ -20,6 +20,7 @@ import {
   formatStoryText,
   getPhaseInteractiveTour,
 } from './narrativeConfig';
+import { RobotSvgIcon } from './RobotAssistantGuide';
 
 export function CommanderHudBanner() {
   const {
@@ -43,7 +44,9 @@ export function CommanderHudBanner() {
     openCinematic,
     nextPhaseTutorialStep,
     prevPhaseTutorialStep,
+    setPhaseTutorialStep,
     setGuideTourActive,
+    setRobotHoverZone,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -136,7 +139,44 @@ export function CommanderHudBanner() {
   }
 
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeSpeaker, setActiveSpeaker] = useState<'NONE' | 'VEGA' | 'ASTRA'>('NONE');
   const lastSpokenKeyRef = useRef<string>('');
+
+  // Sync robot spotlight highlight to the active tour step
+  useEffect(() => {
+    if (activeCinematicId || !isGuideTourActive || !activeTourStep) {
+      setRobotHoverZone(null);
+      return;
+    }
+    setRobotHoverZone(activeTourStep.targetZone);
+  }, [activeCinematicId, activeTourStep, isGuideTourActive, setRobotHoverZone]);
+
+  // Right-Click (Anticlic) anywhere on a panel with [data-astra-zone] jumps to that guidance step
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      if (activeCinematicId) return;
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const zoneEl = target.closest('[data-astra-zone]') as HTMLElement | null;
+      if (!zoneEl) return;
+
+      const zoneAttr = zoneEl.getAttribute('data-astra-zone') as RobotSpotlightZone | null;
+      if (!zoneAttr) return;
+
+      e.preventDefault();
+      setGuideTourActive(true);
+
+      const matchingIdx = tourSteps.findIndex((s) => s.targetZone === zoneAttr);
+      if (matchingIdx >= 0) {
+        setPhaseTutorialStep(matchingIdx);
+      }
+      setRobotHoverZone(zoneAttr);
+      playHoloTone('STEP', soundEnabled);
+    };
+
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => window.removeEventListener('contextmenu', handleContextMenu);
+  }, [activeCinematicId, setGuideTourActive, setPhaseTutorialStep, setRobotHoverZone, soundEnabled, tourSteps]);
 
   const flightAlert = overMass
     ? 'OVERMASS'
@@ -275,10 +315,10 @@ export function CommanderHudBanner() {
 
       {/* Interactive Guided Tour Card across ALL Modules */}
       {activeTourStep && (
-        <div className="border-2 border-[#5FF3FF] bg-[#5FF3FF]/10 p-3 shadow-[0_0_24px_rgba(95,243,255,0.22)]">
+        <div className="border border-[#5FF3FF]/60 bg-[#040B14]/92 p-3 shadow-[0_0_24px_rgba(95,243,255,0.18)]">
           <div className="flex items-center justify-between gap-2 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-[#5FF3FF] animate-pulse" />
+              <RobotSvgIcon className="h-4 w-4 text-[#5FF3FF]" />
               <span>{activeTourStep.badge[language]}</span>
             </span>
             <div className="flex items-center gap-2">
@@ -290,7 +330,7 @@ export function CommanderHudBanner() {
               <button
                 type="button"
                 onClick={() => setGuideTourActive(!isGuideTourActive)}
-                className="text-[8.5px] text-slate-400 underline hover:text-white"
+                className="text-[8.5px] text-slate-400 underline hover:text-white cursor-pointer"
               >
                 {isEs ? 'Ocultar guía' : 'Hide guide'}
               </button>
@@ -307,7 +347,22 @@ export function CommanderHudBanner() {
               .replace('{callsign}', activeCallsign)}
           </p>
 
-          <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-[#5FF3FF]/20">
+          {/* ASTRA Pedagogical Tip */}
+          {activeTourStep.astraTip && (
+            <div className="mt-2.5 flex items-start gap-2 rounded border border-[#5FF3FF]/35 bg-[#5FF3FF]/10 p-2 text-left">
+              <RobotSvgIcon className="h-5 w-5 shrink-0 text-[#5FF3FF] mt-0.5" />
+              <div className="leading-snug">
+                <span className="font-mono text-[8px] font-bold tracking-wider text-[#FFC15E] uppercase">
+                  {isEs ? '◈ PISTA DIDÁCTICA ASTRA: ' : '◈ ASTRA TUTOR TIP: '}
+                </span>
+                <span className="text-[10.5px] text-slate-200">
+                  {activeTourStep.astraTip[language]}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#5FF3FF]/20">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -316,7 +371,7 @@ export function CommanderHudBanner() {
                   playHoloTone('STEP', soundEnabled);
                   prevPhaseTutorialStep();
                 }}
-                className={`inline-flex items-center gap-1 border px-2.5 py-1 font-mono text-[9px] uppercase transition ${
+                className={`inline-flex items-center gap-1 border px-2.5 py-1 font-mono text-[9px] uppercase transition cursor-pointer ${
                   safeTourIdx === 0
                     ? 'cursor-not-allowed border-slate-800 bg-[#04080F]/40 text-slate-600'
                     : 'border-slate-700 bg-[#08111E] text-slate-300 hover:border-[#5FF3FF]/60 hover:text-white'
@@ -337,7 +392,7 @@ export function CommanderHudBanner() {
                     setGuideTourActive(false);
                   }
                 }}
-                className="inline-flex items-center gap-1 border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1 font-mono text-[9px] font-bold text-[#5FF3FF] uppercase shadow-[0_0_12px_rgba(95,243,255,0.25)] hover:bg-[#5FF3FF]/30 transition"
+                className="inline-flex items-center gap-1 border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1 font-mono text-[9px] font-bold text-[#5FF3FF] uppercase shadow-[0_0_12px_rgba(95,243,255,0.25)] hover:bg-[#5FF3FF]/30 transition cursor-pointer"
               >
                 <span>
                   {safeTourIdx === tourSteps.length - 1
@@ -348,18 +403,48 @@ export function CommanderHudBanner() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setIsSpeaking(true);
-                speakCharacterLine(vegaText, language, 'VEGA', true, () => setIsSpeaking(false));
-              }}
-              title={isEs ? 'Repetir voz del Comandante' : 'Replay Commander voice'}
-              className="inline-flex items-center gap-1 border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-2 py-1 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 transition"
-            >
-              <Volume2 className="h-3 w-3" />
-              <span>{isEs ? 'VOZ' : 'REPLAY'}</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveSpeaker('VEGA');
+                  setIsSpeaking(true);
+                  speakCharacterLine(vegaText, language, 'VEGA', true, () => {
+                    setActiveSpeaker('NONE');
+                    setIsSpeaking(false);
+                  });
+                }}
+                title={isEs ? 'Escuchar voz de mando del Comandante Vega' : 'Listen to Commander Vega'}
+                className={`inline-flex items-center gap-1 border px-2 py-1 font-mono text-[8.5px] transition cursor-pointer ${
+                  activeSpeaker === 'VEGA'
+                    ? 'border-[#FFC15E] bg-[#FFC15E]/25 text-white shadow-[0_0_10px_rgba(255,193,94,0.4)]'
+                    : 'border-[#FFC15E]/50 bg-[#FFC15E]/10 text-[#FFC15E] hover:bg-[#FFC15E]/20'
+                }`}
+              >
+                <Volume2 className="h-3 w-3" />
+                <span>{isEs ? 'VOZ VEGA' : 'VOICE VEGA'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const astraText = activeTourStep.astraTip?.[language] || activeTourStep.instruction[language];
+                  setActiveSpeaker('ASTRA');
+                  speakCharacterLine(astraText, language, 'ROSTOVA', true, () => {
+                    setActiveSpeaker('NONE');
+                  });
+                }}
+                title={isEs ? 'Escuchar consejo didáctico de ASTRA (la chica)' : 'Listen to ASTRA assistant tip'}
+                className={`inline-flex items-center gap-1 border px-2 py-1 font-mono text-[8.5px] transition cursor-pointer ${
+                  activeSpeaker === 'ASTRA'
+                    ? 'border-[#5FF3FF] bg-[#5FF3FF]/25 text-white shadow-[0_0_10px_rgba(95,243,255,0.4)]'
+                    : 'border-[#5FF3FF]/50 bg-[#5FF3FF]/10 text-[#5FF3FF] hover:bg-[#5FF3FF]/20'
+                }`}
+              >
+                <RobotSvgIcon className="h-3.5 w-3.5" />
+                <span>{isEs ? 'VOZ ASTRA' : 'VOICE ASTRA'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, ArrowLeft } from 'lucide-react';
 import {
-  AstraFloatingCompanion,
   CampaignMapModal,
   COMMANDER_PHASE_BEATS,
   CommanderHudBanner,
@@ -360,7 +359,6 @@ export function App() {
         </nav>
       </footer>
 
-      <AstraFloatingCompanion />
       <CommanderOnboardingModal />
       <CampaignMapModal />
       <GoogleAIStudioModal />
