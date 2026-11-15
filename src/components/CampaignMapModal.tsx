@@ -299,7 +299,7 @@ export const CampaignMapModal: React.FC = () => {
                       {activeIdx === 0 ? '🌍' : activeIdx === 1 ? '☀️' : activeIdx === 2 ? '📡' : activeIdx === 3 ? '🌙' : activeIdx === 4 ? '🔭' : '🪐'}
                     </span>
                     <span className="mt-2 text-xs font-bold text-[#5FF3FF] tracking-wider uppercase">
-                      {contract.destinationId.replace('dest-', '').toUpperCase()}
+                      {contract.code.split('·')[1]?.trim() || contract.destinationId.replace('dest-', '').toUpperCase()}
                     </span>
                   </div>
 

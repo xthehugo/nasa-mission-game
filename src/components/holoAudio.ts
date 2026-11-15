@@ -217,10 +217,18 @@ function fallbackBrowserSpeech(
 
     if (matchingVoices.length > 0) {
       if (speaker === 'VEGA') {
-        const maleMatch = matchingVoices.find((v) =>
-          /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male/i.test(v.name),
+        const nonFemale = matchingVoices.filter(
+          (v) =>
+            !/helena|sabina|laura|paulina|monica|elvira|zira|aria|samantha|victoria|female|mujer|hazel|susan|hilda|paloma|carmen|marta|conchita/i.test(
+              v.name,
+            ),
         );
-        utter.voice = maleMatch ?? matchingVoices[0];
+        const maleMatch = (nonFemale.length > 0 ? nonFemale : matchingVoices).find((v) =>
+          /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male|hombre|enrique|mateo|geraldo|alvaro|manuel|julio|rodrigo|alberto/i.test(
+            v.name,
+          ),
+        );
+        utter.voice = maleMatch ?? (nonFemale.length > 0 ? nonFemale[0] : matchingVoices[0]);
       } else if (speaker === 'ROSTOVA') {
         const femaleMatch = matchingVoices.find((v) =>
           /helena|laura|sabina|paulina|monica|elvira|zira|aria|samantha|victoria|female/i.test(
@@ -234,8 +242,8 @@ function fallbackBrowserSpeech(
     }
 
     if (speaker === 'VEGA') {
-      utter.pitch = 0.88;
-      utter.rate = 1.0;
+      utter.pitch = 0.78;
+      utter.rate = 0.96;
     } else if (speaker === 'ROSTOVA') {
       utter.pitch = 1.08;
       utter.rate = 1.02;
@@ -274,6 +282,13 @@ function findPrebakedVoiceUrl(
     }
     if (customEngineer && customEngineer !== 'Vanguard') {
       canonical = canonical.replaceAll(customEngineer, 'Vanguard');
+    }
+    const customMission = window.localStorage.getItem('orbital_forge_mission_name')?.trim();
+    if (customMission && customMission !== 'Ícaro-Pionero' && customMission !== 'Icarus-Pioneer') {
+      canonical = canonical.replaceAll(
+        customMission,
+        lang === 'es' ? 'Ícaro-Pionero' : 'Icarus-Pioneer',
+      );
     }
   } catch {
     // ignore storage errors

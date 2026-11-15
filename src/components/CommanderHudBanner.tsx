@@ -76,12 +76,20 @@ export function CommanderHudBanner() {
 
   let vegaText = '';
   if (activeTourStep) {
-    vegaText = formatStoryText(
-      activeTourStep.instruction[language],
-      cadetName,
-      engineerName,
-      missionCustomName,
-    );
+    if (activeTourStep.step === 0 && beat) {
+      vegaText = formatCommanderBeat(
+        isCadet ? beat.cadetScript[language] : beat.jplScript[language],
+        activeCallsign,
+        missionCustomName,
+      );
+    } else {
+      vegaText = formatStoryText(
+        activeTourStep.instruction[language],
+        cadetName,
+        engineerName,
+        missionCustomName,
+      );
+    }
   } else if (overMass) {
     vegaText = isCadet
       ? isEs

@@ -20,6 +20,37 @@ const DISCIPLINES: Record<ScienceDiscipline, { en: string; es: string }> = {
   ASTROPHYSICS: { en: 'ASTROPHYSICS', es: 'ASTROFÍSICA' },
 };
 
+const OBJECTIVE_STATEMENTS: Record<string, { en: string; es: string }> = {
+  'obj-earth-bionutrients': {
+    en: 'Design a 3U CubeSat with margin >= 35% to track ocean and coastal environmental shifts from LEO.',
+    es: 'Diseñar un CubeSat 3U con margen ≥ 35% para detectar cambios ambientales costeros desde LEO.',
+  },
+  'obj-geo-goes-weather': {
+    en: 'Design a space weather sentinel with margin >= 35% to monitor solar storms from GEO (35,786 km).',
+    es: 'Diseñar un centinela espacial con margen ≥ 35% para vigilar tormentas solares desde GEO (35,786 km).',
+  },
+  'obj-sso-tracers': {
+    en: 'Design tandem SmallSats with margin >= 35% to measure magnetic reconnection in Polar SSO orbit.',
+    es: 'Diseñar satélites en tándem con margen ≥ 35% para medir reconexión magnética en órbita polar SSO.',
+  },
+  'obj-l2-jwst-fgs': {
+    en: 'Design a flagship infrared observatory with cryogenic stability and margin >= 35% at Sun-Earth L2.',
+    es: 'Diseñar un observatorio infrarrojo con estabilidad criogénica y margen ≥ 35% en el punto Sol-Tierra L2.',
+  },
+  'obj-helio-lunar-trailblazer': {
+    en: 'Design a lunar explorer probe with margin >= 35% to map polar water ice volatiles in Lunar Orbit.',
+    es: 'Diseñar una sonda exploradora lunar con margen ≥ 35% para mapear hielo polar en Órbita Lunar.',
+  },
+  'obj-mars-reconnaissance': {
+    en: 'Design an interplanetary orbiter with margin >= 35% to map terrain and atmosphere in Mars Orbit.',
+    es: 'Diseñar un orbitador interplanetario con margen ≥ 35% para mapear terreno y atmósfera en Órbita de Marte.',
+  },
+  'obj-jupiter-clipper': {
+    en: 'Design a radiation-hardened deep-space probe with margin >= 35% to explore Europa from Jovian Orbit.',
+    es: 'Diseñar una sonda de espacio profundo con blindaje y margen ≥ 35% para explorar Europa desde Órbita Joviana.',
+  },
+};
+
 const CHASSIS_OPTS: { id: CubeSatFormFactor; sub: { en: string; es: string } }[] = [
   { id: '1.5U', sub: { en: 'RIDESHARE', es: 'RIDESHARE' } },
   { id: '2U', sub: { en: 'BALANCED', es: 'EQUILIBRADO' } },
@@ -293,6 +324,10 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               type="button"
               onClick={() => {
                 setObjective(obj.id);
+                const statement = OBJECTIVE_STATEMENTS[obj.id]?.[language] || OBJECTIVE_STATEMENTS[obj.id]?.es;
+                if (statement) {
+                  setMissionStatement(statement);
+                }
                 if (level1TutorialStep <= 3) {
                   setLevel1TutorialStep(4);
                 }

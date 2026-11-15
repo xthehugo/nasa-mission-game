@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GraduationCap,
@@ -10,6 +10,7 @@ import {
   VolumeX,
   Wrench,
   Check,
+  X,
 } from 'lucide-react';
 import { useMissionStore } from '../store';
 import type { ExperienceMode } from '../types/mission';
@@ -128,6 +129,30 @@ function OnboardingContent() {
     };
   }, []);
 
+  const handleClose = useCallback(() => {
+    stopCharacterVoice();
+    playHoloTone('STEP', soundEnabled);
+    const mode: ExperienceMode = selectedRole === 'STUDENT' ? 'CADET' : 'JPL_ENGINEER';
+    const cleanCallsign = draftCallsign.trim() || (selectedRole === 'STUDENT' ? 'Orion' : 'Vanguard');
+    completeOnboarding(
+      mode,
+      cleanCallsign,
+      missionCustomName || 'Ícaro-Pionero',
+      cleanCallsign,
+      cleanCallsign
+    );
+  }, [completeOnboarding, draftCallsign, missionCustomName, selectedRole, soundEnabled]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleClose]);
+
   const handleEnlist = () => {
     unlockAudioContext();
     playHoloTone('STAR', soundEnabled);
@@ -174,17 +199,29 @@ function OnboardingContent() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              playHoloTone('STEP', soundEnabled);
-              setLanguage(isEs ? 'en' : 'es');
-            }}
-            className="inline-flex items-center gap-1.5 rounded border border-[#5FF3FF]/40 bg-[#060d1a] px-3 py-1.5 text-xs text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
-          >
-            <Languages className="h-3.5 w-3.5" />
-            <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                setLanguage(isEs ? 'en' : 'es');
+              }}
+              className="inline-flex items-center gap-1.5 rounded border border-[#5FF3FF]/40 bg-[#060d1a] px-3 py-1.5 text-xs text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10 cursor-pointer"
+            >
+              <Languages className="h-3.5 w-3.5" />
+              <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label={isEs ? 'Cerrar alistamiento (ESC)' : 'Close enlistment (ESC)'}
+              className="inline-flex items-center justify-center h-8 w-8 rounded border border-[#5FF3FF]/40 bg-[#060d1a] text-slate-300 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/15 hover:text-[#FF4D6D] transition cursor-pointer"
+              title={isEs ? 'Cerrar ventana (ESC)' : 'Close modal (ESC)'}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Commander Frank Vega Holographic Briefing */}
