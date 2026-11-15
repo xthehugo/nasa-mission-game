@@ -206,7 +206,7 @@ export function App() {
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500&display=swap'); .font-mono { font-family: 'JetBrains Mono', monospace; }`}</style>
 
-      <div className="shrink-0 z-30">
+      <div className="sticky top-0 z-40 bg-[#04080F]/95 backdrop-blur-md shrink-0 border-b border-[#5FF3FF]/20">
         <TopBar />
       </div>
 
@@ -266,10 +266,10 @@ export function App() {
           </div>
         </section>
 
-        {/* CENTER ZONE: Hero Hologram Stage (Locked in view, stays centered while laterals scroll) */}
+        {/* CENTER ZONE: Hero Hologram Stage (Locked sticky in view, stays centered while laterals scroll) */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 lg:order-2 lg:col-span-6 lg:h-full flex flex-col justify-between py-1 px-1 transition-all z-20 shrink-0 lg:overflow-y-auto telemetry-scrollbar ${
+          className={`order-1 lg:order-2 lg:col-span-6 sticky top-14 self-start lg:h-full flex flex-col justify-between py-1 px-1 transition-all z-20 shrink-0 lg:overflow-y-auto telemetry-scrollbar ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
@@ -382,7 +382,7 @@ export function App() {
       {/* Bottom 6-Level Progressive Navigation Strip (Locked on bottom) */}
       <footer
         data-astra-zone="FOOTER_LEVELS"
-        className={`shrink-0 z-30 border-t border-[#5FF3FF]/20 px-4 py-2 transition-all sm:px-6 ${
+        className={`sticky bottom-0 z-30 shrink-0 border-t border-[#5FF3FF]/20 bg-[#04080F]/95 backdrop-blur-md px-4 py-2 transition-all sm:px-6 ${
           robotHoverZone === 'FOOTER_LEVELS'
             ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
             : ''

@@ -175,6 +175,11 @@ function OnboardingContent() {
       initial={reducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={reducedMotion ? undefined : { opacity: 0, pointerEvents: 'none' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#02050B]/90 p-4 backdrop-blur-md font-mono"
     >
       <motion.div
@@ -216,10 +221,11 @@ function OnboardingContent() {
               type="button"
               onClick={handleClose}
               aria-label={isEs ? 'Cerrar alistamiento (ESC)' : 'Close enlistment (ESC)'}
-              className="inline-flex items-center justify-center h-8 w-8 rounded border border-[#5FF3FF]/40 bg-[#060d1a] text-slate-300 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/15 hover:text-[#FF4D6D] transition cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded border border-[#FF4D6D]/60 bg-[#FF4D6D]/15 text-[#FF4D6D] hover:bg-[#FF4D6D]/30 transition cursor-pointer font-mono text-xs font-bold"
               title={isEs ? 'Cerrar ventana (ESC)' : 'Close modal (ESC)'}
             >
               <X className="h-4 w-4" />
+              <span className="hidden sm:inline">{isEs ? 'CERRAR' : 'CLOSE'}</span>
             </button>
           </div>
         </div>

@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
 @layer base {
+  html, body, #root {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #04080F;
+    color: #F1F5F9;
+  }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   summary,

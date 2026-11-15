@@ -379,7 +379,7 @@ export const CampaignMapModal: React.FC = () => {
                   {isFirstIntroCampaign && (
                     <div className="inline-flex items-center gap-1.5 rounded border border-[#5FF3FF] bg-[#5FF3FF]/15 px-2.5 py-0.5 text-[10px] font-bold text-[#5FF3FF] uppercase mb-2 animate-pulse">
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>{isEs ? 'CAMPAÑA 01 · ACADEMIA DE VUELO (TUTORIAL INTRODUCTORIO)' : 'CAMPAIGN 01 · FLIGHT ACADEMY (INTRO TUTORIAL)'}</span>
+                      <span>{isEs ? 'CAMPAÑA 01 · ACADEMIA DE VUELO EN LEO (ÓRBITA BAJA TERRESTRE ~400 KM)' : 'CAMPAIGN 01 · FLIGHT ACADEMY IN LEO (LOW EARTH ORBIT ~400 KM)'}</span>
                     </div>
                   )}
 
