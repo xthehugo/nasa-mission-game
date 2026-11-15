@@ -125,14 +125,8 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
 
   return (
     <div className="space-y-3">
-      <SubsystemHoverPreview
-        hoveredOpt={hoveredOpt}
-        selection={selection}
-        language={language}
-      />
-
       <div className="space-y-2">
-        {getSubsystemsByCategory(activeSubsystemTab).map((opt) => {
+        {getSubsystemsByCategory(activeSubsystemTab).map((opt, idx) => {
           const selected = isSelected(opt);
           const pick = isCadet && isCadetPick(opt);
           return (
@@ -154,12 +148,21 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                   impact: 'POSITIVE',
                 });
               }}
-              className={`w-full border p-3 text-left transition ${
+              className={`relative w-full border p-3 text-left transition ${
                 selected
                   ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_16px_rgba(95,243,255,0.16)]'
                   : 'border-[#5FF3FF]/20 hover:border-[#5FF3FF]/55'
               }`}
             >
+              {hoveredOpt?.id === opt.id && (
+                <SubsystemHoverPreview
+                  hoveredOpt={opt}
+                  selection={selection}
+                  language={language}
+                  isFirst={idx === 0}
+                />
+              )}
+
               <div className="flex flex-wrap items-center justify-between gap-1.5">
                 <span className="text-xs font-light text-white">{opt.name[language]}</span>
                 {pick && (
