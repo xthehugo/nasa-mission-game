@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ChevronDown, Film, HelpCircle, Volume2, Zap } from 'lucide-react';
+import {
+  Bot,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Film,
+  Volume2,
+  Zap,
+} from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
@@ -13,6 +22,7 @@ import {
   COMMANDER_PHASE_BEATS,
   formatCommanderBeat,
   formatStoryText,
+  getPhaseInteractiveTour,
 } from './narrativeConfig';
 import {
   LEVEL1_TOTAL_STEPS,
@@ -31,6 +41,8 @@ export function CommanderHudBanner() {
     activeCinematicId,
     activeCampaignLevelId,
     level1TutorialStep,
+    phaseTutorialStep,
+    isGuideTourActive,
     tutorialFeedback,
     metrics,
     concurrentConflicts,
@@ -42,6 +54,10 @@ export function CommanderHudBanner() {
     openCinematic,
     setPhase,
     setLevel1TutorialStep,
+    setPhaseTutorialStep,
+    nextPhaseTutorialStep,
+    prevPhaseTutorialStep,
+    setRobotHoverZone,
     setTutorialFeedback,
   } = useMissionStore();
 
@@ -56,6 +72,10 @@ export function CommanderHudBanner() {
   const activeTourStep = isLevel1GuidedTour
     ? LEVEL1_TUTORIAL_STEPS[level1TutorialStep]
     : null;
+
+  const phaseTourSteps = getPhaseInteractiveTour(phase);
+  const safePhaseTourIdx = Math.max(0, Math.min(phaseTutorialStep, phaseTourSteps.length - 1));
+  const activePhaseTourStep = phaseTourSteps[safePhaseTourIdx];
 
   const extraKg =
     phase === 'CML_4'
@@ -287,8 +307,8 @@ export function CommanderHudBanner() {
         </div>
       </div>
 
-      {/* Level 01 Interactive 10-Step Tutorial (Progress + Objective + Feedback + Inactivity Hint) */}
-      {activeTourStep && (
+      {/* Level 01 Interactive 10-Step Flight Academy Tutorial */}
+      {isLevel1GuidedTour && activeTourStep && (
         <div
           className={`pointer-events-auto relative z-30 border-l-2 bg-[#061224]/95 px-3 py-2.5 ${
             idleHint
@@ -307,17 +327,38 @@ export function CommanderHudBanner() {
                   speakCharacterLine(
                     `${activeTourStep.title[language]}. ${activeTourStep.why[language]}`,
                     language,
-                    isCadet ? 'VEGA' : 'ROSTOVA',
+                    'VEGA',
                     true,
                     () => setIsSpeaking(false),
                   );
                 }}
-                title={isEs ? 'Repetir explicación del paso actual' : 'Repeat current step guidance'}
-                className="inline-flex items-center gap-1 text-[10px] text-[#5FF3FF] hover:text-white"
+                title={isEs ? 'Escuchar orden del Comandante Vega' : 'Listen to Commander Vega order'}
+                className="inline-flex items-center gap-1 border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20"
               >
-                <HelpCircle className="h-3 w-3" />
-                <span>{isEs ? 'Ayuda' : 'Help'}</span>
+                <Volume2 className="h-3 w-3" />
+                <span>{isEs ? 'VOZ VEGA' : 'VOICE VEGA'}</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setIsSpeaking(true);
+                  speakCharacterLine(
+                    activeTourStep.inactivityHint[language],
+                    language,
+                    'ROSTOVA',
+                    true,
+                    () => setIsSpeaking(false),
+                  );
+                }}
+                title={isEs ? 'Escuchar pista didáctica de ASTRA' : 'Listen to ASTRA teaching hint'}
+                className="inline-flex items-center gap-1 border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-1.5 py-0.5 text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
+              >
+                <Bot className="h-3 w-3" />
+                <span>{isEs ? 'VOZ ASTRA' : 'VOICE ASTRA'}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -326,7 +367,7 @@ export function CommanderHudBanner() {
                 }}
                 className="text-[10px] text-slate-400 underline hover:text-white"
               >
-                {isEs ? 'Saltar tutorial' : 'Skip tutorial'}
+                {isEs ? 'Saltar' : 'Skip'}
               </button>
             </div>
           </div>
@@ -418,6 +459,153 @@ export function CommanderHudBanner() {
                 </span>
               </span>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Guided Tour across all other modules (CML 02-06 or replay) */}
+      {!isLevel1GuidedTour && isGuideTourActive && activePhaseTourStep && (
+        <div className="pointer-events-auto relative z-30 border-l-2 border-[#5FF3FF] bg-[#061224]/95 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[#FFC15E]">{activePhaseTourStep.badge[language]}</span>
+              <span className="text-slate-400">
+                ({safePhaseTourIdx + 1}/{phaseTourSteps.length})
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setIsSpeaking(true);
+                  speakCharacterLine(
+                    activePhaseTourStep.instruction[language],
+                    language,
+                    'VEGA',
+                    true,
+                    () => setIsSpeaking(false),
+                  );
+                }}
+                title={isEs ? 'Escuchar orden del Comandante Vega' : 'Listen to Commander Vega order'}
+                className="inline-flex items-center gap-1 border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20"
+              >
+                <Volume2 className="h-3 w-3" />
+                <span>{isEs ? 'VOZ VEGA' : 'VOICE VEGA'}</span>
+              </button>
+
+              {activePhaseTourStep.astraTip && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playHoloTone('STEP', soundEnabled);
+                    setIsSpeaking(true);
+                    speakCharacterLine(
+                      activePhaseTourStep.astraTip![language],
+                      language,
+                      'ROSTOVA',
+                      true,
+                      () => setIsSpeaking(false),
+                    );
+                  }}
+                  title={isEs ? 'Escuchar consejo pedagógico de ASTRA' : 'Listen to ASTRA teaching tip'}
+                  className="inline-flex items-center gap-1 border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-1.5 py-0.5 text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
+                >
+                  <Bot className="h-3 w-3" />
+                  <span>{isEs ? 'VOZ ASTRA' : 'VOICE ASTRA'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-1.5 text-[13px] font-semibold leading-snug text-white">
+            {activePhaseTourStep.title[language]}
+          </p>
+
+          <p className="mt-1 text-[12px] leading-relaxed text-slate-200">
+            {formatCommanderBeat(
+              activePhaseTourStep.instruction[language],
+              activeCallsign,
+              missionCustomName,
+            )}
+          </p>
+
+          {activePhaseTourStep.astraTip && (
+            <div className="mt-2 flex items-start gap-1.5 border-l border-[#5FF3FF]/60 bg-[#5FF3FF]/8 px-2 py-1 font-mono text-[10.5px] text-[#5FF3FF]">
+              <span className="shrink-0 font-bold">ASTRA:</span>
+              <span>{activePhaseTourStep.astraTip[language]}</span>
+            </div>
+          )}
+
+          {/* Stepper Navigation: Anterior / Siguiente */}
+          <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+            <button
+              type="button"
+              disabled={safePhaseTourIdx === 0}
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                prevPhaseTutorialStep();
+                const prevIdx = Math.max(0, safePhaseTourIdx - 1);
+                setRobotHoverZone(phaseTourSteps[prevIdx]?.targetZone ?? null);
+              }}
+              className={`inline-flex items-center gap-1 border px-2 py-1 font-mono text-[10px] uppercase transition ${
+                safePhaseTourIdx === 0
+                  ? 'cursor-not-allowed border-slate-800 text-slate-600'
+                  : 'border-slate-700 bg-[#08111E] text-slate-300 hover:border-[#5FF3FF]/60 hover:text-white'
+              }`}
+            >
+              <ChevronLeft className="h-3 w-3" />
+              <span>{isEs ? 'Anterior' : 'Previous'}</span>
+            </button>
+
+            {/* Step indicator dots */}
+            <div className="flex items-center gap-1">
+              {phaseTourSteps.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    playHoloTone('STEP', soundEnabled);
+                    setPhaseTutorialStep(idx);
+                    setRobotHoverZone(phaseTourSteps[idx]?.targetZone ?? null);
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === safePhaseTourIdx
+                      ? 'w-4 bg-[#5FF3FF]'
+                      : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                  }`}
+                  title={`${isEs ? 'Paso' : 'Step'} ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                if (safePhaseTourIdx + 1 < phaseTourSteps.length) {
+                  nextPhaseTutorialStep(phaseTourSteps.length - 1);
+                  const nextIdx = safePhaseTourIdx + 1;
+                  setRobotHoverZone(phaseTourSteps[nextIdx]?.targetZone ?? null);
+                } else {
+                  // Tour completed for this module
+                  setRobotHoverZone(null);
+                  setPhaseTutorialStep(0);
+                }
+              }}
+              className="inline-flex items-center gap-1 border border-[#5FF3FF] bg-[#5FF3FF]/20 px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.1em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+            >
+              <span>
+                {safePhaseTourIdx + 1 < phaseTourSteps.length
+                  ? isEs
+                    ? 'Siguiente'
+                    : 'Next'
+                  : isEs
+                    ? 'Completado ✓'
+                    : 'Completed ✓'}
+              </span>
+              <ChevronRight className="h-3 w-3" />
+            </button>
           </div>
         </div>
       )}

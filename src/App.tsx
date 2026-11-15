@@ -6,7 +6,6 @@ import {
   LEVEL1_TUTORIAL_STEPS,
 } from './components/level1TutorialConfig';
 import {
-  AstraFloatingCompanion,
   CampaignMapModal,
   COMMANDER_PHASE_BEATS,
   CommanderHudBanner,
@@ -233,7 +232,9 @@ export function App() {
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500&display=swap'); .font-mono { font-family: 'JetBrains Mono', monospace; }`}</style>
 
-      <TopBar />
+      <div className="sticky top-0 z-40 bg-[#04080F]/95 backdrop-blur-md shrink-0 border-b border-[#5FF3FF]/20">
+        <TopBar />
+      </div>
 
       {/* 3-Zone Holographic Stage (Center Hologram first on mobile, 100dvh no-scroll on desktop) */}
       <main className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-start gap-3 px-3 py-2.5 sm:px-5 lg:min-h-0 lg:grid-cols-12 lg:items-stretch lg:overflow-hidden">
@@ -300,52 +301,53 @@ export function App() {
         {/* CENTER ZONE: Hero Hologram Stage */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 flex flex-col items-center justify-between py-1 transition-all lg:order-2 lg:col-span-6 lg:h-full lg:min-h-0 lg:overflow-y-auto ${
+          className={`order-1 flex flex-col h-full min-h-0 transition-all z-20 lg:order-2 lg:col-span-6 ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
           }`}
         >
-          <div className="mb-1.5 w-full shrink-0 border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1 text-center font-mono text-[9.5px] tracking-[0.06em] text-[#5FF3FF]">
-            <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
-            <span className="text-slate-200">
-              {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
-            </span>
-          </div>
+          <div className="sticky top-14 z-20 flex w-full flex-col items-center justify-between py-1 lg:h-full lg:min-h-0">
+            <div className="mb-1.5 w-full shrink-0 border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1 text-center font-mono text-[9.5px] tracking-[0.06em] text-[#5FF3FF]">
+              <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
+              <span className="text-slate-200">
+                {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
+              </span>
+            </div>
 
-          <div className="flex w-full flex-1 min-h-0 items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={phase}
-                initial={reducedMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={reducedMotion ? undefined : { opacity: 0 }}
-                transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
-                className="w-full"
-              >
-                {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
-                  <HoloSpacecraftWireframe />
-                )}
-                {phase === 'CML_2' && <HoloOrbitStage />}
-                {phase === 'CML_4' && <HoloPointTankStage />}
-                {phase === 'SIMULATION' && (
-                  <div className="min-h-[420px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
-                    <MissionStage
-                      key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
-                      destination={findDestinationById(selection.destinationId)}
-                      volume={metrics.volume}
-                      metrics={metrics}
-                      lang={language}
-                      onQuickFix={handleQuickFixFailure}
-                      embedded
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+            <div className="flex w-full flex-1 min-h-0 items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={phase}
+                  initial={reducedMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={reducedMotion ? undefined : { opacity: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
+                  className="w-full"
+                >
+                  {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
+                    <HoloSpacecraftWireframe />
+                  )}
+                  {phase === 'CML_2' && <HoloOrbitStage />}
+                  {phase === 'CML_4' && <HoloPointTankStage />}
+                  {phase === 'SIMULATION' && (
+                    <div className="min-h-[420px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
+                      <MissionStage
+                        key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
+                        destination={findDestinationById(selection.destinationId)}
+                        volume={metrics.volume}
+                        metrics={metrics}
+                        lang={language}
+                        onQuickFix={handleQuickFixFailure}
+                        embedded
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          {nextPhase && (() => {
+            {nextPhase && (() => {
             const cml1TourPending = isL1Tut && phase === 'CML_1' && level1TutorialStep < 5;
             const cml1PhysicsIssue =
               phase === 'CML_1' &&
@@ -414,6 +416,7 @@ export function App() {
               </div>
             );
           })()}
+          </div>
         </section>
 
         {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
@@ -440,7 +443,7 @@ export function App() {
       {/* Bottom 6-Level Progress Indicator */}
       <footer
         data-astra-zone="FOOTER_LEVELS"
-        className={`relative z-10 shrink-0 border-t border-[#5FF3FF]/15 bg-[#04080F]/95 px-4 py-2.5 transition-all sm:px-7 ${
+        className={`sticky bottom-0 z-30 shrink-0 border-t border-[#5FF3FF]/15 bg-[#04080F]/95 backdrop-blur-md px-4 py-2.5 transition-all sm:px-7 ${
           tutGating
             ? 'opacity-40 pointer-events-none select-none'
             : robotHoverZone === 'FOOTER_LEVELS'
@@ -480,7 +483,6 @@ export function App() {
         </nav>
       </footer>
 
-      <AstraFloatingCompanion />
       <CommanderOnboardingModal />
       <CampaignMapModal />
       <GoogleAIStudioModal />
