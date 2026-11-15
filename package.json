@@ -8,6 +8,7 @@
     "dev": "node --env-file=.env.local ./node_modules/vite/bin/vite.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "npx tsx -e \"import { runEngineTestSuite } from './src/engine/engine.test.ts'; const r = runEngineTestSuite(); console.log(`Engine Tests: ${r.passedCount}/${r.total} passed`); if (!r.allPassed) { console.error(r.results.filter(x => !x.passed)); process.exit(1); }\"",
     "preview": "node --env-file=.env.local ./node_modules/vite/bin/vite.js preview",
     "voices:generate": "node --env-file=.env.local scripts/generateVoices.mjs"
   },
