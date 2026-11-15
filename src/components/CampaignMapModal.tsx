@@ -10,11 +10,13 @@ import {
   ShieldAlert,
   Sparkles,
   Unlock,
+  Volume2,
   X,
 } from 'lucide-react';
 import { CAMPAIGN_CONTRACTS, getPlayerRank } from '../engine';
 import { useMissionStore } from '../store';
-import { playHoloTone } from './holoAudio';
+import { playHoloTone, unlockAudioContext } from './holoAudio';
+import { CONTRACT_TO_CINEMATIC } from './narrativeConfig';
 
 export const CampaignMapModal: React.FC = () => {
   const {
@@ -28,6 +30,7 @@ export const CampaignMapModal: React.FC = () => {
     setPhase,
     setLevel1TutorialStep,
     appendDecisionLog,
+    openCinematic,
   } = useMissionStore();
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -57,6 +60,7 @@ export const CampaignMapModal: React.FC = () => {
 
   const handleLaunchCurrent = useCallback(() => {
     if (!isUnlocked) return;
+    unlockAudioContext();
     playHoloTone('STAR', soundEnabled);
     loadPreset(contract.presetKey);
     setPhase('CML_1');
@@ -76,7 +80,24 @@ export const CampaignMapModal: React.FC = () => {
     });
 
     setCampaignModalOpen(false);
-  }, [isUnlocked, soundEnabled, contract, isFirstIntroCampaign, loadPreset, setPhase, setLevel1TutorialStep, appendDecisionLog, setCampaignModalOpen]);
+
+    // Launch personalized mission cinematic with Commander Vega
+    const cinematicId = CONTRACT_TO_CINEMATIC[contract.id];
+    if (cinematicId) {
+      openCinematic(cinematicId);
+    }
+  }, [
+    isUnlocked,
+    soundEnabled,
+    contract,
+    isFirstIntroCampaign,
+    loadPreset,
+    setPhase,
+    setLevel1TutorialStep,
+    appendDecisionLog,
+    setCampaignModalOpen,
+    openCinematic,
+  ]);
 
   // Keyboard navigation for campaign slides
   useEffect(() => {
@@ -427,47 +448,70 @@ export const CampaignMapModal: React.FC = () => {
               </div>
 
               {/* Bottom Launch Action Button */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-4">
-                <div className="text-[10px] text-slate-500 hidden sm:block">
+              <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-[10px] text-slate-500 hidden lg:block">
                   {isEs ? 'Usa las flechas ← → para explorar todas las campañas' : 'Use arrow keys ← → to browse all campaigns'}
                 </div>
 
-                <button
-                  type="button"
-                  disabled={!isUnlocked}
-                  onClick={handleLaunchCurrent}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded px-7 py-3 text-xs font-bold tracking-wider uppercase transition shadow-lg ${
-                    !isUnlocked
-                      ? 'border border-slate-800 bg-slate-900/60 text-slate-600 cursor-not-allowed'
-                      : isFirstIntroCampaign
-                        ? 'border border-[#5FF3FF] bg-[#5FF3FF] text-[#02050B] hover:bg-[#7ff6ff] shadow-[0_0_25px_rgba(95,243,255,0.4)] cursor-pointer'
-                        : 'border border-[#FFC15E] bg-[#FFC15E] text-[#02050B] hover:bg-[#ffd182] shadow-[0_0_25px_rgba(255,193,94,0.35)] cursor-pointer'
-                  }`}
-                >
-                  {isUnlocked ? (
-                    <>
-                      <Rocket className="h-4 w-4" />
-                      <span>
-                        {isFirstIntroCampaign
-                          ? isEs
-                            ? 'DESPLEGAR MISIÓN TUTORIAL →'
-                            : 'DEPLOY INTRO TUTORIAL →'
-                          : isEs
-                            ? 'ACEPTAR CONTRATO DE MISIÓN →'
-                            : 'ACCEPT FLIGHT CONTRACT →'}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="h-4 w-4" />
-                      <span>
-                        {isEs
-                          ? `BLOQUEADO (${contract.requiredXPToUnlock} XP REQ)`
-                          : `LOCKED (${contract.requiredXPToUnlock} XP REQ)`}
-                      </span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  {/* Dedicated Commander Briefing Button */}
+                  <button
+                    type="button"
+                    disabled={!isUnlocked}
+                    onClick={() => {
+                      unlockAudioContext();
+                      const cinematicId = CONTRACT_TO_CINEMATIC[contract.id];
+                      if (cinematicId) {
+                        playHoloTone('STAR', soundEnabled);
+                        openCinematic(cinematicId);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 rounded border border-[#5FF3FF]/40 bg-[#071324] px-4 py-3 text-xs font-bold text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/15 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    title={isEs ? 'Escuchar transmisión personalizada del Comandante Vega' : 'Listen to Commander Vega transmission'}
+                  >
+                    <Volume2 className="h-4 w-4" />
+                    <span>
+                      {isEs ? 'BRIEFING COMANDANTE' : 'COMMANDER BRIEFING'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!isUnlocked}
+                    onClick={handleLaunchCurrent}
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded px-7 py-3 text-xs font-bold tracking-wider uppercase transition shadow-lg ${
+                      !isUnlocked
+                        ? 'border border-slate-800 bg-slate-900/60 text-slate-600 cursor-not-allowed'
+                        : isFirstIntroCampaign
+                          ? 'border border-[#5FF3FF] bg-[#5FF3FF] text-[#02050B] hover:bg-[#7ff6ff] shadow-[0_0_25px_rgba(95,243,255,0.4)] cursor-pointer'
+                          : 'border border-[#FFC15E] bg-[#FFC15E] text-[#02050B] hover:bg-[#ffd182] shadow-[0_0_25px_rgba(255,193,94,0.35)] cursor-pointer'
+                    }`}
+                  >
+                    {isUnlocked ? (
+                      <>
+                        <Rocket className="h-4 w-4" />
+                        <span>
+                          {isFirstIntroCampaign
+                            ? isEs
+                              ? 'DESPLEGAR MISIÓN TUTORIAL →'
+                              : 'DEPLOY INTRO TUTORIAL →'
+                            : isEs
+                              ? 'ACEPTAR CONTRATO DE MISIÓN →'
+                              : 'ACCEPT FLIGHT CONTRACT →'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-4 w-4" />
+                        <span>
+                          {isEs
+                            ? `BLOQUEADO (${contract.requiredXPToUnlock} XP REQ)`
+                            : `LOCKED (${contract.requiredXPToUnlock} XP REQ)`}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

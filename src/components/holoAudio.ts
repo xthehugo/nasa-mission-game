@@ -30,6 +30,23 @@ function getAudioContext(): AudioContext | null {
   }
 }
 
+export function unlockAudioContext(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      void ctx.resume();
+    }
+    if ('speechSynthesis' in window) {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+  } catch {
+    // Ignore audio unlock error
+  }
+}
+
 export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
   if (!enabled || typeof window === 'undefined') return;
   try {
@@ -234,6 +251,9 @@ function fallbackBrowserSpeech(
       onEnded?.();
     };
 
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
     window.speechSynthesis.speak(utter);
   } catch {
     onEnded?.();

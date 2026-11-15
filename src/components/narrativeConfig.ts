@@ -1097,6 +1097,363 @@ export const STORY_CINEMATICS: Record<StoryCinematicId, StoryCinematicScene> = {
       },
     ],
   },
+
+  MISSION_CINEMATIC_LEO: {
+    id: 'MISSION_CINEMATIC_LEO',
+    actLabel: {
+      en: 'MISSION BRIEFING 01 · LEO FLIGHT ACADEMY',
+      es: 'BRIEFING DE MISIÓN 01 · ACADEMIA DE VUELO LEO',
+    },
+    title: {
+      en: 'BioNutrients-2: Seeds of Survival in Low Orbit',
+      es: 'BioNutrients-2: Semillas de Supervivencia en Órbita Baja',
+    },
+    location: {
+      en: 'LOW EARTH ORBIT · 550 KM ALTITUDE · VELOCITY 27,600 KM/H',
+      es: 'ÓRBITA BAJA TERRESTRE · ALTITUD 550 KM · VELOCIDAD 27,600 KM/H',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: Thermospheric drag decelerates satellites below 350 km. 16 orbital eclipses per day demand battery thermal management during 35-minute solar umbra.',
+      es: 'CIENCIA REAL: El arrastre atmosférico desacelera satélites bajo 350 km. 16 eclipses al día exigen gestión térmica en baterías durante 35 min de umbra solar.',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NASA AMES / BIO-CULTURE FLIGHT CONTRACT',
+          es: 'NASA AMES / CONTRATO DE VUELO DE BIOCULTIVO',
+        },
+        pose: 'CUBESAT_ORBIT_DANCE',
+        dialogue: {
+          en: 'MISSION CONTRACT 01 DEPLOYED // BioNutrients-2. Target: Low Earth Orbit (550 km). Produce fresh carotenoid nutrients in microgravity to protect long-duration astronauts from space radiation.',
+          es: 'CONTRATO DE MISIÓN 01 DESPLEGADO // BioNutrients-2. Destino: Órbita Baja Terrestre (550 km). Sintetizar nutrientes carotenoides en microgravedad para proteger a tripulaciones espaciales contra la radiación.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT INSTRUCTOR',
+          es: 'COMANDANTE FRANK VEGA · INSTRUCTOR DE VUELO',
+        },
+        pose: 'VEGA_WINDOW_COIN',
+        dialogue: {
+          en: 'Look down at the blue curve of Earth, {commander}. Beautiful, but deceiving. In LEO, the residual upper atmosphere acts like sandpaper on your solar wings. If your orbit decays below 300 km, your satellite becomes a shooting star. And in every 90-minute lap, you will spend 35 minutes in freezing pitch blackness. Choose robust solar wings and check your battery reserves. I am with you bolt by bolt!',
+          es: 'Mira hacia abajo a la curva azul de la Tierra, {commander}. Hermosa, pero engañosa. En LEO, la atmósfera residual actúa como lija sobre tus paneles solares. Si tu órbita decae bajo 300 km, tu satélite se volverá una estrella fugaz. Y en cada vuelta de 90 minutos, pasarás 35 minutos en la oscuridad más gélida. Elige paneles firmes y vigila las baterías. ¡Estoy a tu lado tornillo a tornillo!',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT INSTRUCTOR',
+          es: 'COMANDANTE FRANK VEGA · INSTRUCTOR DE VUELO',
+        },
+        pose: 'VEGA_IGNITE_CONSOLE',
+        dialogue: {
+          en: 'Recruit {commander}, your telemetry must maintain a ≥ 35% margin under NASA-STD-5001B. Balance payload heating and RF links with ground stations. Ignite the holographic design terminal and build your spacecraft!',
+          es: 'Recluta {commander}, tu telemetría debe mantener un margen ≥ 35% bajo el estándar NASA-STD-5001B. Equilibra los calentadores biológicos y el enlace de radio con la Tierra. ¡Enciende la mesa holográfica y construye tu nave!',
+        },
+      },
+    ],
+  },
+
+  MISSION_CINEMATIC_SSO: {
+    id: 'MISSION_CINEMATIC_SSO',
+    actLabel: {
+      en: 'MISSION BRIEFING 02 · SUN-SYNCHRONOUS TANDEM',
+      es: 'BRIEFING DE MISIÓN 02 · TÁNDEM HELIOSINCRÓNICO',
+    },
+    title: {
+      en: 'TRACERS: Chasing Explosive Solar Cusps',
+      es: 'TRACERS: Cazando Cúspides Magnéticas Solares',
+    },
+    location: {
+      en: 'SUN-SYNCHRONOUS ORBIT · 600 KM · 97.8° POLAR INCLINATION',
+      es: 'ÓRBITA HELIOSINCRÓNICA · 600 KM · INCLINACIÓN POLAR 97.8°',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: Sun-Synchronous precession locks orbital plane to daylight. Crossing polar cusps exposes electronics to coronal mass ejection (CME) proton bombardments.',
+      es: 'CIENCIA REAL: La precesión heliosincrónica bloquea la órbita con la luz solar. Cruzar las cúspides polares expone los microchips a bombardeos de protones por eyecciones solares (CME).',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NASA HELIOPHYSICS // TWIN CONSTELLATION',
+          es: 'NASA HELIOFÍSICA // CONSTELACIÓN GEMELA',
+        },
+        pose: 'HANGAR_PHOTO',
+        dialogue: {
+          en: 'MISSION CONTRACT 02 DEPLOYED // TRACERS Tandem. Twin CubeSats flying through Earth’s polar magnetic cusps to track violent space weather reconnections triggered by the Sun.',
+          es: 'CONTRATO DE MISIÓN 02 DESPLEGADO // TRACERS Tándem. Dos CubeSats gemelos que atraviesan las cúspides magnéticas polares para rastrear reconexiones violentas provocadas por el Sol.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · MISSION CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE MISIÓN',
+        },
+        pose: 'VEGA_WINDOW_COIN',
+        dialogue: {
+          en: 'Listen closely, {commander}. The polar cusps look like dancing auroras from the ground, but to our sensors they are electromagnetic furnace funnels. When the Sun spits a coronal mass ejection, relativistic protons will rain on your microchips. You need radiation-hardened electronics and fine reaction wheels so your magnetometers never lose track.',
+          es: 'Escucha con atención, {commander}. Las cúspides polares parecen auroras danzantes desde la Tierra, pero para nuestros sensores son embudos electromagnéticos furiosos. Cuando el Sol escupe una eyección coronal, lloverán protones relativistas sobre los chips. Necesitas electrónica Rad-Hard y ruedas de reacción precisas para que los magnetómetros no pierdan el rumbo.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · MISSION CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE MISIÓN',
+        },
+        pose: 'VEGA_IGNITE_CONSOLE',
+        dialogue: {
+          en: 'Both spacecraft must fit into the strict CSD canister dispenser envelope without exceeding our budget ceiling. Lock in your triple-junction solar wings, verify the S-band link, and lead the tandem into polar glory!',
+          es: 'Ambas naves deben caber en el contenedor de despliegue CSD sin exceder el presupuesto límite. ¡Fija paneles solares de triple unión, verifica la banda S y guía al tándem hacia la gloria polar!',
+        },
+      },
+    ],
+  },
+
+  MISSION_CINEMATIC_GEO: {
+    id: 'MISSION_CINEMATIC_GEO',
+    actLabel: {
+      en: 'MISSION BRIEFING 03 · GEOSTATIONARY EXPEDITION',
+      es: 'BRIEFING DE MISIÓN 03 · EXPEDICIÓN GEOESTACIONARIA',
+    },
+    title: {
+      en: 'GMAT R2026a: The 3,673 m/s Hohmann Injection',
+      es: 'GMAT R2026a: Inyección Hohmann de 3,673 m/s',
+    },
+    location: {
+      en: 'GEOSTATIONARY EQUATORIAL ORBIT · 35,786 KM ALTITUDE · 0° INCLINATION',
+      es: 'ÓRBITA GEOESTACIONARIA · 35,786 KM ALTITUD · INCLINACIÓN 0°',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: Transfer from LEO to GEO demands ΔV = 3,673 m/s (GMAT benchmark). Tsiolkovsky equation mandates ~71% of total wet mass must be bipropellant or ion fuel.',
+      es: 'CIENCIA REAL: La transferencia LEO a GEO exige ΔV = 3,673 m/s (banco GMAT). La ecuación de Tsiolkovsky dicta que el ~71% del peso total de la nave debe ser combustible.',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NOAA / NASA GOES FLIGHT DIRECTIVE',
+          es: 'DIRECTIVA DE VUELO NOAA / NASA GOES',
+        },
+        pose: 'PAD39A_ENGINES_STEAM',
+        dialogue: {
+          en: 'MISSION CONTRACT 03 DEPLOYED // GEO Weather Sentinel. Inject into geostationary orbit to provide continuous early-warning monitoring against solar proton storms threatening global power grids.',
+          es: 'CONTRATO DE MISIÓN 03 DESPLEGADO // Centinela Meteorológico GEO. Inyección en órbita geoestacionaria para vigilar tormentas de protones solares que amenazan la red eléctrica de la Tierra.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'TANKS_RUNNER_HEART',
+        dialogue: {
+          en: 'Here is where aerospace engineering shows no mercy, {commander}. To climb 36,000 km, Tsiolkovsky’s rocket equation demands a punishing 3,673 m/s of Delta-V. If you pick weak cold-gas thrusters, your ship would need 200,000 kg of gas and crush the rocket on the pad! You need high-Isp bipropellant or ion propulsion, and large pressurized tanks filled to the rim.',
+          es: 'Aquí es donde la ingeniería aeroespacial no perdona, {commander}. Para subir 36,000 km, la ecuación de cohetes de Tsiolkovsky exige un castigo de 3,673 m/s de Delta-V. Si eliges propulsores de gas frío, ¡tu nave necesitaría 200 toneladas de gas y aplastaría el cohete en la rampa! Necesitas propulsión bipropelente o iónica de alto Isp y tanques presurizados al máximo.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_IGNITE_CONSOLE',
+        dialogue: {
+          en: 'Cross the Van Allen radiation belt, lock your station at 35,786 km, and protect humanity from space storms. Synchronize the concurrent database and prepare for launch!',
+          es: 'Cruza el cinturón de radiación de Van Allen, estaciona la nave a 35,786 km y protege a la humanidad de las tormentas espaciales. ¡Sincroniza la base de datos y prepárate para el despegue!',
+        },
+      },
+    ],
+  },
+
+  MISSION_CINEMATIC_MOON: {
+    id: 'MISSION_CINEMATIC_MOON',
+    actLabel: {
+      en: 'MISSION BRIEFING 04 · LUNAR TRAILBLAZER',
+      es: 'BRIEFING DE MISIÓN 04 · LUNAR TRAILBLAZER',
+    },
+    title: {
+      en: 'Hunting Water Ice in Shackleton Crater',
+      es: 'Cazando Hielo de Agua en el Cráter Shackleton',
+    },
+    location: {
+      en: 'LUNAR SOUTH POLE · 100 KM POLAR ORBIT · CRATER SHACKLETON',
+      es: 'POLO SUR LUNAR · ÓRBITA POLAR 100 KM · CRÁTER SHACKLETON',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: Permanently Shadowed Regions (PSRs) remain at -230°C (43 K) for 2 billion years. Passing behind lunar farside induces 48-minute complete radio silence with Earth.',
+      es: 'CIENCIA REAL: Los Cráteres en Sombra Permanente (PSR) están a -230°C (43 K) desde hace 2,000 millones de años. Pasar tras la Luna genera 48 min de silencio de radio total con la Tierra.',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NASA ARTEMIS // LUNAR TRAILBLAZER DIRECTIVE',
+          es: 'NASA ARTEMISA // DIRECTIVA LUNAR TRAILBLAZER',
+        },
+        pose: 'HANGAR_PHOTO',
+        dialogue: {
+          en: 'MISSION CONTRACT 04 DEPLOYED // Lunar Trailblazer. Map surface volatile water-ice and hydroxyl reserves inside deep polar craters to establish life-support supplies for Artemis astronaut bases.',
+          es: 'CONTRATO DE MISIÓN 04 DESPLEGADO // Lunar Trailblazer. Cartografiar reservas de hielo de agua y oxidrilos en cráteres polares para sostener las futuras bases humanas de Artemisa.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_WINDOW_COIN',
+        dialogue: {
+          en: 'We have broken Earth orbit, {commander}. The south pole of the Moon holds the key to the solar system. In Shackleton crater, sunlight hasn’t reached the floor in two billion years. It is -230°C down there. If your thermal heaters or MLI blankets fail, your optics crack into pieces. And when you swing behind the Moon, you will hear nothing from Earth. You must trust your machine.',
+          es: 'Hemos roto la órbita terrestre, {commander}. El polo sur de la Luna guarda la llave del sistema solar. En el cráter Shackleton, la luz solar no ha tocado el fondo en dos mil millones de años; hace -230°C. Si tus mantas aislantes o calentadores fallan, la óptica se partirá en pedazos. Y cuando gires tras la Luna, no oirás nada de la Tierra. Deberás confiar en tu máquina.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_IGNITE_CONSOLE',
+        dialogue: {
+          en: 'The water you find will be turned into rocket fuel for the journey to Mars. Equip active cryocoolers, lock fine pointing to 0.02°, and guide Lunar Trailblazer into polar insertion!',
+          es: 'El agua que encuentres se convertirá en combustible de cohetes para el viaje a Marte. Equipa criorefrigeradores activos, fija el apuntamiento en 0.02° y ¡guía a Lunar Trailblazer a su inserción polar!',
+        },
+      },
+    ],
+  },
+
+  MISSION_CINEMATIC_L2: {
+    id: 'MISSION_CINEMATIC_L2',
+    actLabel: {
+      en: 'MISSION BRIEFING 05 · JWST L2 DEEP SPACE',
+      es: 'BRIEFING DE MISIÓN 05 · ESPACIO PROFUNDO JWST L2',
+    },
+    title: {
+      en: 'JWST / CSA FGS: Gazing into the Primordial Dawn',
+      es: 'JWST / CSA FGS: Mirando al Amanecer Primordial',
+    },
+    location: {
+      en: 'SUN-EARTH LAGRANGE POINT 2 · 1.5 MILLION KM IN THE VOID',
+      es: 'PUNTO DE LAGRANGE SOL-TIERRA L2 · 1.5 MILLONES DE KM EN EL VACÍO',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: At SE-L2, gravitational balance creates 0% eclipse conditions. 5-layer Kapton sunshield maintains 300 K gradient: +85°C sunward to 40 K (-233°C) instrument side.',
+      es: 'CIENCIA REAL: En SE-L2, el balance gravitatorio crea 0% de eclipses. El escudo de 5 capas mantiene un gradiente de 300 K: +85°C al Sol y 40 K (-233°C) en los sensores criogénicos.',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NASA / CSA / ESA INFRARED OBSERVATORY',
+          es: 'OBSERVATORIO INFRARROJO NASA / CSA / ESA',
+        },
+        pose: 'HANGAR_PHOTO',
+        dialogue: {
+          en: 'MISSION CONTRACT 05 DEPLOYED // Fine Guidance Sensor Observatory. Station at Lagrange Point 2 to lock sub-arcsecond guidance on the first galaxies formed after the Big Bang.',
+          es: 'CONTRATO DE MISIÓN 05 DESPLEGADO // Observatorio Fine Guidance Sensor. Estacionarse en el Punto L2 para lograr seguimiento sub-arcosegundo de las primeras galaxias formadas tras el Big Bang.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_WINDOW_COIN',
+        dialogue: {
+          en: 'One and a half million kilometers from home, {commander}... There is no magnetic field to steer magnetic torque rods. No GPS satellites. Nothing but deep velvet space. To capture photons emitted 13.5 billion years ago, your infrared detectors must freeze at 40 Kelvin. A single microwatt of heat leak will blind the telescope. Shield it with perfection.',
+          es: 'A un millón y medio de kilómetros de casa, {commander}... No hay campo magnético para usar torquetorquers. No hay satélites GPS. Solo espacio profundo. Para captar fotones emitidos hace 13,500 millones de años, tus sensores infrarrojos deben enfriarse a 40 Kelvin. Una fuga de un microvatio de calor cegará el telescopio. Protégelo con absoluta perfección.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_IGNITE_CONSOLE',
+        dialogue: {
+          en: 'Engineer {commander}, your Canadian Space Agency FGS star guidance sensor requires sub-arcsecond ADCS stability and DSN Ka-band links. Reveal the birth of the universe to mankind!',
+          es: 'Ingeniero {commander}, el sensor de guiado estelar FGS exige estabilidad ADCS sub-arcosegundo y enlace Ka con la DSN. ¡Revélale a la humanidad el nacimiento del universo!',
+        },
+      },
+    ],
+  },
+
+  MISSION_CINEMATIC_JUPITER: {
+    id: 'MISSION_CINEMATIC_JUPITER',
+    actLabel: {
+      en: 'MISSION BRIEFING 06 · JUPITER CLIPPER FINAL BOSS',
+      es: 'BRIEFING DE MISIÓN 06 · JEFE FINAL: JÚPITER CLIPPER',
+    },
+    title: {
+      en: 'Europa Subsurface Ocean: The Last Frontier',
+      es: 'El Océano Subterráneo de Europa: La Última Frontera',
+    },
+    location: {
+      en: 'JOVIAN SYSTEM · 5.20 AU (778 MILLION KM) · EUROPA RADIATION BELT',
+      es: 'SISTEMA JOVIANO · 5.20 UA (778 MILLONES DE KM) · CINTURÓN DE EUROPA',
+    },
+    scienceFact: {
+      en: 'REAL SCIENCE: 1/R² solar collapse drops sunlight to 3.7% (50 W/m²). Standard solar arrays fail completely: Next-Gen RTG nuclear power is mandatory. Megarad ionizing radiation dose.',
+      es: 'CIENCIA REAL: La ley 1/R² reduce la luz solar al 3.7% (50 W/m²). Los paneles solares comunes fallan: energía nuclear RTG es obligatoria. Dosis ionizante de megarads.',
+    },
+    slides: [
+      {
+        speaker: 'SYSTEM',
+        speakerTitle: {
+          en: 'NASA JPL // DEEP SPACE EXPLORATION COMMAND',
+          es: 'NASA JPL // COMANDO DE EXPLORACIÓN DE ESPACIO PROFUNDO',
+        },
+        pose: 'JUPITER_RADIATION_BELT',
+        dialogue: {
+          en: 'FINAL CONTRACT ACTIVATED // Jupiter Clipper. Flyby Europa at 5.20 AU to penetrate its 20-km ice shell with ice-penetrating radar. Confirm the salinity and habitability of its hidden 100-km-deep ocean.',
+          es: 'CONTRATO FINAL ACTIVADO // Júpiter Clipper. Sobrevuelo de Europa a 5.20 UA para penetrar su corteza de hielo de 20 km con radar. Confirmar la salinidad y habitabilidad de su océano oculto de 100 km de profundidad.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'OMEGA_SIREN_EUROPA',
+        dialogue: {
+          en: 'This is the trial of your life, {commander}. Four years ago, Icarus-1 vanished in this very darkness. At 5.2 AU, the Sun is just a faint spark. Solar panels freeze into useless glass—you MUST equip Next-Gen RTG nuclear power. And Jupiter’s radiation belts will shoot megarads of relativistic particles into your bus. Only thick tantalum armor and 70-meter DSN dishes will keep you alive.',
+          es: 'Esta es la prueba de tu vida, {commander}. Hace cuatro años, el Ícaro-1 desapareció en esta misma oscuridad. A 5.2 UA, el Sol es apenas una chispa tenue. Los paneles solares se congelan en vidrio inservible: DEBES equipar un reactor nuclear RTG. Y la radiación joviana disparará megarads de partículas relativistas contra tu nave. Solo blindaje de tantalio y antenas DSN de 70 metros te mantendrán con vida.',
+        },
+      },
+      {
+        speaker: 'VEGA',
+        speakerTitle: {
+          en: 'COMMANDER FRANK VEGA · FLIGHT CONTROLLER',
+          es: 'COMANDANTE FRANK VEGA · CONTROL DE VUELO',
+        },
+        pose: 'VEGA_TEARS_VICTORY',
+        dialogue: {
+          en: 'Under that icy crust, Europa holds more liquid water than all Earth oceans combined. If life exists beyond our world, it is swimming in that dark sea right now. We built you bolt by bolt, {commander}. You are ready. Launch the Clipper, defend your margins, and bring honor to humanity!',
+          es: 'Bajo esa corteza de hielo, Europa guarda más agua líquida que todos los océanos de la Tierra juntos. Si existe vida más allá de nuestro mundo, está nadando en ese mar oscuro ahora mismo. Te forjamos tornillo a tornillo, {commander}. Estás listo. ¡Lanza el Clipper, defiende tus márgenes y haz historia para la humanidad!',
+        },
+      },
+    ],
+  },
+};
+
+export const CONTRACT_TO_CINEMATIC: Record<string, StoryCinematicId> = {
+  'contract-leo-bionutrients': 'MISSION_CINEMATIC_LEO',
+  'contract-sso-tracers': 'MISSION_CINEMATIC_SSO',
+  'contract-geo-gmat': 'MISSION_CINEMATIC_GEO',
+  'contract-moon-trailblazer': 'MISSION_CINEMATIC_MOON',
+  'contract-l2-jwst-fgs': 'MISSION_CINEMATIC_L2',
+  'contract-jupiter-clipper': 'MISSION_CINEMATIC_JUPITER',
 };
 
 export function formatCommanderBeat(
@@ -1114,10 +1471,13 @@ export function formatStoryText(
   cadetName: string,
   engineerName: string,
   missionCustomName: string,
+  experienceMode?: string,
 ): string {
+  const activeCommander =
+    experienceMode === 'JPL_ENGINEER' ? engineerName : cadetName;
   return template
     .replaceAll('{cadet}', cadetName)
     .replaceAll('{engineer}', engineerName)
-    .replaceAll('{commander}', cadetName)
+    .replaceAll('{commander}', activeCommander)
     .replaceAll('{mission}', missionCustomName);
 }

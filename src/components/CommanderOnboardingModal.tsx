@@ -17,6 +17,7 @@ import {
   playHoloTone,
   speakCharacterLine,
   stopCharacterVoice,
+  unlockAudioContext,
 } from './holoAudio';
 
 function CommanderVegaBust({ isSpeaking }: { isSpeaking: boolean }) {
@@ -128,12 +129,13 @@ function OnboardingContent() {
   }, []);
 
   const handleEnlist = () => {
+    unlockAudioContext();
     playHoloTone('STAR', soundEnabled);
     stopCharacterVoice();
     const mode: ExperienceMode = selectedRole === 'STUDENT' ? 'CADET' : 'JPL_ENGINEER';
     const cleanCallsign = draftCallsign.trim() || (selectedRole === 'STUDENT' ? 'Orion' : 'Vanguard');
     
-    // Complete onboarding: sets profile, persists identity and opens the Campaign Carousel
+    // Complete onboarding: sets profile, persists identity and opens the Prologue Cinematic
     completeOnboarding(
       mode,
       cleanCallsign,
@@ -355,8 +357,8 @@ function OnboardingContent() {
             <ShieldCheck className="h-4 w-4 text-[#5FF3FF]" />
             <span>
               {isEs
-                ? 'El alistamiento desbloquea el Carrusel de Campañas de la NASA.'
-                : 'Enlistment grants clearance to NASA Solar Campaign Deck.'}
+                ? 'El alistamiento inicia la transmisión del Comandante Vega y desbloquea el carrusel de misiones.'
+                : 'Enlistment starts Commander Vega transmission and grants clearance to the mission deck.'}
             </span>
           </div>
 
@@ -368,8 +370,8 @@ function OnboardingContent() {
             <Sparkles className="h-4 w-4 text-[#02050B]" />
             <span>
               {isEs
-                ? 'FIRMAR ALISTAMIENTO E IR AL CARRUSEL DE CAMPAÑAS →'
-                : 'SIGN ENLISTMENT & ENTER CAMPAIGN DECK →'}
+                ? 'FIRMAR ALISTAMIENTO E INICIAR TRANSMISIÓN →'
+                : 'SIGN ENLISTMENT & START TRANSMISSION →'}
             </span>
           </button>
         </div>

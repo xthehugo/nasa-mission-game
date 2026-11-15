@@ -409,6 +409,7 @@ function FullScreenAnimatedCinema({
 export function StoryCinematicModal() {
   const {
     language,
+    experienceMode,
     cadetName,
     engineerName,
     missionCustomName,
@@ -445,6 +446,7 @@ export function StoryCinematicModal() {
         cadetName,
         engineerName,
         missionCustomName,
+        experienceMode,
       )
     : '';
 

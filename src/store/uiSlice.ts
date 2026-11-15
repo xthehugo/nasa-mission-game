@@ -41,7 +41,13 @@ export type StoryCinematicId =
   | 'ACT2_T_3_4'
   | 'ACT2_T_4_5'
   | 'ACT2_T_5_6'
-  | 'ACT2_FINALE_SANDBOX';
+  | 'ACT2_FINALE_SANDBOX'
+  | 'MISSION_CINEMATIC_LEO'
+  | 'MISSION_CINEMATIC_SSO'
+  | 'MISSION_CINEMATIC_GEO'
+  | 'MISSION_CINEMATIC_MOON'
+  | 'MISSION_CINEMATIC_L2'
+  | 'MISSION_CINEMATIC_JUPITER';
 
 export interface DecisionLogEntry {
   id: string;
@@ -235,13 +241,13 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   storyChapter: 'ACT_1_CADET',
   act1Completed: false,
   act2Completed: false,
-  activeCinematicId: 'ACT1_PROLOGUE',
+  activeCinematicId: null,
   seenCinematics: {},
   tutorialStepIndex: 0,
   level1TutorialStep: 0,
   robotHoverZone: null,
   missionCustomName: 'Ícaro-Pionero',
-  hasCompletedOnboarding: true,
+  hasCompletedOnboarding: false,
   isCertificateOpen: false,
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
@@ -378,12 +384,18 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
     })),
   openCinematic: (activeCinematicId) => set({ activeCinematicId }),
   closeCinematic: () =>
-    set((s) => ({
-      activeCinematicId: null,
-      seenCinematics: s.activeCinematicId
-        ? { ...s.seenCinematics, [s.activeCinematicId]: true }
-        : s.seenCinematics,
-    })),
+    set((s) => {
+      const wasPrologue =
+        s.activeCinematicId === 'ACT1_PROLOGUE' ||
+        s.activeCinematicId === 'ACT2_PROLOGUE';
+      return {
+        activeCinematicId: null,
+        isCampaignModalOpen: wasPrologue ? true : s.isCampaignModalOpen,
+        seenCinematics: s.activeCinematicId
+          ? { ...s.seenCinematics, [s.activeCinematicId]: true }
+          : s.seenCinematics,
+      };
+    }),
   setTutorialStepIndex: (tutorialStepIndex) => set({ tutorialStepIndex }),
   setLevel1TutorialStep: (level1TutorialStep) => set({ level1TutorialStep }),
   setRobotHoverZone: (robotHoverZone) => set({ robotHoverZone }),
@@ -453,6 +465,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
           : mode === 'CADET'
             ? 'ACT_1_CADET'
             : 'ACT_2_JPL';
+      const prologueId: StoryCinematicId =
+        mode === 'CADET' ? 'ACT1_PROLOGUE' : 'ACT2_PROLOGUE';
       return {
         experienceMode: mode,
         storyChapter: nextChapter,
@@ -461,7 +475,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
         commanderName: activeCommander,
         missionCustomName: missionName?.trim() || s.missionCustomName || 'Ícaro-Pionero',
         hasCompletedOnboarding: true,
-        isCampaignModalOpen: true,
+        activeCinematicId: prologueId,
+        isCampaignModalOpen: false,
         tutorialStepIndex: 0,
         decisionLog: [
           ...s.decisionLog.slice(-24),

@@ -182,7 +182,8 @@ export const useMissionStore = create<MissionStoreState>()(
           mcrSignedAuthorized: false,
           isCertificateOpen: false,
           hullIntegrity: 100,
-          activeCinematicId: 'ACT1_PROLOGUE',
+          activeCinematicId: null,
+          hasCompletedOnboarding: false,
           seenCinematics: {},
           decisionLog: createInitialDecisionLog(),
         });
@@ -236,7 +237,7 @@ export const useMissionStore = create<MissionStoreState>()(
         state.engineerName = state.engineerName || 'Vanguard';
         state.commanderName = state.commanderName || (state.experienceMode === 'CADET' ? state.cadetName : state.engineerName);
         state.missionCustomName = state.missionCustomName || 'Ícaro-Pionero';
-        if (!state.seenCinematics?.ACT1_PROLOGUE && state.storyChapter === 'ACT_1_CADET') {
+        if (state.hasCompletedOnboarding && !state.seenCinematics?.ACT1_PROLOGUE && state.storyChapter === 'ACT_1_CADET') {
           state.activeCinematicId = 'ACT1_PROLOGUE';
         }
         const nextMetrics = evaluateMissionPhysics(state.selection);
