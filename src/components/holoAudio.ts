@@ -115,6 +115,93 @@ let activeAudioElement: HTMLAudioElement | null = null;
 let activeSpeechAbort: AbortController | null = null;
 const blobAudioCache = new Map<string, string>();
 
+let activeBgmAudio: HTMLAudioElement | null = null;
+let currentBgmTrack: string | null = null;
+let activeSfxAudio: HTMLAudioElement | null = null;
+
+export type BgmTrackKey =
+  | 'HANGAR_AMBIENT'
+  | 'TENSION_CRISIS'
+  | 'JUPITER_DEEP_SPACE'
+  | 'LAUNCH_EPIC'
+  | 'VICTORY_FANFARE'
+  | 'NONE';
+
+const BGM_PATHS: Record<Exclude<BgmTrackKey, 'NONE'>, { src: string; loop: boolean; volume: number; startSec?: number }> = {
+  HANGAR_AMBIENT: { src: '/audio/music/bgm_hangar_ambient.mp3', loop: true, volume: 0.28 },
+  TENSION_CRISIS: { src: '/audio/music/bgm_tension_crisis.mp3', loop: true, volume: 0.35 },
+  JUPITER_DEEP_SPACE: { src: '/audio/music/bgm_jupiter_deep_space.mp3', loop: true, volume: 0.32 },
+  LAUNCH_EPIC: { src: '/audio/music/bgm_launch_epic.mp3', loop: false, volume: 0.42, startSec: 30 },
+  VICTORY_FANFARE: { src: '/audio/music/bgm_victory_fanfare.mp3', loop: false, volume: 0.4 },
+};
+
+export function playBgmTrack(track: BgmTrackKey, enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  if (!enabled || track === 'NONE') {
+    stopBgmTrack();
+    return;
+  }
+
+  if (currentBgmTrack === track && activeBgmAudio && !activeBgmAudio.paused) {
+    return;
+  }
+
+  stopBgmTrack();
+
+  const spec = BGM_PATHS[track];
+  if (!spec) return;
+
+  try {
+    const audio = new Audio(spec.src);
+    audio.loop = spec.loop;
+    audio.volume = spec.volume;
+    if (spec.startSec && spec.startSec > 0) {
+      audio.currentTime = spec.startSec;
+    }
+    activeBgmAudio = audio;
+    currentBgmTrack = track;
+    audio.play().catch(() => {
+      // Browsers may block unprompted autoplay until user interaction
+    });
+  } catch {
+    // ignore BGM playback errors
+  }
+}
+
+export function stopBgmTrack(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (activeBgmAudio) {
+      activeBgmAudio.pause();
+      activeBgmAudio.currentTime = 0;
+      activeBgmAudio = null;
+    }
+    currentBgmTrack = null;
+  } catch {
+    // ignore errors
+  }
+}
+
+export function playCinemaSfx(sound: 'RAIN_WIND' | 'MCR_APPLAUSE', enabled: boolean): void {
+  if (!enabled || typeof window === 'undefined') return;
+  try {
+    if (activeSfxAudio) {
+      activeSfxAudio.pause();
+      activeSfxAudio = null;
+    }
+    const src =
+      sound === 'RAIN_WIND'
+        ? '/audio/sfx/cinema/sfx_hangar_rain_wind.mp3'
+        : '/audio/sfx/cinema/sfx_mcr_applause.mp3';
+    const audio = new Audio(src);
+    audio.volume = sound === 'RAIN_WIND' ? 0.3 : 0.45;
+    activeSfxAudio = audio;
+    audio.play().catch(() => {});
+  } catch {
+    // ignore sfx errors
+  }
+}
+
 export function stopCharacterVoice(): void {
   if (typeof window === 'undefined') return;
   try {

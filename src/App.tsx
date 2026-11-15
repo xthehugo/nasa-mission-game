@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AstraFloatingCompanion,
@@ -21,7 +22,7 @@ import {
   TopBar,
   TradeSpacePanel,
 } from './components';
-import { playHoloTone } from './components/holoAudio';
+import { playBgmTrack, playHoloTone, stopBgmTrack } from './components/holoAudio';
 import { findDestinationById } from './engine';
 import { useMissionStore } from './store';
 import type { CMLPhase } from './types/mission';
@@ -57,6 +58,9 @@ export function App() {
     metrics,
     reducedMotion,
     soundEnabled,
+    activeCinematicId,
+    activeRandomEvent,
+    isCertificateOpen,
     setPhase,
     setSubsystem,
     setGroundStation,
@@ -107,6 +111,56 @@ export function App() {
     if (target === 'SIMULATION') launchSimulation();
     else setPhase(target);
   };
+
+  // Cohesive Dynamic Soundtrack (BGM) according to current game state & narrative beat
+  useEffect(() => {
+    if (!soundEnabled) {
+      stopBgmTrack();
+      return;
+    }
+
+    if (isCertificateOpen) {
+      playBgmTrack('VICTORY_FANFARE', true);
+      return;
+    }
+
+    if (activeCinematicId) {
+      if (activeCinematicId === 'ACT2_PROLOGUE' || activeCinematicId === 'ACT1_CLIMAX_JPL_TWIST') {
+        playBgmTrack('JUPITER_DEEP_SPACE', true);
+      } else if (activeCinematicId === 'ACT2_FINALE_SANDBOX') {
+        playBgmTrack('VICTORY_FANFARE', true);
+      } else {
+        playBgmTrack('HANGAR_AMBIENT', true);
+      }
+      return;
+    }
+
+    if (phase === 'SIMULATION') {
+      // Epic Launch theme starting at second 30 (the climax!)
+      playBgmTrack('LAUNCH_EPIC', true);
+      return;
+    }
+
+    if (activeRandomEvent !== 'NONE') {
+      playBgmTrack('TENSION_CRISIS', true);
+      return;
+    }
+
+    if (experienceMode === 'JPL_ENGINEER' || selection.destinationId === 'dest-jupiter') {
+      playBgmTrack('JUPITER_DEEP_SPACE', true);
+      return;
+    }
+
+    playBgmTrack('HANGAR_AMBIENT', true);
+  }, [
+    soundEnabled,
+    phase,
+    activeRandomEvent,
+    activeCinematicId,
+    isCertificateOpen,
+    experienceMode,
+    selection.destinationId,
+  ]);
 
   return (
     <div

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
+  playCinemaSfx,
   playHoloTone,
   speakCharacterLine,
   stopCharacterVoice,
@@ -464,6 +465,14 @@ export function StoryCinematicModal() {
   // Speak character line in ES or EN automatically when slide changes
   useEffect(() => {
     if (!activeCinematicId || !currentSlide || !fullDialogue) return;
+
+    // Narrative atmospheric Sound FX
+    if (currentSlide.pose === 'HANGAR_PHOTO' || currentSlide.pose === 'VEGA_WINDOW_COIN') {
+      playCinemaSfx('RAIN_WIND', soundEnabled);
+    } else if (currentSlide.pose === 'ROSTOVA_STANDING_OVATION') {
+      playCinemaSfx('MCR_APPLAUSE', soundEnabled);
+    }
+
     const timer = window.setTimeout(() => {
       speakCharacterLine(
         fullDialogue,
