@@ -157,6 +157,7 @@ export const useMissionStore = create<MissionStoreState>()(
           simulationResult: null,
           mcrSignedAuthorized: false,
           isCertificateOpen: false,
+          hullIntegrity: 100,
           decisionLog: createInitialDecisionLog(),
         });
       },
@@ -178,6 +179,9 @@ export const useMissionStore = create<MissionStoreState>()(
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         mcrSignedAuthorized: state.mcrSignedAuthorized,
         decisionLog: state.decisionLog,
+        playerXP: state.playerXP,
+        campaignProgress: state.campaignProgress,
+        hullIntegrity: state.hullIntegrity,
         orbitAltitudeKm: state.orbitAltitudeKm,
         orbitInclinationDeg: state.orbitInclinationDeg,
         tankFillPercent: state.tankFillPercent,

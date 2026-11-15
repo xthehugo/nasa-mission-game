@@ -46,6 +46,8 @@ export interface UISlice {
   rightPanelTab: RightPanelTab;
   isPitchModalOpen: boolean;
   isTelemetryOpen: boolean;
+  isCampaignModalOpen: boolean;
+  isAIStudioModalOpen: boolean;
 
   commanderName: string;
   missionCustomName: string;
@@ -53,6 +55,10 @@ export interface UISlice {
   isCertificateOpen: boolean;
   mcrSignedAuthorized: boolean;
   decisionLog: DecisionLogEntry[];
+
+  playerXP: number;
+  campaignProgress: Record<string, { stars: number; completed: boolean; bestGrade?: string }>;
+  hullIntegrity: number;
 
   orbitAltitudeKm: number;
   orbitInclinationDeg: number;
@@ -77,6 +83,13 @@ export interface UISlice {
   setRightPanelTab: (tab: RightPanelTab) => void;
   setPitchModalOpen: (open: boolean) => void;
   setTelemetryOpen: (open: boolean) => void;
+  setCampaignModalOpen: (open: boolean) => void;
+  setAIStudioModalOpen: (open: boolean) => void;
+  addXP: (amount: number) => void;
+  recordContractResult: (contractId: string, stars: number, grade?: string) => void;
+  damageHull: (amount: number) => void;
+  repairHull: (amount: number) => void;
+  resetHull: () => void;
 
   setCommanderName: (name: string) => void;
   setMissionCustomName: (name: string) => void;
@@ -150,6 +163,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   rightPanelTab: 'ANALYTICS',
   isPitchModalOpen: false,
   isTelemetryOpen: false,
+  isCampaignModalOpen: false,
+  isAIStudioModalOpen: false,
 
   commanderName: 'Orion',
   missionCustomName: 'Inti-1',
@@ -157,6 +172,10 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   isCertificateOpen: false,
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
+
+  playerXP: 0,
+  campaignProgress: { 'contract-leo-bionutrients': { stars: 0, completed: false } },
+  hullIntegrity: 100,
 
   orbitAltitudeKm: 550,
   orbitInclinationDeg: 97.6,
@@ -198,6 +217,28 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   setRightPanelTab: (rightPanelTab) => set({ rightPanelTab }),
   setPitchModalOpen: (isPitchModalOpen) => set({ isPitchModalOpen }),
   setTelemetryOpen: (isTelemetryOpen) => set({ isTelemetryOpen }),
+  setCampaignModalOpen: (isCampaignModalOpen) => set({ isCampaignModalOpen }),
+  setAIStudioModalOpen: (isAIStudioModalOpen) => set({ isAIStudioModalOpen }),
+  addXP: (amount) => set((s) => ({ playerXP: Math.max(0, s.playerXP + amount) })),
+  recordContractResult: (contractId, stars, grade) =>
+    set((s) => {
+      const prev = s.campaignProgress[contractId] || { stars: 0, completed: false };
+      return {
+        campaignProgress: {
+          ...s.campaignProgress,
+          [contractId]: {
+            stars: Math.max(prev.stars, stars),
+            completed: true,
+            bestGrade: grade ?? prev.bestGrade,
+          },
+        },
+      };
+    }),
+  damageHull: (amount) =>
+    set((s) => ({ hullIntegrity: Math.max(0, Math.min(100, s.hullIntegrity - amount)) })),
+  repairHull: (amount) =>
+    set((s) => ({ hullIntegrity: Math.max(0, Math.min(100, s.hullIntegrity + amount)) })),
+  resetHull: () => set({ hullIntegrity: 100 }),
 
   setCommanderName: (commanderName) => set({ commanderName }),
   setMissionCustomName: (missionCustomName) => set({ missionCustomName }),

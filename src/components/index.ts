@@ -1,6 +1,8 @@
+export { CampaignMapModal } from './CampaignMapModal';
 export { CommanderHudBanner } from './CommanderHudBanner';
 export { CommanderOnboardingModal } from './CommanderOnboardingModal';
 export { FlightSimulationPanel } from './FlightSimulationPanel';
+export { GoogleAIStudioModal } from './GoogleAIStudioModal';
 export { HoloOrbitStage } from './HoloOrbitStage';
 export { HoloPointTankStage } from './HoloPointTankStage';
 export { HoloSpacecraftWireframe } from './HoloSpacecraftWireframe';

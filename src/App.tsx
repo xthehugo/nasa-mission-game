@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  CampaignMapModal,
   COMMANDER_PHASE_BEATS,
   CommanderHudBanner,
   CommanderOnboardingModal,
   FlightSimulationPanel,
+  GoogleAIStudioModal,
   HOLO_ANIMATION_PRESETS,
   HoloOrbitStage,
   HoloPointTankStage,
@@ -225,6 +227,8 @@ export function App() {
       </footer>
 
       <CommanderOnboardingModal />
+      <CampaignMapModal />
+      <GoogleAIStudioModal />
       <PostMissionCertificateModal />
       <TelemetryModalDrawer />
       <NarrativePitchModal />

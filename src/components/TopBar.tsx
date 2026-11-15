@@ -1,3 +1,4 @@
+import { getPlayerRank } from '../engine';
 import { useMissionStore, type RandomEventType } from '../store';
 import type { CMLPhase } from '../types/mission';
 import { computeLevelStars, computeTankExtraMassKg, playHoloTone } from './holoAudio';
@@ -47,11 +48,14 @@ export function TopBar() {
     oxidizerFillPercent,
     reducedMotion,
     soundEnabled,
+    playerXP,
     setLanguage,
     setExperienceMode,
     reopenOnboarding,
     setTelemetryOpen,
     setPitchModalOpen,
+    setCampaignModalOpen,
+    setAIStudioModalOpen,
     loadPreset,
     unlockAllLevels,
     triggerRandomEvent,
@@ -73,13 +77,19 @@ export function TopBar() {
     activeRandomEvent,
     extraKg,
   );
+  const playerRank = getPlayerRank(playerXP);
 
   return (
     <header className="border-b border-[#5FF3FF]/20 px-4 py-3 sm:px-6">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
-            {isEs ? `NIVEL ${meta.num} DE 06 · ${meta.code}` : `LEVEL ${meta.num} OF 06 · ${meta.code}`} · CMDR {commanderName} // {missionCustomName}
+          <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase flex flex-wrap items-center gap-2">
+            <span>
+              {isEs ? `NIVEL ${meta.num} DE 06 · ${meta.code}` : `LEVEL ${meta.num} OF 06 · ${meta.code}`} · CMDR {commanderName} // {missionCustomName}
+            </span>
+            <span className="text-[#FFC15E] bg-[#FFC15E]/10 px-1.5 py-0.5 rounded border border-[#FFC15E]/30 font-bold">
+              {playerRank.badge} ({playerXP} XP)
+            </span>
           </div>
           <h1 className="mt-0.5 text-2xl font-light tracking-tight text-white sm:text-3xl">
             {meta.title[language]}
@@ -87,6 +97,28 @@ export function TopBar() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] uppercase">
+          <button
+            type="button"
+            onClick={() => {
+              setCampaignModalOpen(true);
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="border border-[#5FF3FF] bg-[#5FF3FF]/15 px-2.5 py-1 font-bold text-[#5FF3FF] hover:bg-[#5FF3FF]/30 shadow-[0_0_12px_rgba(95,243,255,0.25)] transition rounded"
+          >
+            🗺️ {isEs ? 'CAMPAÑA' : 'CAMPAIGN'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAIStudioModalOpen(true);
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2.5 py-1 font-bold text-[#FFC15E] hover:bg-[#FFC15E]/30 shadow-[0_0_12px_rgba(255,193,94,0.25)] transition rounded"
+          >
+            ✨ GEMINI AI
+          </button>
+
           <div className="border border-[#FFC15E]/40 px-2.5 py-1 text-[#FFC15E]">
             {isEs ? 'ESTRELLAS' : 'STARS'} {'★'.repeat(starInfo.stars)}{'☆'.repeat(3 - starInfo.stars)}
           </div>
