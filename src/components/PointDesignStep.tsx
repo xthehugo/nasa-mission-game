@@ -1,11 +1,23 @@
-import { useMissionStore } from '../store';
+import { useMissionStore, type TeamRole } from '../store';
 import { computeTankExtraMassKg, playHoloTone } from './holoAudio';
+
+const TEAM_CHAIRS: {
+  role: TeamRole;
+  code: string;
+  label: { en: string; es: string };
+}[] = [
+  { role: 'MISSION_LEAD', code: 'SYS / USER', label: { en: 'Mission Lead', es: 'Líder Misión' } },
+  { role: 'PAYLOAD_ENG', code: 'PAYLOAD', label: { en: 'Payload Chair', es: 'Carga Útil' } },
+  { role: 'BUS_ENG', code: 'SPACE BUS', label: { en: 'Space Bus Chair', es: 'Ing. Bus SWaP' } },
+  { role: 'OPS_LAUNCH_ENG', code: 'LAUNCH / GND', label: { en: 'Launch & Ground', es: 'Lanzamiento & DSN' } },
+];
 
 export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const {
     language,
     experienceMode,
     activeTeamRole,
+    lastValidatedByRole,
     metrics,
     tankFillPercent,
     oxidizerFillPercent,
@@ -15,6 +27,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     lastValidatedAt,
     concurrentConflicts,
     soundEnabled,
+    setActiveTeamRole,
     setTankLevels,
     fillAllTanks,
     commitAndValidate,
@@ -90,8 +103,49 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     );
   }
 
+  const activeChair = TEAM_CHAIRS.find((c) => c.role === activeTeamRole) ?? TEAM_CHAIRS[0];
+  const lastChair = TEAM_CHAIRS.find((c) => c.role === lastValidatedByRole) ?? null;
+
   return (
     <div className="space-y-3">
+      <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-2.5">
+        <div className="mb-1.5 flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] uppercase">
+          <span className="text-[#5FF3FF]">
+            {isEs ? 'SILLAS CONCURRENTES · JPL TEAM X' : 'JPL TEAM X CONCURRENT CHAIRS'}
+          </span>
+          {lastChair && (
+            <span className="text-[#FFC15E]">
+              {isEs ? 'FIRMADO:' : 'SIGNED:'} {lastChair.code}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {TEAM_CHAIRS.map((chair) => {
+            const active = activeTeamRole === chair.role;
+            return (
+              <button
+                key={chair.role}
+                type="button"
+                onClick={() => {
+                  setActiveTeamRole(chair.role);
+                  playHoloTone('STEP', soundEnabled);
+                }}
+                className={`border px-2 py-1.5 text-left transition ${
+                  active
+                    ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 text-[#5FF3FF]'
+                    : 'border-[#5FF3FF]/20 text-slate-400 hover:border-[#5FF3FF]/45 hover:text-slate-200'
+                }`}
+              >
+                <div className="font-mono text-[9px] font-bold tracking-[0.12em] uppercase">
+                  {chair.code}
+                </div>
+                <div className="text-[10px] opacity-90">{chair.label[language]}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[10px] tracking-[0.16em] text-slate-400 uppercase">
           REV #{concurrencyRevision} {lastValidatedAt ? `· ${lastValidatedAt}` : ''}
@@ -104,8 +158,8 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             appendDecisionLog({
               phase: 'CML_4',
               label: {
-                en: `Committed Concurrent DB Rev #${concurrencyRevision + 1}`,
-                es: `BD Concurrente Sincronizada Rev #${concurrencyRevision + 1}`,
+                en: `[${activeChair.code}] Committed Concurrent DB Rev #${concurrencyRevision + 1}`,
+                es: `[${activeChair.code}] BD Concurrente Sincronizada Rev #${concurrencyRevision + 1}`,
               },
               impact: concurrentConflicts.length === 0 ? 'POSITIVE' : 'WARNING',
             });

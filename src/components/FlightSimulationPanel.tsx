@@ -15,6 +15,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     simulationResult,
     soundEnabled,
     resolveCrisis,
+    appendDecisionLog,
     setCertificateOpen,
   } = useMissionStore();
 
@@ -31,6 +32,25 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
   if (!simulationResult) return null;
 
   const resolvedCount = simulationResult.dilemmas.filter((d) => Boolean(resolvedCrises[d.id])).length;
+
+  const handleAutoSolveCrises = () => {
+    simulationResult.dilemmas.forEach((dilemma) => {
+      if (resolvedCrises[dilemma.id]) return;
+      const optimal = dilemma.options.find((opt) => opt.isOptimal) ?? dilemma.options[0];
+      if (optimal) {
+        resolveCrisis(dilemma.id, optimal.id);
+      }
+    });
+    playHoloTone('STAR', soundEnabled);
+    appendDecisionLog({
+      phase: 'SIMULATION',
+      label: {
+        en: 'Executed optimal contingency playbook for all 3 flight crises.',
+        es: 'Ejecutado plan óptimo de contingencia para las 3 crisis orbitales.',
+      },
+      impact: 'POSITIVE',
+    });
+  };
 
   if (zone === 'LEFT') {
     return (
@@ -51,6 +71,16 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
             <div>B:{scores.budgetEfficiencyScore}</div>
             <div className="text-[#5FF3FF]">P:{scores.compositeGlobalScore}</div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              playHoloTone('STAR', soundEnabled);
+              setCertificateOpen(true);
+            }}
+            className="mt-2.5 w-full border border-[#FFC15E]/70 bg-[#FFC15E]/10 py-1.5 font-mono text-[9.5px] tracking-[0.14em] text-[#FFC15E] uppercase transition hover:bg-[#FFC15E]/20"
+          >
+            {isEs ? 'CERTIFICADO & MEDALLAS →' : 'CERTIFICATE & MEDALS →'}
+          </button>
         </div>
 
         <div className="space-y-1.5">
@@ -88,15 +118,26 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between font-mono text-[10px] uppercase">
+      <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase">
         <span className="text-[#FFC15E]">
           {isEs
             ? `CRISIS ORBITALES (${resolvedCount}/${simulationResult.dilemmas.length})`
             : `ORBITAL CRISES (${resolvedCount}/${simulationResult.dilemmas.length})`}
         </span>
-        <span className="text-slate-400">
-          {isCadet ? (isEs ? 'PISTAS ON' : 'HINTS ON') : isEs ? 'SIN PISTAS' : 'BLIND CMD'}
-        </span>
+        <div className="flex items-center gap-2">
+          {resolvedCount < simulationResult.dilemmas.length && (
+            <button
+              type="button"
+              onClick={handleAutoSolveCrises}
+              className="border border-[#5FF3FF]/60 bg-[#5FF3FF]/10 px-2 py-0.5 text-[9px] tracking-[0.12em] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/20"
+            >
+              {isEs ? 'AUTO-RESOLVER 3/3 (DEMO)' : 'AUTO-SOLVE 3/3 (DEMO)'}
+            </button>
+          )}
+          <span className="text-slate-400">
+            {isCadet ? (isEs ? 'PISTAS ON' : 'HINTS ON') : isEs ? 'SIN PISTAS' : 'BLIND CMD'}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2.5">
