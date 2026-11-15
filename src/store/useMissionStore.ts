@@ -27,6 +27,7 @@ import {
 import {
   createInitialDecisionLog,
   createUISlice,
+  resolveTransitionCinematic,
   type UISlice,
 } from './uiSlice';
 
@@ -104,12 +105,33 @@ export const useMissionStore = create<MissionStoreState>()(
       simulationResult: null,
 
       launchSimulation: () => {
-        const { selection, metrics, resolvedCrises, maxUnlockedLevel } = get();
+        const {
+          phase,
+          experienceMode,
+          storyChapter,
+          seenCinematics,
+          activeCinematicId,
+          selection,
+          metrics,
+          resolvedCrises,
+          maxUnlockedLevel,
+        } = get();
         const result = runMissionSimulation(selection, metrics, resolvedCrises);
+        const transId = resolveTransitionCinematic(phase, 'SIMULATION', experienceMode);
+        const shouldPlay =
+          transId !== null &&
+          storyChapter !== 'FREE_SANDBOX' &&
+          !seenCinematics[transId];
         set({
           phase: 'SIMULATION',
+          tutorialStepIndex: 0,
           maxUnlockedLevel: Math.max(maxUnlockedLevel, 6),
           simulationResult: result,
+          activeCinematicId: shouldPlay ? transId : activeCinematicId,
+          seenCinematics:
+            shouldPlay && transId
+              ? { ...seenCinematics, [transId]: true }
+              : seenCinematics,
         });
       },
 
@@ -145,6 +167,8 @@ export const useMissionStore = create<MissionStoreState>()(
         get().resetTesting();
         set({
           phase: 'CML_1',
+          tutorialStepIndex: 0,
+          level1TutorialStep: 0,
           maxUnlockedLevel: 1,
           activeRandomEvent: 'NONE',
           orbitAltitudeKm: 550,
@@ -158,12 +182,14 @@ export const useMissionStore = create<MissionStoreState>()(
           mcrSignedAuthorized: false,
           isCertificateOpen: false,
           hullIntegrity: 100,
+          activeCinematicId: 'ACT1_PROLOGUE',
+          seenCinematics: {},
           decisionLog: createInitialDecisionLog(),
         });
       },
     }),
     {
-      name: 'orbital-forge-mission-store-v4',
+      name: 'orbital-forge-mission-store-v5',
       storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         language: state.language,
@@ -175,6 +201,13 @@ export const useMissionStore = create<MissionStoreState>()(
         missionStatement: state.missionStatement,
         cubesatFormFactor: state.cubesatFormFactor,
         commanderName: state.commanderName,
+        cadetName: state.cadetName,
+        engineerName: state.engineerName,
+        storyChapter: state.storyChapter,
+        act1Completed: state.act1Completed,
+        act2Completed: state.act2Completed,
+        seenCinematics: state.seenCinematics,
+        level1TutorialStep: state.level1TutorialStep,
         missionCustomName: state.missionCustomName,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         mcrSignedAuthorized: state.mcrSignedAuthorized,
@@ -199,6 +232,13 @@ export const useMissionStore = create<MissionStoreState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
+        state.cadetName = 'Orion';
+        state.engineerName = 'Vanguard';
+        state.commanderName = state.experienceMode === 'CADET' ? 'Orion' : 'Vanguard';
+        state.missionCustomName = 'Ícaro-Pionero';
+        if (!state.seenCinematics?.ACT1_PROLOGUE && state.storyChapter === 'ACT_1_CADET') {
+          state.activeCinematicId = 'ACT1_PROLOGUE';
+        }
         const nextMetrics = evaluateMissionPhysics(state.selection);
         const nextScores = computeMissionScores(state.selection, nextMetrics);
         state.metrics = nextMetrics;

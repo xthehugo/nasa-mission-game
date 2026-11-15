@@ -7,6 +7,7 @@ import {
 import { equippedIdForCategory, useMissionStore } from '../store';
 import type { SubsystemCategory, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
+import { SUBSYSTEM_TAB_GUIDE } from './narrativeConfig';
 import { SubsystemHoverPreview } from './SubsystemHoverPreview';
 
 const TABS: { id: SubsystemCategory; label: { en: string; es: string } }[] = [
@@ -123,8 +124,19 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
       ? activeObj.requiredPayloadIds.includes(opt.id)
       : Boolean(DEST_PICKS[selection.destinationId]?.has(opt.id));
 
+  const tabGuide = SUBSYSTEM_TAB_GUIDE[activeSubsystemTab];
+
   return (
     <div className="space-y-3">
+      {tabGuide && (
+        <div className="border-l-2 border-[#5FF3FF] bg-[#060d1a] px-2.5 py-2 text-[10.5px] leading-snug">
+          <div className="font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
+            {tabGuide.roleTitle[language]}
+          </div>
+          <div className="mt-0.5 text-slate-200">{tabGuide.whatItDoes[language]}</div>
+          <div className="mt-0.5 text-[#FFC15E]">{tabGuide.connectionRule[language]}</div>
+        </div>
+      )}
       <div className="space-y-2">
         {getSubsystemsByCategory(activeSubsystemTab).map((opt, idx) => {
           const selected = isSelected(opt);

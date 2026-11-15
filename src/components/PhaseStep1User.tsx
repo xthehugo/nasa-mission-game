@@ -26,6 +26,9 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const {
     language,
     experienceMode,
+    phase,
+    level1TutorialStep,
+    robotHoverZone,
     cubesatFormFactor,
     missionStatement,
     selection,
@@ -35,16 +38,37 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     setMissionStatement,
     setSubsystem,
     setObjective,
+    setLevel1TutorialStep,
     appendDecisionLog,
   } = useMissionStore();
 
   const isEs = language === 'es';
   const epsOptions = getSubsystemsByCategory('EPS');
+  const highlightChassis =
+    (phase === 'CML_1' && level1TutorialStep === 1) || robotHoverZone === 'CHASSIS';
+  const highlightEps =
+    (phase === 'CML_1' && level1TutorialStep === 2) || robotHoverZone === 'EPS';
+  const highlightMission =
+    (phase === 'CML_1' && level1TutorialStep === 3) || robotHoverZone === 'MISSION';
 
   if (zone === 'LEFT') {
     return (
       <div className="space-y-4">
-        <div>
+        <div
+          data-astra-zone="CHASSIS"
+          className={`transition-all ${
+            highlightChassis
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+              : ''
+          }`}
+        >
+          {phase === 'CML_1' && level1TutorialStep === 1 && (
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
+              {isEs
+                ? '👈 PASO 2/5: HAZ CLIC EN UN CHASIS PARA PROBAR EL PLANO'
+                : '👈 STEP 2/5: CLICK ANY CHASSIS TO TEST THE BLUEPRINT'}
+            </div>
+          )}
           <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[10px] tracking-[0.14em] uppercase">
             <span className="text-slate-400">{isEs ? 'PASO 1 · CHASIS' : 'STEP 1 · CHASSIS'}</span>
             <span className={metrics.volume.isCompliant ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
@@ -78,7 +102,21 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           </div>
         </div>
 
-        <div>
+        <div
+          data-astra-zone="EPS"
+          className={`transition-all ${
+            highlightEps
+              ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+              : ''
+          }`}
+        >
+          {phase === 'CML_1' && level1TutorialStep === 2 && (
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
+              {isEs
+                ? '👈 PASO 3/5: HAZ CLIC EN UN SISTEMA DE ENERGÍA SOLAR / EPS'
+                : '👈 STEP 3/5: CLICK ANY SOLAR / EPS POWER SYSTEM'}
+            </div>
+          )}
           <div className="mb-2 font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
             {isEs ? 'PANELES SOLARES / EPS' : 'SOLAR ARRAYS / EPS'}
           </div>
@@ -91,6 +129,9 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   type="button"
                   onClick={() => {
                     setSubsystem('EPS', opt.id);
+                    if (level1TutorialStep <= 2) {
+                      setLevel1TutorialStep(3);
+                    }
                     playHoloTone('STEP', soundEnabled);
                   }}
                   className={`w-full border px-3 py-2 text-left transition ${
@@ -125,7 +166,21 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   }));
 
   return (
-    <div className="space-y-2.5">
+    <div
+      data-astra-zone="MISSION"
+      className={`space-y-2.5 transition-all ${
+        highlightMission
+          ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
+          : ''
+      }`}
+    >
+      {phase === 'CML_1' && level1TutorialStep === 3 && (
+        <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
+          {isEs
+            ? '👈 PASO 4/5: HAZ CLIC EN UNA MISIÓN CIENTÍFICA PARA TU NAVE'
+            : '👈 STEP 4/5: CLICK A SCIENCE MISSION FOR YOUR SPACECRAFT'}
+        </div>
+      )}
       <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
         {isEs ? 'PASO 2 · MISIÓN' : 'STEP 2 · MISSION'}
       </div>
@@ -155,6 +210,9 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               type="button"
               onClick={() => {
                 setObjective(obj.id);
+                if (level1TutorialStep <= 3) {
+                  setLevel1TutorialStep(4);
+                }
                 playHoloTone('STEP', soundEnabled);
                 appendDecisionLog({
                   phase: 'CML_1',

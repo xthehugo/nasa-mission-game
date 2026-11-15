@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Compass,
   Cpu,
+  Film,
   GraduationCap,
   Languages,
   Rocket,
@@ -10,7 +11,6 @@ import {
   Sparkles,
   UserCheck,
   Wrench,
-  X,
 } from 'lucide-react';
 import { useMissionStore } from '../store';
 import type { ExperienceMode } from '../types/mission';
@@ -20,18 +20,38 @@ function OnboardingContent() {
   const {
     language,
     experienceMode,
-    commanderName,
+    cadetName,
+    engineerName,
     missionCustomName,
+    act1Completed,
+    act2Completed,
     reducedMotion,
     soundEnabled,
     setLanguage,
     completeOnboarding,
+    openCinematic,
   } = useMissionStore();
 
-  const [draftCommander, setDraftCommander] = useState(commanderName);
+  const [draftCadet, setDraftCadet] = useState(cadetName);
+  const [draftEngineer, setDraftEngineer] = useState(engineerName);
   const [draftMission, setDraftMission] = useState(missionCustomName);
   const [selectedMode, setSelectedMode] = useState<ExperienceMode>(experienceMode);
   const isEs = language === 'es';
+
+  const handleStart = (withCinematic: boolean) => {
+    playHoloTone('STAR', soundEnabled);
+    const activeCallsign = selectedMode === 'CADET' ? draftCadet : draftEngineer;
+    completeOnboarding(
+      selectedMode,
+      activeCallsign,
+      draftMission,
+      draftCadet,
+      draftEngineer,
+    );
+    if (withCinematic) {
+      openCinematic(selectedMode === 'CADET' ? 'ACT1_PROLOGUE' : 'ACT2_PROLOGUE');
+    }
+  };
 
   return (
     <motion.div
@@ -41,228 +61,224 @@ function OnboardingContent() {
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#04080F]/90 p-4 backdrop-blur-md"
     >
       <motion.div
-        initial={reducedMotion ? false : { scale: 0.96, y: 12, opacity: 0 }}
+        initial={reducedMotion ? false : { scale: 0.95, y: 14, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
-        transition={{ duration: reducedMotion ? 0 : 0.22 }}
-        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto border border-[#5FF3FF]/50 bg-[#04080F] p-6 shadow-[0_0_55px_rgba(95,243,255,0.16)] sm:p-7"
+        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto border border-[#5FF3FF]/45 bg-[#04080F] p-5 shadow-[0_0_60px_rgba(95,243,255,0.18)] sm:p-7"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#5FF3FF]/20 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center border border-[#5FF3FF]/45 bg-[#5FF3FF]/10 text-[#5FF3FF]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#5FF3FF]/20 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 text-[#5FF3FF]">
               <Rocket className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
-                SYS.CREDENTIAL // ORBITAL FORGE · NASA SPACE APPS 2026
-              </div>
-              <h1 className="mt-0.5 text-xl font-light tracking-tight text-white sm:text-2xl">
-                {isEs ? 'Credencial de Misión & Dificultad' : 'Mission Credential & Difficulty'}
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFC15E]">
+                ORBITAL FORGE · PROYECTO ÍCARO-26 ("ECOS DE ÍCARO")
+              </span>
+              <h1 className="text-xl font-light tracking-tight text-white sm:text-2xl">
+                {isEs
+                  ? 'Modo Historia: Crónica de Dos Capítulos'
+                  : 'Story Mode: Two-Chapter Space Chronicle'}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                playHoloTone('STEP', soundEnabled);
-                setLanguage(isEs ? 'en' : 'es');
-              }}
-              className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/30 bg-[#04080F] px-2.5 py-1.5 font-mono text-[10px] tracking-[0.14em] text-[#5FF3FF] uppercase transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
-            >
-              <Languages className="h-3.5 w-3.5" />
-              <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                playHoloTone('STEP', soundEnabled);
-                completeOnboarding(selectedMode, draftCommander, draftMission);
-              }}
-              aria-label={isEs ? 'Cerrar credencial' : 'Close credential'}
-              className="border border-[#5FF3FF]/30 bg-[#04080F] p-1.5 text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <p className="mt-3 text-xs leading-relaxed text-slate-300">
-          {isEs
-            ? 'Tú eres el Comandante de Vuelo. Identifica tu nave y elige cómo quieres vivir la ingeniería de sistemas espaciales CML 1–5:'
-            : 'You are the Flight Commander. Register your spacecraft callsign and choose your CML 1–5 engineering challenge:'}
-        </p>
-
-        {/* 3-Step Mission Roadmap */}
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {[
-            {
-              step: '01',
-              title: { en: 'Design (CML 1–4)', es: 'Diseñar (CML 1–4)' },
-              desc: { en: 'Orbit, 7 subsystems & tanks', es: 'Órbita, 7 subsistemas y tanques' },
-            },
-            {
-              step: '02',
-              title: { en: 'Qualify (CML 5 MCR)', es: 'Calificar (CML 5 MCR)' },
-              desc: { en: 'Environmental V&V & ≥35% margin', es: 'Pruebas V&V y margen ≥35%' },
-            },
-            {
-              step: '03',
-              title: { en: 'Launch & Crises (06)', es: 'Lanzamiento y Crisis (06)' },
-              desc: { en: 'Resolve 3 orbital anomalies', es: 'Resuelve 3 crisis en órbita' },
-            },
-          ].map((item) => (
-            <div
-              key={item.step}
-              className="border border-[#5FF3FF]/25 bg-[#04080F] px-3 py-2.5"
-            >
-              <div className="font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
-                {item.step} · {item.title[language]}
-              </div>
-              <div className="mt-0.5 text-[11px] text-slate-400">{item.desc[language]}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="border border-[#5FF3FF]/30 bg-[#04080F] p-3.5 transition focus-within:border-[#5FF3FF]">
-            <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
-              <UserCheck className="h-3.5 w-3.5" />
-              {isEs ? 'Callsign / Nombre del Comandante' : 'Commander Callsign / Name'}
-            </span>
-            <input
-              id="commander-callsign"
-              name="commanderCallsign"
-              type="text"
-              maxLength={28}
-              value={draftCommander}
-              onChange={(e) => setDraftCommander(e.target.value)}
-              placeholder={isEs ? 'Ej. Orion' : 'e.g. Orion'}
-              className="mt-1.5 w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-600"
-            />
-          </label>
-
-          <label className="border border-[#FFC15E]/35 bg-[#04080F] p-3.5 transition focus-within:border-[#FFC15E]">
-            <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase">
-              <Compass className="h-3.5 w-3.5" />
-              {isEs ? 'Nombre Oficial de tu Misión' : 'Official Mission Name'}
-            </span>
-            <input
-              id="mission-name"
-              name="missionName"
-              type="text"
-              maxLength={32}
-              value={draftMission}
-              onChange={(e) => setDraftMission(e.target.value)}
-              placeholder={isEs ? 'Ej. Inti-1' : 'e.g. Inti-1'}
-              className="mt-1.5 w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-600"
-            />
-          </label>
-        </div>
-
-        <div className="mt-5 grid gap-3.5 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => {
               playHoloTone('STEP', soundEnabled);
-              setSelectedMode('CADET');
+              setLanguage(isEs ? 'en' : 'es');
             }}
+            className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/30 bg-[#060d1a] px-3 py-1.5 font-mono text-xs text-[#5FF3FF] transition hover:border-[#5FF3FF]"
+          >
+            <Languages className="h-3.5 w-3.5" />
+            <span>{isEs ? 'ES · Español' : 'EN · English'}</span>
+          </button>
+        </div>
+
+        {/* Emotional Core Banner */}
+        <div className="mt-3 border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 px-3.5 py-2.5 text-xs leading-relaxed text-slate-200">
+          <strong className="font-mono text-[10px] uppercase tracking-wider text-[#FFC15E]">
+            {isEs ? 'EL NÚCLEO EMOCIONAL (ÍCARO-1): ' : 'THE EMOTIONAL CORE (ICARUS-1): '}
+          </strong>
+          {isEs
+            ? 'Hace 4 años, la misión Ícaro-1 se perdió camino a Júpiter por un fallo de energía en una tormenta solar. El Comandante Frank Vega prometió formar una nueva generación que diseñe naves infalibles "tornillo por tornillo". Primero te graduarás como Cadete (Acto I), luego serás convocado como Ingeniero Jefe JPL (Acto II) y finalmente desbloquearás el Modo Libre (Forja Infinita).'
+            : 'Four years ago, mission Icarus-1 was lost en route to Jupiter during a solar storm. Commander Frank Vega vowed to train a new generation "bolt by bolt". Start as Cadet (Act I), rise to JPL Chief Engineer (Act II), and unlock Infinite Forge Sandbox.'}
+        </div>
+
+        {/* Persistent LocalStorage Identity Inputs for Cadet & JPL Engineer */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <label className="border border-[#5FF3FF]/35 bg-[#060d1a] p-3 focus-within:border-[#5FF3FF]">
+            <span className="flex items-center gap-1.5 font-mono text-[9.5px] font-bold uppercase text-[#5FF3FF]">
+              <UserCheck className="h-3.5 w-3.5" />
+              {isEs ? '1. Nombre del Cadete (Acto I)' : '1. Cadet Name (Act I)'}
+            </span>
+            <input
+              id="cadet-name-input"
+              type="text"
+              value={draftCadet}
+              onChange={(e) => setDraftCadet(e.target.value)}
+              placeholder={isEs ? 'Ej: Leo, Maya...' : 'e.g., Leo, Maya...'}
+              maxLength={24}
+              className="mt-1.5 w-full bg-black/60 px-2.5 py-1.5 font-mono text-sm text-white focus:outline-none"
+            />
+            <span className="mt-1 block font-mono text-[8.5px] text-slate-400">
+              {act1Completed
+                ? (isEs ? '✦ Graduado (Acto I completado)' : '✦ Graduated (Act I cleared)')
+                : (isEs ? 'En formación en la Academia' : 'In training at the Academy')}
+            </span>
+          </label>
+
+          <label className="border border-[#FFC15E]/35 bg-[#060d1a] p-3 focus-within:border-[#FFC15E]">
+            <span className="flex items-center gap-1.5 font-mono text-[9.5px] font-bold uppercase text-[#FFC15E]">
+              <Wrench className="h-3.5 w-3.5" />
+              {isEs ? '2. Nombre Ingeniero JPL (Acto II)' : '2. JPL Engineer Name (Act II)'}
+            </span>
+            <input
+              id="engineer-name-input"
+              type="text"
+              value={draftEngineer}
+              onChange={(e) => setDraftEngineer(e.target.value)}
+              placeholder={isEs ? 'Ej: Vanguard, Dr. Hayes...' : 'e.g., Vanguard, Dr. Hayes...'}
+              maxLength={24}
+              className="mt-1.5 w-full bg-black/60 px-2.5 py-1.5 font-mono text-sm text-white focus:outline-none"
+            />
+            <span className="mt-1 block font-mono text-[8.5px] text-slate-400">
+              {act2Completed
+                ? (isEs ? '✦ Héroe de Júpiter (Modo Libre ON)' : '✦ Hero of Jupiter (Sandbox ON)')
+                : (isEs ? 'Convocado por la Directora Rostova' : 'Summoned by Director Rostova')}
+            </span>
+          </label>
+
+          <label className="border border-[#5FF3FF]/35 bg-[#060d1a] p-3 focus-within:border-[#5FF3FF]">
+            <span className="flex items-center gap-1.5 font-mono text-[9.5px] font-bold uppercase text-[#5FF3FF]">
+              <Compass className="h-3.5 w-3.5" />
+              {isEs ? '3. Nombre del Vehículo' : '3. Spacecraft Name'}
+            </span>
+            <input
+              id="mission-name-input"
+              type="text"
+              value={draftMission}
+              onChange={(e) => setDraftMission(e.target.value)}
+              placeholder="Inti-1, Dawn, Orion..."
+              maxLength={24}
+              className="mt-1.5 w-full bg-black/60 px-2.5 py-1.5 font-mono text-sm text-white focus:outline-none"
+            />
+            <span className="mt-1 block font-mono text-[8.5px] text-slate-400">
+              {isEs ? 'Grabado en el fuselaje y reporte final' : 'Inscribed on hull & flight debrief'}
+            </span>
+          </label>
+        </div>
+
+        {/* Story Chapter Selector */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setSelectedMode('CADET')}
             className={`flex flex-col justify-between border p-4 text-left transition ${
               selectedMode === 'CADET'
-                ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_24px_rgba(95,243,255,0.16)]'
-                : 'border-[#5FF3FF]/20 bg-[#04080F] hover:border-[#5FF3FF]/45'
+                ? 'border-[#5FF3FF] bg-[#5FF3FF]/12 shadow-[0_0_24px_rgba(95,243,255,0.2)]'
+                : 'border-[#5FF3FF]/20 bg-[#060d1a] hover:border-[#5FF3FF]/50'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/35 bg-[#5FF3FF]/10 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.14em] text-[#5FF3FF] uppercase">
+                <span className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/40 bg-[#5FF3FF]/15 px-2 py-0.5 font-mono text-[9.5px] font-bold text-[#5FF3FF]">
                   <GraduationCap className="h-3.5 w-3.5" />
-                  {isEs ? 'HISTORIA · EXPLORADOR' : 'STORY · EXPLORER'}
+                  {isEs ? 'CAPÍTULO I · ACADEMIA ESPACIAL' : 'CHAPTER I · SPACE ACADEMY'}
                 </span>
                 <Sparkles className="h-4 w-4 text-[#5FF3FF]" />
               </div>
-              <h2 className="mt-3 text-base font-medium tracking-tight text-white">
-                {isEs ? 'Cadete Estudiante' : 'Cadet Explorer'}
-              </h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
+              <h2 className="mt-2.5 text-base font-bold text-white">
                 {isEs
-                  ? 'Soy Cadete: Quiero aprender diseñando mi primera misión con la Comandante Vega, analogías divertidas, pistas visuales de piezas y crisis guiadas.'
-                  : 'I am a Cadet: Learn by building my first mission with Commander Vega, intuitive analogies, part hints, and guided flight crises.'}
+                  ? `Acto I: Cadete Espacial (${draftCadet.trim() || 'Cadete'})`
+                  : `Act I: Space Cadet (${draftCadet.trim() || 'Cadet'})`}
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                {isEs
+                  ? 'El Comandante Vega te guía "tornillo por tornillo": te explica qué es cada pieza, para qué sirve y cómo se conecta con el holograma sin saturarte.'
+                  : 'Commander Vega guides you "bolt by bolt": explaining what each part is, what it does, and how it connects to the center hologram.'}
               </p>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] tracking-[0.12em] text-[#5FF3FF] uppercase">
-              <span className="border border-[#5FF3FF]/30 bg-[#04080F] px-2 py-0.5">
-                {isEs ? 'Analogías CSA' : 'CSA Analogies'}
+            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] text-[#5FF3FF]">
+              <span className="border border-[#5FF3FF]/30 px-2 py-0.5">
+                {isEs ? 'Guía Tornillo a Tornillo' : 'Bolt-by-Bolt Guide'}
               </span>
-              <span className="border border-[#5FF3FF]/30 bg-[#04080F] px-2 py-0.5">
-                {isEs ? 'Pistas en Vuelo' : 'Flight Hints'}
+              <span className="border border-[#5FF3FF]/30 px-2 py-0.5">
+                {isEs ? 'Cinemáticas Acto I' : 'Act I Cutscenes'}
               </span>
             </div>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              playHoloTone('STEP', soundEnabled);
-              setSelectedMode('JPL_ENGINEER');
-            }}
+            onClick={() => setSelectedMode('JPL_ENGINEER')}
             className={`flex flex-col justify-between border p-4 text-left transition ${
               selectedMode === 'JPL_ENGINEER'
-                ? 'border-[#FFC15E] bg-[#FFC15E]/12 shadow-[0_0_24px_rgba(255,193,94,0.16)]'
-                : 'border-[#5FF3FF]/20 bg-[#04080F] hover:border-[#FFC15E]/45'
+                ? 'border-[#FFC15E] bg-[#FFC15E]/12 shadow-[0_0_24px_rgba(255,193,94,0.18)]'
+                : 'border-[#5FF3FF]/20 bg-[#060d1a] hover:border-[#FFC15E]/50'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.14em] text-[#FFC15E] uppercase">
+                <span className="inline-flex items-center gap-1.5 border border-[#FFC15E]/40 bg-[#FFC15E]/15 px-2 py-0.5 font-mono text-[9.5px] font-bold text-[#FFC15E]">
                   <Wrench className="h-3.5 w-3.5" />
-                  {isEs ? 'REALISTA · HARDCORE' : 'REALISTIC · HARDCORE'}
+                  {isEs ? 'CAPÍTULO II · HARDCORE JPL' : 'CHAPTER II · JPL HARDCORE'}
                 </span>
                 <Cpu className="h-4 w-4 text-[#FFC15E]" />
               </div>
-              <h2 className="mt-3 text-base font-medium tracking-tight text-white">
-                {isEs ? 'Ingeniero JPL Team X' : 'JPL Team X Engineer'}
-              </h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
+              <h2 className="mt-2.5 text-base font-bold text-white">
                 {isEs
-                  ? 'Soy Ingeniero JPL: Dame telemetría cruda (TRL, CBE+MGA, ΔV, Eb/N0), márgenes estrictos del 35% NASA y crisis sin pistas previas.'
-                  : 'I am a JPL Engineer: Unlock raw telemetry (TRL, CBE+MGA, ΔV, Eb/N0), strict 35% NASA margins, and blind crisis commands.'}
+                  ? `Acto II: Ingeniero JPL (${draftEngineer.trim() || 'Vanguard'})`
+                  : `Act II: JPL Engineer (${draftEngineer.trim() || 'Vanguard'})`}
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                {isEs
+                  ? 'La Directora Rostova y Vega te encomiendan rescatar la baliza del Ícaro-1 en Europa (Júpiter). Telemetría cruda, RTG obligatorio y 0 margen de error.'
+                  : 'Director Rostova and Vega task you with rescuing the Icarus-1 beacon at Europa. Raw telemetry, mandatory RTG, and zero margin for error.'}
               </p>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] tracking-[0.12em] text-[#FFC15E] uppercase">
-              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">CBE + MGA</span>
-              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">MCR ≥35%</span>
-              <span className="border border-[#FFC15E]/35 bg-[#04080F] px-2 py-0.5">
-                {isEs ? 'Sin Pistas' : 'Zero Hints'}
+            <div className="mt-3 flex flex-wrap gap-1.5 font-mono text-[9.5px] text-[#FFC15E]">
+              <span className="border border-[#FFC15E]/30 px-2 py-0.5">
+                {isEs ? 'Rescate Ícaro-1' : 'Icarus-1 Rescue'}
+              </span>
+              <span className="border border-[#FFC15E]/30 px-2 py-0.5">
+                {isEs ? 'Desbloquea Modo Libre' : 'Unlocks Free Sandbox'}
               </span>
             </div>
           </button>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#5FF3FF]/20 pt-4">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#5FF3FF]/20 pt-4">
           <span className="flex items-center gap-1.5 font-mono text-[10px] text-slate-400">
             <ShieldCheck className="h-4 w-4 text-[#5FF3FF]" />
             {isEs
-              ? 'Puedes alternar dificultad y callsign en la barra superior cuando quieras.'
-              : 'You can switch difficulty or callsign from the top bar at any time.'}
+              ? 'Tus nombres de Cadete e Ingeniero quedan guardados en localStorage.'
+              : 'Your Cadet and Engineer names are persisted in localStorage.'}
           </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              playHoloTone('STAR', soundEnabled);
-              completeOnboarding(selectedMode, draftCommander, draftMission);
-            }}
-            className="inline-flex items-center gap-2 border border-[#5FF3FF] bg-[#5FF3FF]/15 px-5 py-2.5 font-mono text-[11px] font-bold tracking-[0.18em] text-[#5FF3FF] uppercase shadow-[0_0_24px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/25"
-          >
-            <Rocket className="h-4 w-4" />
-            <span>
-              {isEs
-                ? `Asumir Mando: ${draftMission.trim() || 'Inti-1'}`
-                : `Assume Command: ${draftMission.trim() || 'Inti-1'}`}
-            </span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleStart(false)}
+              className="border border-[#5FF3FF]/35 px-3.5 py-2 font-mono text-[10px] tracking-[0.14em] text-slate-300 uppercase hover:border-[#5FF3FF] hover:text-white"
+            >
+              {isEs ? 'IR DIRECTO A CONSOLA' : 'SKIP TO CONSOLE'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleStart(true)}
+              className="inline-flex items-center gap-2 border border-[#5FF3FF] bg-[#5FF3FF]/20 px-4 py-2 font-mono text-[10.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase shadow-[0_0_24px_rgba(95,243,255,0.28)] hover:bg-[#5FF3FF]/30"
+            >
+              <Film className="h-4 w-4" />
+              <span>
+                {isEs
+                  ? 'INICIAR CON CINEMÁTICA PRÓLOGO →'
+                  : 'START WITH PROLOGUE CUTSCENE →'}
+              </span>
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

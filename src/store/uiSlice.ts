@@ -15,6 +15,33 @@ export type TeamRole =
 export type RightPanelTab = 'VISUALS' | 'ANALYTICS';
 export type CubeSatFormFactor = '1.5U' | '2U' | '3U' | 'CUSTOM';
 export type RandomEventType = 'NONE' | 'BUDGET_CUT' | 'SOLAR_STORM' | 'MASS_PENALTY';
+export type StoryChapter = 'ACT_1_CADET' | 'ACT_2_JPL' | 'FREE_SANDBOX';
+export type RobotSpotlightZone =
+  | 'RESOURCES'
+  | 'CHASSIS'
+  | 'EPS'
+  | 'MISSION'
+  | 'HOLOGRAM'
+  | 'COMMANDER_HUD'
+  | 'LEFT_PANEL'
+  | 'RIGHT_PANEL'
+  | 'TOP_BAR'
+  | 'FOOTER_LEVELS';
+export type StoryCinematicId =
+  | 'ACT1_PROLOGUE'
+  | 'ACT1_T_1_2'
+  | 'ACT1_T_2_3'
+  | 'ACT1_T_3_4'
+  | 'ACT1_T_4_5'
+  | 'ACT1_T_5_6'
+  | 'ACT1_CLIMAX_JPL_TWIST'
+  | 'ACT2_PROLOGUE'
+  | 'ACT2_T_1_2'
+  | 'ACT2_T_2_3'
+  | 'ACT2_T_3_4'
+  | 'ACT2_T_4_5'
+  | 'ACT2_T_5_6'
+  | 'ACT2_FINALE_SANDBOX';
 
 export interface DecisionLogEntry {
   id: string;
@@ -50,6 +77,16 @@ export interface UISlice {
   isAIStudioModalOpen: boolean;
 
   commanderName: string;
+  cadetName: string;
+  engineerName: string;
+  storyChapter: StoryChapter;
+  act1Completed: boolean;
+  act2Completed: boolean;
+  activeCinematicId: StoryCinematicId | null;
+  seenCinematics: Record<string, boolean>;
+  tutorialStepIndex: number;
+  level1TutorialStep: number;
+  robotHoverZone: RobotSpotlightZone | null;
   missionCustomName: string;
   hasCompletedOnboarding: boolean;
   isCertificateOpen: boolean;
@@ -92,11 +129,23 @@ export interface UISlice {
   resetHull: () => void;
 
   setCommanderName: (name: string) => void;
+  setCadetName: (name: string) => void;
+  setEngineerName: (name: string) => void;
   setMissionCustomName: (name: string) => void;
+  setStoryChapter: (chapter: StoryChapter) => void;
+  openCinematic: (id: StoryCinematicId) => void;
+  closeCinematic: () => void;
+  setTutorialStepIndex: (idx: number) => void;
+  setLevel1TutorialStep: (step: number) => void;
+  setRobotHoverZone: (zone: RobotSpotlightZone | null) => void;
+  advanceToAct2Jpl: (engineerName?: string, missionName?: string) => void;
+  completeStoryAndUnlockSandbox: () => void;
   completeOnboarding: (
     mode: ExperienceMode,
     commanderName: string,
     missionName: string,
+    cadetNameOverride?: string,
+    engineerNameOverride?: string,
   ) => void;
   reopenOnboarding: () => void;
   setCertificateOpen: (open: boolean) => void;
@@ -150,14 +199,28 @@ function formatClock(): string {
 
 const EVENT_CYCLE: RandomEventType[] = ['NONE', 'BUDGET_CUT', 'SOLAR_STORM', 'MASS_PENALTY'];
 
+export function resolveTransitionCinematic(
+  fromPhase: CMLPhase,
+  toPhase: CMLPhase,
+  mode: ExperienceMode,
+): StoryCinematicId | null {
+  const isJpl = mode === 'JPL_ENGINEER';
+  if (fromPhase === 'CML_1' && toPhase === 'CML_2') return isJpl ? 'ACT2_T_1_2' : 'ACT1_T_1_2';
+  if (fromPhase === 'CML_2' && toPhase === 'CML_3') return isJpl ? 'ACT2_T_2_3' : 'ACT1_T_2_3';
+  if (fromPhase === 'CML_3' && toPhase === 'CML_4') return isJpl ? 'ACT2_T_3_4' : 'ACT1_T_3_4';
+  if (fromPhase === 'CML_4' && toPhase === 'CML_5') return isJpl ? 'ACT2_T_4_5' : 'ACT1_T_4_5';
+  if (fromPhase === 'CML_5' && toPhase === 'SIMULATION') return isJpl ? 'ACT2_T_5_6' : 'ACT1_T_5_6';
+  return null;
+}
+
 export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
-  language: 'en',
+  language: 'es',
   experienceMode: 'CADET',
   phase: 'CML_1',
   maxUnlockedLevel: 1,
   teamMode: 'SOLO',
   activeTeamRole: 'MISSION_LEAD',
-  missionStatement: DEFAULT_MISSION_STATEMENT_EN,
+  missionStatement: DEFAULT_MISSION_STATEMENT_ES,
   cubesatFormFactor: '3U',
   activeSubsystemTab: 'PAYLOAD',
   rightPanelTab: 'ANALYTICS',
@@ -167,8 +230,18 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   isAIStudioModalOpen: false,
 
   commanderName: 'Orion',
-  missionCustomName: 'Inti-1',
-  hasCompletedOnboarding: false,
+  cadetName: 'Orion',
+  engineerName: 'Vanguard',
+  storyChapter: 'ACT_1_CADET',
+  act1Completed: false,
+  act2Completed: false,
+  activeCinematicId: 'ACT1_PROLOGUE',
+  seenCinematics: {},
+  tutorialStepIndex: 0,
+  level1TutorialStep: 0,
+  robotHoverZone: null,
+  missionCustomName: 'Ícaro-Pionero',
+  hasCompletedOnboarding: true,
   isCertificateOpen: false,
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
@@ -202,17 +275,47 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
           : s.missionStatement,
       };
     }),
-  setExperienceMode: (experienceMode) => set({ experienceMode }),
-  setPhase: (phase) =>
+  setExperienceMode: (experienceMode) =>
     set((s) => ({
-      phase,
-      maxUnlockedLevel: Math.max(s.maxUnlockedLevel, PHASE_ORDER[phase]),
+      experienceMode,
+      commanderName: experienceMode === 'CADET' ? s.cadetName : s.engineerName,
+      storyChapter:
+        s.storyChapter === 'FREE_SANDBOX'
+          ? 'FREE_SANDBOX'
+          : experienceMode === 'CADET'
+            ? 'ACT_1_CADET'
+            : 'ACT_2_JPL',
     })),
+  setPhase: (phase) =>
+    set((s) => {
+      const transId = resolveTransitionCinematic(s.phase, phase, s.experienceMode);
+      const shouldPlay =
+        transId !== null &&
+        s.storyChapter !== 'FREE_SANDBOX' &&
+        !s.seenCinematics[transId];
+      return {
+        phase,
+        tutorialStepIndex: 0,
+        level1TutorialStep: phase === 'CML_1' ? s.level1TutorialStep : 5,
+        maxUnlockedLevel: Math.max(s.maxUnlockedLevel, PHASE_ORDER[phase]),
+        activeCinematicId: shouldPlay ? transId : s.activeCinematicId,
+        seenCinematics:
+          shouldPlay && transId
+            ? { ...s.seenCinematics, [transId]: true }
+            : s.seenCinematics,
+      };
+    }),
   unlockAllLevels: () => set({ maxUnlockedLevel: 6 }),
   setTeamMode: (teamMode) => set({ teamMode }),
   setActiveTeamRole: (activeTeamRole) => set({ activeTeamRole }),
   setMissionStatement: (missionStatement) => set({ missionStatement }),
-  setCubesatFormFactor: (cubesatFormFactor) => set({ cubesatFormFactor }),
+  setCubesatFormFactor: (cubesatFormFactor) =>
+    set((s) => ({
+      cubesatFormFactor,
+      tutorialStepIndex: s.phase === 'CML_1' ? 1 : s.tutorialStepIndex,
+      level1TutorialStep:
+        s.phase === 'CML_1' && s.level1TutorialStep <= 1 ? 2 : s.level1TutorialStep,
+    })),
   setActiveSubsystemTab: (activeSubsystemTab) => set({ activeSubsystemTab }),
   setRightPanelTab: (rightPanelTab) => set({ rightPanelTab }),
   setPitchModalOpen: (isPitchModalOpen) => set({ isPitchModalOpen }),
@@ -240,28 +343,139 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
     set((s) => ({ hullIntegrity: Math.max(0, Math.min(100, s.hullIntegrity + amount)) })),
   resetHull: () => set({ hullIntegrity: 100 }),
 
-  setCommanderName: (commanderName) => set({ commanderName }),
-  setMissionCustomName: (missionCustomName) => set({ missionCustomName }),
-  completeOnboarding: (mode, rawCommander, rawMission) =>
+  setCommanderName: () =>
     set((s) => ({
-      experienceMode: mode,
-      commanderName: rawCommander.trim() || 'Orion',
-      missionCustomName: rawMission.trim() || 'Inti-1',
-      hasCompletedOnboarding: true,
+      commanderName: s.experienceMode === 'CADET' ? 'Orion' : 'Vanguard',
+      cadetName: 'Orion',
+      engineerName: 'Vanguard',
+    })),
+  setCadetName: () =>
+    set((s) => ({
+      cadetName: 'Orion',
+      commanderName: s.experienceMode === 'CADET' ? 'Orion' : s.commanderName,
+    })),
+  setEngineerName: () =>
+    set((s) => ({
+      engineerName: 'Vanguard',
+      commanderName: s.experienceMode === 'JPL_ENGINEER' ? 'Vanguard' : s.commanderName,
+    })),
+  setMissionCustomName: () => set({ missionCustomName: 'Ícaro-Pionero' }),
+  setStoryChapter: (storyChapter) =>
+    set((s) => ({
+      storyChapter,
+      experienceMode:
+        storyChapter === 'ACT_1_CADET'
+          ? 'CADET'
+          : storyChapter === 'ACT_2_JPL'
+            ? 'JPL_ENGINEER'
+            : s.experienceMode,
+      commanderName:
+        storyChapter === 'ACT_1_CADET'
+          ? 'Orion'
+          : storyChapter === 'ACT_2_JPL'
+            ? 'Vanguard'
+            : s.commanderName,
+    })),
+  openCinematic: (activeCinematicId) => set({ activeCinematicId }),
+  closeCinematic: () =>
+    set((s) => ({
+      activeCinematicId: null,
+      seenCinematics: s.activeCinematicId
+        ? { ...s.seenCinematics, [s.activeCinematicId]: true }
+        : s.seenCinematics,
+    })),
+  setTutorialStepIndex: (tutorialStepIndex) => set({ tutorialStepIndex }),
+  setLevel1TutorialStep: (level1TutorialStep) => set({ level1TutorialStep }),
+  setRobotHoverZone: (robotHoverZone) => set({ robotHoverZone }),
+  advanceToAct2Jpl: () =>
+    set((s) => {
+      const cleanEng = 'Vanguard';
+      const cleanMission = 'Ícaro-Pionero';
+      return {
+        act1Completed: true,
+        storyChapter: 'ACT_2_JPL',
+        experienceMode: 'JPL_ENGINEER',
+        engineerName: cleanEng,
+        commanderName: cleanEng,
+        missionCustomName: cleanMission,
+        phase: 'CML_1',
+        maxUnlockedLevel: 1,
+        tutorialStepIndex: 0,
+        mcrSignedAuthorized: false,
+        isCertificateOpen: false,
+        activeCinematicId: 'ACT2_PROLOGUE',
+        seenCinematics: { ...s.seenCinematics, ACT2_PROLOGUE: true },
+        decisionLog: [
+          ...s.decisionLog.slice(-24),
+          {
+            id: `log-act2-${Date.now()}`,
+            phase: 'CML_1',
+            timestamp: formatClock(),
+            label: {
+              en: `Promoted to JPL Chief Engineer ${cleanEng} for Europa beacon rescue "${cleanMission}".`,
+              es: `Ascendido a Ingeniero Jefe JPL ${cleanEng} para rescate de baliza Europa "${cleanMission}".`,
+            },
+            impact: 'POSITIVE',
+          },
+        ],
+      };
+    }),
+  completeStoryAndUnlockSandbox: () =>
+    set((s) => ({
+      act1Completed: true,
+      act2Completed: true,
+      storyChapter: 'FREE_SANDBOX',
+      maxUnlockedLevel: 6,
+      activeCinematicId: null,
       decisionLog: [
         ...s.decisionLog.slice(-24),
         {
-          id: `log-onboard-${Date.now()}`,
+          id: `log-sandbox-${Date.now()}`,
           phase: s.phase,
           timestamp: formatClock(),
           label: {
-            en: `CMDR ${rawCommander.trim() || 'Orion'} commissioned "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
-            es: `CMDR ${rawCommander.trim() || 'Orion'} comisionó "${rawMission.trim() || 'Inti-1'}" (${mode}).`,
+            en: `Icarus-1 beacon recovered! Infinite Forge Sandbox unlocked for ${s.engineerName}.`,
+            es: `¡Baliza del Ícaro-1 recuperada! Modo Forja Infinita (Sandbox) desbloqueado para ${s.engineerName}.`,
           },
           impact: 'POSITIVE',
         },
       ],
     })),
+  completeOnboarding: (mode) =>
+    set((s) => {
+      const nextCadet = 'Orion';
+      const nextEng = 'Vanguard';
+      const activeCommander = mode === 'CADET' ? nextCadet : nextEng;
+      const nextChapter: StoryChapter =
+        s.storyChapter === 'FREE_SANDBOX'
+          ? 'FREE_SANDBOX'
+          : mode === 'CADET'
+            ? 'ACT_1_CADET'
+            : 'ACT_2_JPL';
+      return {
+        experienceMode: mode,
+        storyChapter: nextChapter,
+        cadetName: nextCadet,
+        engineerName: nextEng,
+        commanderName: activeCommander,
+        missionCustomName: 'Ícaro-Pionero',
+        hasCompletedOnboarding: true,
+        tutorialStepIndex: 0,
+        decisionLog: [
+          ...s.decisionLog.slice(-24),
+          {
+            id: `log-onboard-${Date.now()}`,
+            phase: s.phase,
+            timestamp: formatClock(),
+            label: {
+              en: `${mode === 'CADET' ? 'Cadet' : 'Chief Eng.'} ${activeCommander} commissioned "Ícaro-Pionero" (${mode}).`,
+              es: `${mode === 'CADET' ? 'Cadete' : 'Ing. Jefe'} ${activeCommander} comisionó "Ícaro-Pionero" (${mode}).`,
+            },
+            impact: 'POSITIVE',
+          },
+        ],
+      };
+    }),
   reopenOnboarding: () => set({ hasCompletedOnboarding: false }),
   setCertificateOpen: (isCertificateOpen) => set({ isCertificateOpen }),
   setMcrSignedAuthorized: (mcrSignedAuthorized) => set({ mcrSignedAuthorized }),

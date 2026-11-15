@@ -11,14 +11,25 @@ export { MCRReviewGate } from './MCRReviewGate';
 export {
   COMMANDER_PHASE_BEATS,
   formatCommanderBeat,
+  formatStoryText,
   HOLO_ANIMATION_PRESETS,
+  LEVEL1_INTERACTIVE_TOUR,
+  STORY_CINEMATICS,
+  SUBSYSTEM_TAB_GUIDE,
   type NarrativePhaseBeat,
+  type ScrewByScrewStep,
+  type StoryCinematicScene,
 } from './narrativeConfig';
 export { NarrativePitchModal } from './NarrativePitchModal';
 export { OrbitGroundStep } from './OrbitGroundStep';
 export { PhaseStep1User } from './PhaseStep1User';
 export { PointDesignStep } from './PointDesignStep';
 export { PostMissionCertificateModal } from './PostMissionCertificateModal';
+export {
+  AstraFloatingCompanion,
+  RobotSvgIcon,
+} from './RobotAssistantGuide';
+export { StoryCinematicModal } from './StoryCinematicModal';
 export { SubsystemHoverPreview } from './SubsystemHoverPreview';
 export { TelemetryModalDrawer } from './TelemetryModalDrawer';
 export { TopBar } from './TopBar';
