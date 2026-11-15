@@ -18,3 +18,13 @@ export {
 } from './engine.test';
 export { evaluateMissionPhysics } from './physics';
 export { runMissionSimulation } from './simulation';
+export {
+  CAMPAIGN_CONTRACTS,
+  computeActiveSynergies,
+  EQUIPMENT_SYNERGIES,
+  getPlayerRank,
+  PLAYER_RANKS,
+  type CampaignContract,
+  type EquipmentSynergy,
+  type PlayerRank,
+} from './campaign';

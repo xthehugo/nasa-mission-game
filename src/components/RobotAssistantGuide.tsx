@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Check, X } from 'lucide-react';
 import { useMissionStore, type RobotSpotlightZone } from '../store';
 import type { CMLPhase } from '../types/mission';
+import { playHoloTone } from './holoAudio';
 import { COMMANDER_PHASE_BEATS } from './narrativeConfig';
 
 /**
@@ -253,8 +255,8 @@ const DIRECT_ZONE_EXPLANATIONS: Record<
   COMMANDER_HUD: {
     title: { en: 'Mission Control Transmission', es: 'Transmisión del Comandante' },
     body: {
-      en: 'Live radio channel from Commander Vega and Director Rostova. Use "🔊 VOICE" to hear the audio again or "🎬 CUTSCENE" to replay the animation.',
-      es: 'Canal de radio en vivo del Comandante Vega y la Directora Rostova. Puedes pulsar "🔊 VOZ" para volver a escuchar el audio o "🎬 CINEMÁTICA" para ver la escena.',
+      en: 'Live radio channel from Commander Vega and Director Rostova. Use [VOICE] to hear the audio again or [CUTSCENE] to replay the animation.',
+      es: 'Canal de radio en vivo del Comandante Vega y la Directora Rostova. Puedes pulsar [VOZ] para volver a escuchar el audio o [CINEMÁTICA] para ver la escena.',
     },
   },
   LEFT_PANEL: {
@@ -338,6 +340,7 @@ export function AstraFloatingCompanion() {
     language,
     phase,
     activeCinematicId,
+    soundEnabled,
     setRobotHoverZone,
   } = useMissionStore();
 
@@ -428,6 +431,7 @@ export function AstraFloatingCompanion() {
         <button
           type="button"
           onClick={() => {
+            playHoloTone('STEP', soundEnabled);
             setIsOpen(true);
             setRobotHoverZone(effectiveZone);
             setViewportTick((t) => t + 1);
@@ -469,7 +473,7 @@ export function AstraFloatingCompanion() {
       }}
       transition={{ type: 'spring', stiffness: 220, damping: 24 }}
       style={{ position: 'fixed' }}
-      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4"
+      className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4 pointer-events-none"
     >
       {/* Glowing Neon Robot Mascot ASTRA (Left of the card, just like the reference image) */}
       <motion.button
@@ -481,13 +485,13 @@ export function AstraFloatingCompanion() {
         animate={{ y: [0, -5, 0] }}
         transition={{ repeat: Infinity, duration: 2.6, ease: 'easeInOut' }}
         title={isEs ? 'Descansar en la esquina' : 'Rest in corner'}
-        className="mt-2 shrink-0 cursor-pointer focus:outline-none"
+        className="mt-2 shrink-0 cursor-pointer focus:outline-none pointer-events-auto"
       >
         <RobotSvgIcon className="h-16 w-16 sm:h-20 sm:w-20" />
       </motion.button>
 
       {/* ASTRA Cyan-Bordered Dialog Box (Matching the reference image) */}
-      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5">
+      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5 pointer-events-auto">
         {/* Top-right subtle close/minimize button + step indicator */}
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="font-mono text-[9px] tracking-[0.16em] text-[#5FF3FF]/80 uppercase">
@@ -500,13 +504,15 @@ export function AstraFloatingCompanion() {
           <button
             type="button"
             onClick={() => {
+              playHoloTone('STEP', soundEnabled);
               setIsOpen(false);
               setRobotHoverZone(null);
             }}
-            className="font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
+            className="inline-flex items-center gap-1 font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
             title={isEs ? 'Enviar a la esquina' : 'Minimize to corner'}
           >
-            {isEs ? '[Esquina ✕]' : '[Corner ✕]'}
+            <X className="h-3 w-3" />
+            <span>{isEs ? 'ESQUINA' : 'CORNER'}</span>
           </button>
         </div>
 
@@ -526,6 +532,7 @@ export function AstraFloatingCompanion() {
             type="button"
             disabled={!customZoneOverride && safeStepIdx === 0}
             onClick={() => {
+              playHoloTone('STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
                 return;
@@ -544,6 +551,8 @@ export function AstraFloatingCompanion() {
           <button
             type="button"
             onClick={() => {
+              const isLast = !customZoneOverride && safeStepIdx === steps.length - 1;
+              playHoloTone(isLast ? 'STAR' : 'STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
                 setStepIdx((i) => (i + 1 < steps.length ? i + 1 : 0));
@@ -558,13 +567,16 @@ export function AstraFloatingCompanion() {
             }}
             className="border border-[#5FF3FF] bg-[#061826] py-2 text-center text-sm font-medium text-[#5FF3FF] shadow-[0_0_16px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/20"
           >
-            {!customZoneOverride && safeStepIdx === steps.length - 1
-              ? isEs
-                ? 'Listo ✓'
-                : 'Done ✓'
-              : isEs
-                ? 'Siguiente'
-                : 'Next'}
+            {!customZoneOverride && safeStepIdx === steps.length - 1 ? (
+              <span className="inline-flex items-center justify-center gap-1">
+                <Check className="h-3.5 w-3.5" />
+                <span>{isEs ? 'Listo' : 'Done'}</span>
+              </span>
+            ) : isEs ? (
+              'Siguiente'
+            ) : (
+              'Next'
+            )}
           </button>
         </div>
       </div>

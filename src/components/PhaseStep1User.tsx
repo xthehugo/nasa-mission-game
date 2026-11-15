@@ -1,12 +1,17 @@
+import { useState } from 'react';
+import { ArrowLeft, Check, Info } from 'lucide-react';
 import {
+  CAMPAIGN_CONTRACTS,
   findObjectiveById,
   findSubsystemById,
   getSubsystemsByCategory,
   SCIENCE_OBJECTIVES,
 } from '../engine';
 import { useMissionStore, type CubeSatFormFactor } from '../store';
-import type { ScienceDiscipline } from '../types/mission';
+import type { ScienceDiscipline, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
+import { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
+import { SubsystemInspectionModal } from './SubsystemInspectionModal';
 
 const DISCIPLINES: Record<ScienceDiscipline, { en: string; es: string }> = {
   EARTH_SCIENCE: { en: 'EARTH / BIO', es: 'TIERRA / BIO' },
@@ -43,6 +48,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   } = useMissionStore();
 
   const isEs = language === 'es';
+  const [inspectingEps, setInspectingEps] = useState<SubsystemOption | null>(null);
   const epsOptions = getSubsystemsByCategory('EPS');
   const highlightChassis =
     (phase === 'CML_1' && level1TutorialStep === 1) || robotHoverZone === 'CHASSIS';
@@ -63,10 +69,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           }`}
         >
           {phase === 'CML_1' && level1TutorialStep === 1 && (
-            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-              {isEs
-                ? '👈 PASO 2/5: HAZ CLIC EN UN CHASIS PARA PROBAR EL PLANO'
-                : '👈 STEP 2/5: CLICK ANY CHASSIS TO TEST THE BLUEPRINT'}
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+              <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+              <span>
+                {isEs
+                  ? 'PASO 2/5: HAZ CLIC EN UN CHASIS PARA PROBAR EL PLANO'
+                  : 'STEP 2/5: CLICK ANY CHASSIS TO TEST THE BLUEPRINT'}
+              </span>
             </div>
           )}
           <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[10px] tracking-[0.14em] uppercase">
@@ -75,7 +84,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
             </span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {CHASSIS_OPTS.map((ch) => {
               const active = cubesatFormFactor === ch.id;
               return (
@@ -84,17 +93,30 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   type="button"
                   onClick={() => {
                     setCubesatFormFactor(ch.id);
+                    if (level1TutorialStep <= 1) {
+                      setLevel1TutorialStep(2);
+                    }
                     playHoloTone('STEP', soundEnabled);
                   }}
-                  className={`w-full border-l-2 px-3 py-2 text-left transition ${
+                  className={`w-full flex items-center gap-3 border-l-2 p-2 text-left transition ${
                     active
-                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_18px_rgba(95,243,255,0.14)]'
-                      : 'border-[#5FF3FF]/15 hover:border-[#5FF3FF]/50 hover:bg-[#5FF3FF]/5'
+                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 shadow-[0_0_18px_rgba(95,243,255,0.18)] text-white'
+                      : 'border-[#5FF3FF]/20 bg-[#04080F]/60 text-slate-300 hover:border-[#5FF3FF]/50 hover:bg-[#5FF3FF]/5'
                   }`}
                 >
-                  <div className="text-lg font-light tracking-tight text-white">{ch.id}</div>
-                  <div className="font-mono text-[9px] tracking-[0.16em] text-slate-400 uppercase">
-                    {ch.sub[language]}
+                  <SubsystemHoloGraphic id={ch.id} size="sm" isSelected={active} className="h-10 w-10 shrink-0" />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-tight text-white flex items-center gap-2">
+                      <span>{ch.id}</span>
+                      {active && (
+                        <span className="font-mono text-[8px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1 py-0.2 rounded border border-[#5FF3FF]/40">
+                          {isEs ? 'SELECCIONADO' : 'SELECTED'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-mono text-[9px] tracking-[0.16em] text-slate-400 uppercase mt-0.5">
+                      {ch.sub[language]}
+                    </div>
                   </div>
                 </button>
               );
@@ -111,10 +133,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           }`}
         >
           {phase === 'CML_1' && level1TutorialStep === 2 && (
-            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-              {isEs
-                ? '👈 PASO 3/5: HAZ CLIC EN UN SISTEMA DE ENERGÍA SOLAR / EPS'
-                : '👈 STEP 3/5: CLICK ANY SOLAR / EPS POWER SYSTEM'}
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+              <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+              <span>
+                {isEs
+                  ? 'PASO 3/5: HAZ CLIC EN UN SISTEMA DE ENERGÍA SOLAR / EPS'
+                  : 'STEP 3/5: CLICK ANY SOLAR / EPS POWER SYSTEM'}
+              </span>
             </div>
           )}
           <div className="mb-2 font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
@@ -124,36 +149,90 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
             {epsOptions.map((opt) => {
               const active = selection.epsId === opt.id;
               return (
-                <button
+                <div
                   key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    setSubsystem('EPS', opt.id);
-                    if (level1TutorialStep <= 2) {
-                      setLevel1TutorialStep(3);
-                    }
-                    playHoloTone('STEP', soundEnabled);
-                  }}
-                  className={`w-full border px-3 py-2 text-left transition ${
+                  className={`flex items-stretch border transition ${
                     active
-                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white'
-                      : 'border-[#5FF3FF]/20 text-slate-300 hover:border-[#5FF3FF]/50'
+                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white shadow-[0_0_12px_rgba(95,243,255,0.15)]'
+                      : 'border-[#5FF3FF]/20 bg-[#04080F]/70 text-slate-300 hover:border-[#5FF3FF]/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-light">{opt.name[language]}</span>
-                    <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
-                  </div>
-                  <div className="mt-1 text-[10px] leading-snug text-slate-400">
-                    {experienceMode === 'CADET'
-                      ? opt.analogyTooltip[language]
-                      : `CBE ${opt.massCBE_kg}kg · TRL ${opt.trl} (+${Math.round(opt.mgaContingencyFactor * 100)}% MGA) · $${opt.cost_MillionsUSD}M`}
-                  </div>
-                </button>
+                  {/* Holographic Thumbnail */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInspectingEps(opt);
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    title={isEs ? 'Ver diseño holográfico y detalles' : 'View holographic design & details'}
+                    className="p-1.5 shrink-0 bg-[#02050B]/90 flex items-center justify-center border-r border-[#5FF3FF]/15 hover:bg-[#5FF3FF]/15 transition cursor-pointer"
+                  >
+                    <SubsystemHoloGraphic id={opt.id} size="sm" isSelected={active} className="h-10 w-10" />
+                  </button>
+
+                  {/* Main Equip Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('EPS', opt.id);
+                      if (level1TutorialStep <= 2) {
+                        setLevel1TutorialStep(3);
+                      }
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="flex-1 p-2 text-left flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-medium text-white">{opt.name[language]}</span>
+                        {active && (
+                          <span className="font-mono text-[8px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1 py-0.2 rounded border border-[#5FF3FF]/40">
+                            {isEs ? 'ACTIVO' : 'ACTIVE'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between text-[9px] font-mono text-slate-400">
+                      <span>{opt.massCBE_kg}kg · ${opt.cost_MillionsUSD}M</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspectingEps(opt);
+                          playHoloTone('STEP', soundEnabled);
+                        }}
+                        className="text-[#5FF3FF] hover:underline flex items-center gap-0.5"
+                      >
+                        <Info className="h-2.5 w-2.5" />
+                        <span>INFO</span>
+                      </button>
+                    </div>
+                  </button>
+                </div>
               );
             })}
           </div>
         </div>
+
+        {/* Subsystem Inspection Modal for EPS in Step 1 */}
+        <SubsystemInspectionModal
+          isOpen={inspectingEps !== null}
+          initialOption={inspectingEps}
+          options={epsOptions}
+          selection={selection}
+          language={language}
+          experienceMode={experienceMode}
+          soundEnabled={soundEnabled}
+          onClose={() => setInspectingEps(null)}
+          onEquip={(opt) => {
+            setSubsystem('EPS', opt.id);
+            if (level1TutorialStep <= 2) {
+              setLevel1TutorialStep(3);
+            }
+          }}
+        />
       </div>
     );
   }
@@ -175,10 +254,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       }`}
     >
       {phase === 'CML_1' && level1TutorialStep === 3 && (
-        <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-          {isEs
-            ? '👈 PASO 4/5: HAZ CLIC EN UNA MISIÓN CIENTÍFICA PARA TU NAVE'
-            : '👈 STEP 4/5: CLICK A SCIENCE MISSION FOR YOUR SPACECRAFT'}
+        <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+          <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+          <span>
+            {isEs
+              ? 'PASO 4/5: HAZ CLIC EN UNA MISIÓN CIENTÍFICA PARA TU NAVE'
+              : 'STEP 4/5: CLICK A SCIENCE MISSION FOR YOUR SPACECRAFT'}
+          </span>
         </div>
       )}
       <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
@@ -204,6 +286,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       <div className="space-y-2">
         {SCIENCE_OBJECTIVES.map((obj) => {
           const active = selection.objectiveId === obj.id;
+          const contract = CAMPAIGN_CONTRACTS.find((c) => c.objectiveId === obj.id);
           return (
             <button
               key={obj.id}
@@ -230,8 +313,20 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               }`}
             >
               <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em] uppercase">
-                <span className="text-[#5FF3FF]">{DISCIPLINES[obj.discipline][language]}</span>
-                <span className="text-[#FFC15E]">${obj.baseBudgetMillions}M</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[#5FF3FF]">{DISCIPLINES[obj.discipline][language]}</span>
+                  {contract && (
+                    <span className="font-mono text-[7.5px] border border-[#5FF3FF]/40 bg-[#5FF3FF]/15 px-1 py-0.2 rounded text-[#5FF3FF]">
+                      {contract.code}
+                    </span>
+                  )}
+                  {active && (
+                    <span className="font-mono text-[8px] bg-[#10B981]/20 text-[#10B981] px-1 py-0.2 rounded border border-[#10B981]/40 font-bold">
+                      {isEs ? '✓ SINCRONIZADA' : '✓ SYNCHRONIZED'}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[#FFC15E] font-bold">${obj.baseBudgetMillions}M</span>
               </div>
               <div className="mt-1 text-xs font-light leading-snug text-slate-100">
                 {obj.title[language]}
@@ -244,14 +339,14 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {active && obj.cadetChallenge && (
                     <div className="border-l-2 border-[#5FF3FF] bg-[#5FF3FF]/5 pl-2 py-1 text-[10px] leading-snug text-slate-200">
                       <span className="font-mono text-[8.5px] tracking-wider text-[#5FF3FF] uppercase">
-                        {isEs ? '🎓 RETO FÍSICO CADETE: ' : '🎓 CADET CHALLENGE: '}
+                        {isEs ? '◈ RETO FÍSICO CADETE: ' : '◈ CADET CHALLENGE: '}
                       </span>
                       {obj.cadetChallenge[language]}
                     </div>
                   )}
                   {active && (
                     <p className="border-l-2 border-[#5FF3FF]/40 pl-2 text-[10px] leading-snug text-[#5FF3FF]">
-                      💡 {obj.realWorldBenchmark.keyTakeaway[language]}
+                      // {obj.realWorldBenchmark.keyTakeaway[language]}
                     </p>
                   )}
                 </div>
@@ -263,7 +358,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {active && obj.jplConstraints && (
                     <div className="border-l-2 border-[#FFC15E] bg-[#FFC15E]/8 pl-2 py-1 text-[10px] leading-snug text-slate-200">
                       <span className="font-mono text-[8.5px] tracking-wider text-[#FFC15E] uppercase">
-                        {isEs ? '🛰️ RESTRICCIÓN JPL: ' : '🛰️ JPL CONSTRAINT: '}
+                        {isEs ? '◆ RESTRICCIÓN JPL: ' : '◆ JPL CONSTRAINT: '}
                       </span>
                       {obj.jplConstraints[language]}
                     </div>
@@ -282,14 +377,18 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           {reqPayloads.map((rp) => (
             <span
               key={rp.id}
-              className={`border px-1.5 py-0.5 ${
+              className={`inline-flex items-center gap-1 border px-1.5 py-0.5 ${
                 rp.equipped
                   ? 'border-[#5FF3FF]/45 text-[#5FF3FF]'
                   : 'border-[#FFC15E]/50 text-[#FFC15E]'
               }`}
             >
-              {isEs ? 'INSTRUMENTO:' : 'PAYLOAD:'} {rp.name}{' '}
-              {rp.equipped ? '✓' : isEs ? '(EQUIPAR EN CML 3)' : '(EQUIP IN CML 3)'}
+              <span>{isEs ? 'INSTRUMENTO:' : 'PAYLOAD:'} {rp.name}</span>
+              {rp.equipped ? (
+                <Check className="h-3 w-3 text-[#5FF3FF]" />
+              ) : (
+                <span className="text-[8px] opacity-80">{isEs ? '(EN CML 3)' : '(IN CML 3)'}</span>
+              )}
             </span>
           ))}
         </div>

@@ -1,17 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { CheckCircle2, Film, Volume2, Zap } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
   computeTankExtraMassKg,
   playHoloTone,
   speakCharacterLine,
+  stopCharacterVoice,
 } from './holoAudio';
 import {
   COMMANDER_PHASE_BEATS,
   formatCommanderBeat,
   formatStoryText,
-  HOLO_ANIMATION_PRESETS,
   LEVEL1_INTERACTIVE_TOUR,
 } from './narrativeConfig';
 
@@ -117,12 +118,46 @@ export function CommanderHudBanner() {
     );
   }
 
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const lastSpokenKeyRef = useRef<string>('');
+
+  const flightAlert = overMass
+    ? 'OVERMASS'
+    : powerDeficit
+      ? 'POWER'
+      : rfRed
+        ? 'RF'
+        : activeRandomEvent !== 'NONE'
+          ? activeRandomEvent
+          : 'NORMAL';
+
+  const currentSpeechKey = `${phase}|${level1TutorialStep}|${flightAlert}|${language}|${isCadet ? 'CADET' : 'JPL'}`;
+
   // Speak Commander Vega / Director Rostova instruction when cutscene closes or tutorial step advances
   useEffect(() => {
-    if (activeCinematicId) return;
+    if (activeCinematicId || !soundEnabled) {
+      stopCharacterVoice();
+      return;
+    }
+
+    if (lastSpokenKeyRef.current === currentSpeechKey) {
+      return;
+    }
+    lastSpokenKeyRef.current = currentSpeechKey;
+
     const speaker = isCadet ? 'VEGA' : 'ROSTOVA';
-    speakCharacterLine(vegaText, language, speaker, soundEnabled);
-  }, [activeCinematicId, phase, level1TutorialStep, language, isCadet, soundEnabled, vegaText]);
+    const timer = window.setTimeout(() => {
+      setIsSpeaking(true);
+      speakCharacterLine(vegaText, language, speaker, soundEnabled, () => {
+        setIsSpeaking(false);
+      });
+    }, 140);
+
+    return () => {
+      window.clearTimeout(timer);
+      setIsSpeaking(false);
+    };
+  }, [activeCinematicId, currentSpeechKey, isCadet, language, soundEnabled, vegaText]);
 
   const chapterBadge =
     storyChapter === 'FREE_SANDBOX'
@@ -153,7 +188,7 @@ export function CommanderHudBanner() {
               strokeWidth="1"
             />
             <line x1="18" y1="32" x2="30" y2="32" stroke="#FFC15E" strokeWidth="1" />
-            {!reducedMotion &&
+            {isSpeaking && !reducedMotion &&
               [20, 24, 28].map((x, idx) => (
                 <motion.line
                   key={x}
@@ -161,11 +196,11 @@ export function CommanderHudBanner() {
                   x2={x}
                   y1="36"
                   stroke="#5FF3FF"
-                  strokeWidth="1"
-                  animate={{ y2: [38, 41 - idx, 38] }}
+                  strokeWidth="1.5"
+                  animate={{ y2: [37, 42 - idx * 2, 37] }}
                   transition={{
                     repeat: Infinity,
-                    duration: HOLO_ANIMATION_PRESETS.voicePulseDurationSec + idx * 0.15,
+                    duration: 0.35 + idx * 0.1,
                   }}
                 />
               ))}
@@ -183,16 +218,23 @@ export function CommanderHudBanner() {
               <button
                 type="button"
                 onClick={() => {
+                  setIsSpeaking(true);
                   speakCharacterLine(
                     vegaText,
                     language,
                     isCadet ? 'VEGA' : 'ROSTOVA',
                     true,
+                    () => setIsSpeaking(false),
                   );
                 }}
-                className="border border-[#5FF3FF]/50 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20"
+                className={`inline-flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[8.5px] transition ${
+                  isSpeaking
+                    ? 'border-[#5FF3FF] bg-[#5FF3FF]/25 text-white shadow-[0_0_10px_rgba(95,243,255,0.4)]'
+                    : 'border-[#5FF3FF]/50 bg-[#5FF3FF]/10 text-[#5FF3FF] hover:bg-[#5FF3FF]/20'
+                }`}
               >
-                {isEs ? '🔊 VOZ' : '🔊 VOICE'}
+                <Volume2 className={`h-3 w-3 ${isSpeaking ? 'animate-pulse text-white' : ''}`} />
+                <span>{isSpeaking ? (isEs ? 'TRANSMITIENDO...' : 'TRANSMITTING...') : (isEs ? 'VOZ' : 'VOICE')}</span>
               </button>
               <button
                 type="button"
@@ -202,9 +244,10 @@ export function CommanderHudBanner() {
                     isCadet ? beat.defaultCinematicId.cadet : beat.defaultCinematicId.jpl,
                   );
                 }}
-                className="border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
+                className="inline-flex items-center gap-1 border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
               >
-                {isEs ? '🎬 CINEMÁTICA' : '🎬 CUTSCENE'}
+                <Film className="h-3 w-3" />
+                <span>{isEs ? 'CINEMÁTICA' : 'CUTSCENE'}</span>
               </button>
             </div>
           </div>
@@ -247,10 +290,13 @@ export function CommanderHudBanner() {
               </button>
             ) : level1TutorialStep < 4 ? (
               <>
-                <span className="font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
-                  {isEs
-                    ? '⚡ SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
-                    : '⚡ SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
+                <span className="inline-flex items-center gap-1 font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
+                  <Zap className="h-3 w-3 text-[#FFC15E]" />
+                  <span>
+                    {isEs
+                      ? 'SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
+                      : 'SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -261,10 +307,13 @@ export function CommanderHudBanner() {
                 </button>
               </>
             ) : (
-              <span className="font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
-                {isEs
-                  ? '✓ ¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
-                  : '✓ TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#5FF3FF]" />
+                <span>
+                  {isEs
+                    ? '¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
+                    : 'TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+                </span>
               </span>
             )}
           </div>

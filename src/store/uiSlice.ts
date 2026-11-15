@@ -41,7 +41,13 @@ export type StoryCinematicId =
   | 'ACT2_T_3_4'
   | 'ACT2_T_4_5'
   | 'ACT2_T_5_6'
-  | 'ACT2_FINALE_SANDBOX';
+  | 'ACT2_FINALE_SANDBOX'
+  | 'MISSION_CINEMATIC_LEO'
+  | 'MISSION_CINEMATIC_SSO'
+  | 'MISSION_CINEMATIC_GEO'
+  | 'MISSION_CINEMATIC_MOON'
+  | 'MISSION_CINEMATIC_L2'
+  | 'MISSION_CINEMATIC_JUPITER';
 
 export interface DecisionLogEntry {
   id: string;
@@ -73,6 +79,8 @@ export interface UISlice {
   rightPanelTab: RightPanelTab;
   isPitchModalOpen: boolean;
   isTelemetryOpen: boolean;
+  isCampaignModalOpen: boolean;
+  isAIStudioModalOpen: boolean;
 
   commanderName: string;
   cadetName: string;
@@ -91,6 +99,10 @@ export interface UISlice {
   mcrSignedAuthorized: boolean;
   decisionLog: DecisionLogEntry[];
 
+  playerXP: number;
+  campaignProgress: Record<string, { stars: number; completed: boolean; bestGrade?: string }>;
+  hullIntegrity: number;
+
   orbitAltitudeKm: number;
   orbitInclinationDeg: number;
   tankFillPercent: number;
@@ -101,6 +113,8 @@ export interface UISlice {
   reducedMotion: boolean;
   soundEnabled: boolean;
   activeRandomEvent: RandomEventType;
+  simIsPlaying: boolean;
+  simSpeed: 0.5 | 1 | 2 | 4;
 
   setLanguage: (language: Language) => void;
   setExperienceMode: (mode: ExperienceMode) => void;
@@ -114,6 +128,13 @@ export interface UISlice {
   setRightPanelTab: (tab: RightPanelTab) => void;
   setPitchModalOpen: (open: boolean) => void;
   setTelemetryOpen: (open: boolean) => void;
+  setCampaignModalOpen: (open: boolean) => void;
+  setAIStudioModalOpen: (open: boolean) => void;
+  addXP: (amount: number) => void;
+  recordContractResult: (contractId: string, stars: number, grade?: string) => void;
+  damageHull: (amount: number) => void;
+  repairHull: (amount: number) => void;
+  resetHull: () => void;
 
   setCommanderName: (name: string) => void;
   setCadetName: (name: string) => void;
@@ -153,6 +174,9 @@ export interface UISlice {
   toggleReducedMotion: () => void;
   toggleSound: () => void;
   triggerRandomEvent: () => void;
+  setSimPlaying: (playing: boolean) => void;
+  toggleSimPlaying: () => void;
+  setSimSpeed: (speed: 0.5 | 1 | 2 | 4) => void;
 }
 
 export const DEFAULT_MISSION_STATEMENT_EN =
@@ -213,6 +237,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   rightPanelTab: 'ANALYTICS',
   isPitchModalOpen: false,
   isTelemetryOpen: false,
+  isCampaignModalOpen: false,
+  isAIStudioModalOpen: false,
 
   commanderName: 'Orion',
   cadetName: 'Orion',
@@ -220,16 +246,20 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   storyChapter: 'ACT_1_CADET',
   act1Completed: false,
   act2Completed: false,
-  activeCinematicId: 'ACT1_PROLOGUE',
+  activeCinematicId: null,
   seenCinematics: {},
   tutorialStepIndex: 0,
   level1TutorialStep: 0,
   robotHoverZone: null,
   missionCustomName: 'Ícaro-Pionero',
-  hasCompletedOnboarding: true,
+  hasCompletedOnboarding: false,
   isCertificateOpen: false,
   mcrSignedAuthorized: false,
   decisionLog: createInitialDecisionLog(),
+
+  playerXP: 0,
+  campaignProgress: { 'contract-leo-bionutrients': { stars: 0, completed: false } },
+  hullIntegrity: 100,
 
   orbitAltitudeKm: 550,
   orbitInclinationDeg: 97.6,
@@ -241,6 +271,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   reducedMotion: false,
   soundEnabled: true,
   activeRandomEvent: 'NONE',
+  simIsPlaying: true,
+  simSpeed: 1,
 
   setLanguage: (language) =>
     set((s) => {
@@ -301,6 +333,28 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   setRightPanelTab: (rightPanelTab) => set({ rightPanelTab }),
   setPitchModalOpen: (isPitchModalOpen) => set({ isPitchModalOpen }),
   setTelemetryOpen: (isTelemetryOpen) => set({ isTelemetryOpen }),
+  setCampaignModalOpen: (isCampaignModalOpen) => set({ isCampaignModalOpen }),
+  setAIStudioModalOpen: (isAIStudioModalOpen) => set({ isAIStudioModalOpen }),
+  addXP: (amount) => set((s) => ({ playerXP: Math.max(0, s.playerXP + amount) })),
+  recordContractResult: (contractId, stars, grade) =>
+    set((s) => {
+      const prev = s.campaignProgress[contractId] || { stars: 0, completed: false };
+      return {
+        campaignProgress: {
+          ...s.campaignProgress,
+          [contractId]: {
+            stars: Math.max(prev.stars, stars),
+            completed: true,
+            bestGrade: grade ?? prev.bestGrade,
+          },
+        },
+      };
+    }),
+  damageHull: (amount) =>
+    set((s) => ({ hullIntegrity: Math.max(0, Math.min(100, s.hullIntegrity - amount)) })),
+  repairHull: (amount) =>
+    set((s) => ({ hullIntegrity: Math.max(0, Math.min(100, s.hullIntegrity + amount)) })),
+  resetHull: () => set({ hullIntegrity: 100 }),
 
   setCommanderName: () =>
     set((s) => ({
@@ -337,12 +391,18 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
     })),
   openCinematic: (activeCinematicId) => set({ activeCinematicId }),
   closeCinematic: () =>
-    set((s) => ({
-      activeCinematicId: null,
-      seenCinematics: s.activeCinematicId
-        ? { ...s.seenCinematics, [s.activeCinematicId]: true }
-        : s.seenCinematics,
-    })),
+    set((s) => {
+      const wasPrologue =
+        s.activeCinematicId === 'ACT1_PROLOGUE' ||
+        s.activeCinematicId === 'ACT2_PROLOGUE';
+      return {
+        activeCinematicId: null,
+        isCampaignModalOpen: wasPrologue ? true : s.isCampaignModalOpen,
+        seenCinematics: s.activeCinematicId
+          ? { ...s.seenCinematics, [s.activeCinematicId]: true }
+          : s.seenCinematics,
+      };
+    }),
   setTutorialStepIndex: (tutorialStepIndex) => set({ tutorialStepIndex }),
   setLevel1TutorialStep: (level1TutorialStep) => set({ level1TutorialStep }),
   setRobotHoverZone: (robotHoverZone) => set({ robotHoverZone }),
@@ -400,10 +460,11 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
         },
       ],
     })),
-  completeOnboarding: (mode) =>
+  completeOnboarding: (mode, commanderName, missionName, cadetOverride, engOverride) =>
     set((s) => {
-      const nextCadet = 'Orion';
-      const nextEng = 'Vanguard';
+      const cleanName = commanderName?.trim() || (mode === 'CADET' ? 'Orion' : 'Vanguard');
+      const nextCadet = cadetOverride?.trim() || (mode === 'CADET' ? cleanName : s.cadetName || 'Orion');
+      const nextEng = engOverride?.trim() || (mode === 'JPL_ENGINEER' ? cleanName : s.engineerName || 'Vanguard');
       const activeCommander = mode === 'CADET' ? nextCadet : nextEng;
       const nextChapter: StoryChapter =
         s.storyChapter === 'FREE_SANDBOX'
@@ -411,14 +472,18 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
           : mode === 'CADET'
             ? 'ACT_1_CADET'
             : 'ACT_2_JPL';
+      const prologueId: StoryCinematicId =
+        mode === 'CADET' ? 'ACT1_PROLOGUE' : 'ACT2_PROLOGUE';
       return {
         experienceMode: mode,
         storyChapter: nextChapter,
         cadetName: nextCadet,
         engineerName: nextEng,
         commanderName: activeCommander,
-        missionCustomName: 'Ícaro-Pionero',
+        missionCustomName: missionName?.trim() || s.missionCustomName || 'Ícaro-Pionero',
         hasCompletedOnboarding: true,
+        activeCinematicId: prologueId,
+        isCampaignModalOpen: false,
         tutorialStepIndex: 0,
         decisionLog: [
           ...s.decisionLog.slice(-24),
@@ -427,8 +492,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
             phase: s.phase,
             timestamp: formatClock(),
             label: {
-              en: `${mode === 'CADET' ? 'Cadet' : 'Chief Eng.'} ${activeCommander} commissioned "Ícaro-Pionero" (${mode}).`,
-              es: `${mode === 'CADET' ? 'Cadete' : 'Ing. Jefe'} ${activeCommander} comisionó "Ícaro-Pionero" (${mode}).`,
+              en: `${mode === 'CADET' ? 'Student/Cadet' : 'Chief Eng.'} ${activeCommander} enlisted in NASA Orbital Forge (${mode}).`,
+              es: `${mode === 'CADET' ? 'Estudiante/Cadete' : 'Ing. Jefe'} ${activeCommander} se alistó en NASA Orbital Forge (${mode}).`,
             },
             impact: 'POSITIVE',
           },
@@ -464,4 +529,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
       const idx = EVENT_CYCLE.indexOf(s.activeRandomEvent);
       return { activeRandomEvent: EVENT_CYCLE[(idx + 1) % EVENT_CYCLE.length] };
     }),
+  setSimPlaying: (simIsPlaying) => set({ simIsPlaying }),
+  toggleSimPlaying: () => set((s) => ({ simIsPlaying: !s.simIsPlaying })),
+  setSimSpeed: (simSpeed) => set({ simSpeed }),
 });

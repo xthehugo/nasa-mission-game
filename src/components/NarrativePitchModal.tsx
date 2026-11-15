@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, CheckCircle2, Copy, ExternalLink, Play, X, XCircle } from 'lucide-react';
 import { runEngineTestSuite, type EngineTestReport } from '../engine';
 import { useMissionStore } from '../store';
+import { playHoloTone } from './holoAudio';
 
 const VERIFIED_SOURCE_GROUPS = [
   {
@@ -61,7 +62,7 @@ const DETAIL_EN = `ORBITAL FORGE bridges the gap between intimidating aerospace 
 Open Data & AI Disclosure: Grounded in NASA JPL CML, SmallSat Institute, CubeSat 101, NASA GMAT R2026a, and Canadian Space Agency (CSA) open resources. UI scaffolding accelerated with AI assistance; physics equations run deterministically in TypeScript.`;
 
 export function NarrativePitchModal() {
-  const { language, isPitchModalOpen, setPitchModalOpen } = useMissionStore();
+  const { language, soundEnabled, isPitchModalOpen, setPitchModalOpen } = useMissionStore();
   const [tab, setTab] = useState<'STORY' | 'MATH' | 'SOURCES' | 'PITCH'>('STORY');
   const [copied, setCopied] = useState<string | null>(null);
   const [testReport, setTestReport] = useState<EngineTestReport | null>(null);
@@ -72,19 +73,23 @@ export function NarrativePitchModal() {
 
   const copyText = (key: string, text: string) => {
     void navigator.clipboard.writeText(text);
+    playHoloTone('STEP', soundEnabled);
     setCopied(key);
     window.setTimeout(() => setCopied(null), 1600);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-800 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#04080F]/90 p-4 backdrop-blur-md">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto border border-[#5FF3FF]/50 bg-[#04080F] p-6 text-slate-100 shadow-[0_0_55px_rgba(95,243,255,0.16)]">
+        <div className="flex items-start justify-between gap-3 border-b border-[#5FF3FF]/20 pb-3.5">
           <div>
-            <h2 className="text-base font-bold text-white">
+            <div className="font-mono text-[10px] tracking-[0.22em] text-[#5FF3FF] uppercase">
+              SYS.DOSSIER // STORY · MATH · 18 VERIFIED SOURCES · PITCH
+            </div>
+            <h2 className="mt-0.5 text-xl font-light tracking-tight text-white">
               ORBITAL FORGE — {isEs ? 'Narrativa, Modelo Matemático y Pitch Space Apps 2026' : 'Story, Math & Space Apps 2026 Pitch'}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="mt-1 font-mono text-[10px] tracking-[0.12em] text-slate-400 uppercase">
               {isEs
                 ? 'Público: Estudiantes de secundaria/universidad, educadores STEM y entusiastas espaciales'
                 : 'Audience: High-school & university students, STEM educators & space enthusiasts'}
@@ -92,14 +97,18 @@ export function NarrativePitchModal() {
           </div>
           <button
             type="button"
-            onClick={() => setPitchModalOpen(false)}
-            className="rounded-lg border border-slate-700 p-1 text-slate-400 hover:text-white"
+            onClick={() => {
+              playHoloTone('STEP', soundEnabled);
+              setPitchModalOpen(false);
+            }}
+            aria-label={isEs ? 'Cerrar dossier' : 'Close dossier'}
+            className="border border-[#5FF3FF]/35 bg-[#04080F] p-1.5 text-[#5FF3FF] transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-1.5">
           {(
             [
               ['STORY', isEs ? 'Narrativa y Datos Abiertos' : 'Story & Open Data'],
@@ -111,11 +120,14 @@ export function NarrativePitchModal() {
             <button
               key={id}
               type="button"
-              onClick={() => setTab(id)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                setTab(id);
+              }}
+              className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.14em] uppercase transition ${
                 tab === id
-                  ? 'bg-cyan-500/20 text-cyan-200 ring-1 ring-cyan-400/40'
-                  : 'bg-slate-800 text-slate-400'
+                  ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 text-[#5FF3FF]'
+                  : 'border-[#5FF3FF]/25 bg-[#04080F] text-slate-400 hover:border-[#5FF3FF]/50 hover:text-slate-200'
               }`}
             >
               {label}
@@ -125,18 +137,18 @@ export function NarrativePitchModal() {
 
         {tab === 'STORY' && (
           <div className="mt-4 space-y-3 text-xs leading-relaxed text-slate-300">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/75 p-3.5">
-              <strong className="text-cyan-300">
-                {isEs ? 'De la Servilleta a las Estrellas:' : 'From Cocktail Napkin to the Stars:'}
-              </strong>{' '}
+            <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-4">
+              <div className="mb-1 font-mono text-[10px] tracking-[0.16em] text-[#5FF3FF] uppercase">
+                {isEs ? 'De la Servilleta a las Estrellas' : 'From Cocktail Napkin to the Stars'}
+              </div>
               {isEs
                 ? 'ORBITAL FORGE transforma al estudiante en Arquitecto de Misiones (JPL Team X / Goddard MDL). Con Modo Cadete (analogías CSA) e Ingeniero JPL (fórmulas exactas), enseña por qué cada gramo, vatio y dólar en SWaP-C determina si una nave aprueba la revisión MCR (≥35%) y sobrevive en órbita.'
                 : 'ORBITAL FORGE puts learners in the Mission Architect chair (JPL Team X / Goddard MDL), pairing Cadet analogies with JPL equations so students feel real SWaP-C ripple effects.'}
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/75 p-3.5">
-              <strong className="text-amber-300">
-                {isEs ? 'Fuentes Abiertas & Declaración de IA:' : 'Open Data & AI Disclosure:'}
-              </strong>{' '}
+            <div className="border border-[#FFC15E]/30 bg-[#04080F] p-4">
+              <div className="mb-1 font-mono text-[10px] tracking-[0.16em] text-[#FFC15E] uppercase">
+                {isEs ? 'Fuentes Abiertas & Declaración de IA' : 'Open Data & AI Disclosure'}
+              </div>
               NASA JPL CML (1–5), NASA SmallSat Institute, NASA CubeSat 101 (CSLI), NASA GMAT R2026a (`dest-geo` 3,673 m/s), NASA Mission-Viz y Canadian Space Agency (CSA FGS & Digital Space Education). UI asistida por IA con motor físico determinista verificado.
             </div>
           </div>
@@ -144,36 +156,39 @@ export function NarrativePitchModal() {
 
         {tab === 'MATH' && (
           <div className="mt-4 space-y-3 text-xs text-slate-300">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3 font-mono text-[11px]">
+            <div className="border border-[#5FF3FF]/30 bg-[#04080F] p-3.5 font-mono text-[11px]">
               <div>S_score = (Σ V_i · η_orbit) × (D_downlinked / D_generated)</div>
               <div>M_score = 0.5·((M_limit - M_pred)/M_pred) + 0.5·((P_gen - P_req)/P_req)</div>
               <div>B_score = 100 · (Cap - TotalCost) / Cap  (Overrun → FAIL)</div>
-              <div className="mt-1 text-cyan-300">Global P = 0.50·S_score + 0.30·M_score + 0.20·B_score</div>
+              <div className="mt-1.5 text-[#5FF3FF]">Global P = 0.50·S_score + 0.30·M_score + 0.20·B_score</div>
             </div>
 
             <button
               type="button"
-              onClick={() => setTestReport(runEngineTestSuite())}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400"
+              onClick={() => {
+                playHoloTone('STAR', soundEnabled);
+                setTestReport(runEngineTestSuite());
+              }}
+              className="inline-flex items-center gap-2 border border-[#5FF3FF] bg-[#5FF3FF]/15 px-4 py-2 font-mono text-[10px] font-bold tracking-[0.16em] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/25"
             >
               <Play className="h-3.5 w-3.5" />
               <span>{isEs ? 'Ejecutar Suite de Verificación Física' : 'Run Physics Test Suite'}</span>
             </button>
 
             {testReport && (
-              <div className="space-y-1.5 rounded-xl border border-slate-800 bg-slate-950/85 p-3">
-                <div className="font-mono text-xs font-bold text-emerald-300">
+              <div className="space-y-1.5 border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+                <div className="font-mono text-[11px] font-bold tracking-[0.16em] text-[#5FF3FF] uppercase">
                   {testReport.passedCount}/{testReport.total} PASSED
                 </div>
                 {testReport.results.map((r) => (
-                  <div key={r.name} className="flex items-start gap-2 text-[11px]">
+                  <div key={r.name} className="flex items-start gap-2 border-l-2 border-[#5FF3FF]/30 pl-2.5 text-[11px]">
                     {r.passed ? (
-                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
                     ) : (
-                      <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" />
+                      <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#FF4D6D]" />
                     )}
                     <div>
-                      <span className="font-semibold text-white">{r.name}:</span>{' '}
+                      <span className="font-mono font-semibold text-white">{r.name}:</span>{' '}
                       <span className="text-slate-400">{r.detail}</span>
                     </div>
                   </div>
@@ -185,14 +200,14 @@ export function NarrativePitchModal() {
 
         {tab === 'SOURCES' && (
           <div className="mt-4 space-y-3 text-xs text-slate-300">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cyan-500/30 bg-cyan-950/25 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border border-[#FFC15E]/40 bg-[#FFC15E]/10 p-3.5">
               <div>
-                <div className="font-mono text-[11px] font-bold text-cyan-200">
+                <div className="font-mono text-[10.5px] tracking-[0.14em] text-[#FFC15E] uppercase">
                   {isEs
                     ? 'Trazabilidad Oficial (18 URLs Verificadas: .gov / .gc.ca / JPL / NTRS)'
                     : 'Official Data Provenance (18 Verified .gov / .gc.ca / JPL / NTRS URLs)'}
                 </div>
-                <p className="mt-0.5 text-[11px] text-slate-400">
+                <p className="mt-1 text-[11px] text-slate-300">
                   {isEs
                     ? 'Incluye límites HAN Monoprop (250s), estándares GSFC GOLD Rules / NASA-STD-5001, DSN 810-005, NSN 2025, GMAT R2026a y Press Kits reales.'
                     : 'Covers HAN Green Monoprop (250s), GSFC GOLD Rules / NASA-STD-5001, DSN 810-005, NSN 2025, GMAT R2026a & mission press kits.'}
@@ -201,28 +216,28 @@ export function NarrativePitchModal() {
               <button
                 type="button"
                 onClick={() => copyText('urls', NOTEBOOKLM_URL_BLOCK)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-1.5 font-mono text-[11px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+                className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/50 bg-[#04080F] px-3 py-1.5 font-mono text-[10px] tracking-[0.14em] text-[#5FF3FF] uppercase transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/15"
               >
-                {copied === 'urls' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied === 'urls' ? <Check className="h-3.5 w-3.5 text-[#5FF3FF]" /> : <Copy className="h-3.5 w-3.5" />}
                 <span>{copied === 'urls' ? (isEs ? '18 URLs Copiadas' : '18 URLs Copied') : (isEs ? 'Copiar 18 URLs' : 'Copy 18 URLs')}</span>
               </button>
             </div>
 
             {VERIFIED_SOURCE_GROUPS.map((group) => (
-              <div key={group.id} className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-                <div className="font-mono text-[11px] font-bold text-amber-300">
+              <div key={group.id} className="border border-[#5FF3FF]/25 bg-[#04080F] p-3.5">
+                <div className="font-mono text-[10px] tracking-[0.14em] text-[#FFC15E] uppercase">
                   {group.title[language]}
                 </div>
-                <ul className="mt-2 space-y-1">
+                <ul className="mt-2 space-y-1.5">
                   {group.links.map((link) => (
                     <li key={link.url}>
                       <a
                         href={link.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-300 underline decoration-slate-600 hover:text-cyan-300 hover:decoration-cyan-400"
+                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-300 underline decoration-[#5FF3FF]/40 hover:text-[#5FF3FF] hover:decoration-[#5FF3FF]"
                       >
-                        <ExternalLink className="h-3 w-3 shrink-0 text-cyan-400" />
+                        <ExternalLink className="h-3 w-3 shrink-0 text-[#5FF3FF]" />
                         <span>{link.label}</span>
                       </a>
                     </li>
@@ -239,19 +254,19 @@ export function NarrativePitchModal() {
               ['summary', 'High-Level Summary (EN)', SUMMARY_EN],
               ['detail', 'Detailed Project Description (EN)', DETAIL_EN],
             ].map(([k, title, body]) => (
-              <div key={k} className="rounded-xl border border-slate-800 bg-slate-950/85 p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-indigo-300">{title}</span>
+              <div key={k} className="border border-[#5FF3FF]/25 bg-[#04080F] p-4">
+                <div className="flex items-center justify-between gap-2 border-b border-[#5FF3FF]/15 pb-2">
+                  <span className="font-mono text-[10.5px] tracking-[0.16em] text-[#5FF3FF] uppercase">{title}</span>
                   <button
                     type="button"
                     onClick={() => copyText(k, body)}
-                    className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-300"
+                    className="inline-flex items-center gap-1 border border-[#5FF3FF]/35 bg-[#04080F] px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-[#5FF3FF] uppercase transition hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/15"
                   >
-                    {copied === k ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    {copied === k ? <Check className="h-3 w-3 text-[#5FF3FF]" /> : <Copy className="h-3 w-3" />}
                     <span>{copied === k ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-slate-300">
+                <pre className="mt-2.5 whitespace-pre-wrap font-sans text-xs leading-relaxed text-slate-300">
                   {body}
                 </pre>
               </div>

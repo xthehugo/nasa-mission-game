@@ -1,1 +1,102 @@
 @import "tailwindcss";
+
+/* ========================================================
+   NASA CAD Holographic Custom Scrollbars
+   Applied globally across all views, modals, drawers & containers
+   ======================================================== */
+
+/* Standard CSS (Firefox, modern Chromium, modern Safari) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(95, 243, 255, 0.38) rgba(4, 9, 21, 0.85);
+}
+
+/* WebKit / Chromium (Chrome, Edge, Brave, Opera, Safari) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(2, 5, 11, 0.9);
+  border: 1px solid rgba(95, 243, 255, 0.12);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(95, 243, 255, 0.55) 0%,
+    rgba(20, 52, 92, 0.85) 50%,
+    rgba(95, 243, 255, 0.45) 100%
+  );
+  border: 1px solid rgba(95, 243, 255, 0.5);
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(95, 243, 255, 0.22) inset;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(95, 243, 255, 0.9) 0%,
+    rgba(95, 243, 255, 0.6) 50%,
+    rgba(255, 193, 94, 0.8) 100%
+  );
+  border-color: #5FF3FF;
+  box-shadow: 0 0 12px rgba(95, 243, 255, 0.55);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #5FF3FF;
+  border-color: #FFC15E;
+  box-shadow: 0 0 16px rgba(95, 243, 255, 0.85);
+}
+
+::-webkit-scrollbar-corner {
+  background: #02050B;
+}
+
+/* Horizontal scrollbar specific styling */
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(
+    90deg,
+    rgba(95, 243, 255, 0.55) 0%,
+    rgba(20, 52, 92, 0.85) 50%,
+    rgba(95, 243, 255, 0.45) 100%
+  );
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(95, 243, 255, 0.9) 0%,
+    rgba(95, 243, 255, 0.6) 50%,
+    rgba(255, 193, 94, 0.8) 100%
+  );
+}
+
+/* No-scrollbar utility for clean horizontal swipe containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Micro-scrollbar utility for dense code/telemetry panes */
+.telemetry-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.telemetry-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(95, 243, 255, 0.45);
+  border-radius: 2px;
+}

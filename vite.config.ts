@@ -171,4 +171,26 @@ function elevenlabsVoiceServerPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), elevenlabsVoiceServerPlugin()],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vendor-charts',
+              test: /node_modules[\\/](recharts|d3-|victory-)/,
+            },
+            {
+              name: 'vendor-motion',
+              test: /node_modules[\\/](framer-motion|motion-)/,
+            },
+            {
+              name: 'vendor-react',
+              test: /node_modules[\\/](react|react-dom|zustand|lucide-react)/,
+            },
+          ],
+        },
+      },
+    },
+  },
 });

@@ -61,6 +61,7 @@ export function HudResourceBars() {
     selection,
     metrics,
     scores,
+    activeRandomEvent,
     tankFillPercent,
     oxidizerFillPercent,
     reducedMotion,
@@ -74,42 +75,86 @@ export function HudResourceBars() {
     groundStation.costPerMonth_MillionsUSD * objective.targetDurationYears * 12;
   const hwCost = Math.max(0, metrics.cost.totalMillionsUSD - groundOps);
 
+  const eventMassFactor = activeRandomEvent === 'MASS_PENALTY' ? 1.08 : 1;
+  const eventPowerFactor = activeRandomEvent === 'SOLAR_STORM' ? 0.9 : 1;
+  const eventBudgetFactor = activeRandomEvent === 'BUDGET_CUT' ? 0.85 : 1;
+
   const extraKg =
     phase === 'CML_4'
       ? computeTankExtraMassKg(metrics, tankFillPercent, oxidizerFillPercent)
       : 0;
-  const liveMass = Math.max(1, metrics.wetMass_kg + extraKg);
+  const liveMass = Math.max(1, (metrics.wetMass_kg + extraKg) * eventMassFactor);
   const massPct = (liveMass / Math.max(1, metrics.launchCapacity_kg)) * 100;
   const massStatus: MCRStatus = massPct > 100 ? 'RED' : metrics.dryMass.status;
 
-  const powerNet = metrics.power.generatedAtDestination_W - metrics.power.eclipseRequired_W;
+  const effectiveGenW = metrics.power.generatedAtDestination_W * eventPowerFactor;
+  const powerNet = effectiveGenW - metrics.power.eclipseRequired_W;
   const powerPct =
-    (metrics.power.generatedAtDestination_W / Math.max(1, metrics.power.eclipseRequired_W * 1.35)) *
-    100;
+    (effectiveGenW / Math.max(1, metrics.power.eclipseRequired_W * 1.35)) * 100;
+  const effectivePowerMargin =
+    metrics.power.marginPercent - (activeRandomEvent === 'SOLAR_STORM' ? 10 : 0);
+  const powerStatus: MCRStatus =
+    powerNet < 0 || effectivePowerMargin < 0
+      ? 'RED'
+      : activeRandomEvent === 'SOLAR_STORM' && effectivePowerMargin < (isCadet ? 35 : 40)
+        ? 'YELLOW'
+        : metrics.power.status;
+
+  const effectiveBudgetCap = Math.round(metrics.cost.budgetCapMillionsUSD * eventBudgetFactor * 10) / 10;
   const budgetUsedPct =
-    (metrics.cost.totalMillionsUSD / Math.max(1, metrics.cost.budgetCapMillionsUSD)) * 100;
+    (metrics.cost.totalMillionsUSD / Math.max(1, effectiveBudgetCap)) * 100;
+  const effectiveReserve = effectiveBudgetCap - metrics.cost.totalMillionsUSD;
+  const budgetStatus: MCRStatus =
+    effectiveReserve < 0
+      ? 'RED'
+      : activeRandomEvent === 'BUDGET_CUT' && effectiveReserve < effectiveBudgetCap * 0.1
+        ? 'YELLOW'
+        : metrics.cost.status;
+
   const volPct = (metrics.volume.used_U / Math.max(1, metrics.volume.maxFairing_U)) * 100;
   const rfPct = ((metrics.telecom.linkMargin_dB + 4) / 14) * 100;
 
+  const eventBadgeText =
+    activeRandomEvent === 'MASS_PENALTY'
+      ? isEs
+        ? '+8% MASA'
+        : '+8% MASS'
+      : activeRandomEvent === 'SOLAR_STORM'
+        ? isEs
+          ? '-10% EPS'
+          : '-10% PWR'
+        : activeRandomEvent === 'BUDGET_CUT'
+          ? isEs
+            ? '-15% CAP'
+            : '-15% CAP'
+          : null;
+
   return (
     <div className="space-y-1 border-b border-[#5FF3FF]/20 pb-3">
-      <div className="flex items-center justify-between gap-2 font-mono text-[10px] tracking-[0.14em] uppercase">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase">
         <span className="text-[#5FF3FF]">
           {isEs ? 'TELEMETRÍA EN VIVO' : 'LIVE TELEMETRY'}
         </span>
-        <span
-          className={`border px-1.5 py-0.5 text-[8.5px] ${
-            isCadet
-              ? 'border-[#5FF3FF]/40 text-[#5FF3FF]'
-              : 'border-[#FFC15E]/50 text-[#FFC15E]'
-          }`}
-        >
-          {isCadet
-            ? isEs
-              ? '🎓 GUÍA ESTUDIANTE'
-              : '🎓 STUDENT GUIDE'
-            : '🛰️ JPL MEV/MGA'}
-        </span>
+        <div className="flex items-center gap-1">
+          {eventBadgeText && (
+            <span className="border border-[#FFC15E] bg-[#FFC15E]/15 px-1.5 py-0.5 text-[8.5px] font-bold text-[#FFC15E]">
+              {eventBadgeText}
+            </span>
+          )}
+          <span
+            className={`border px-1.5 py-0.5 text-[8.5px] ${
+              isCadet
+                ? 'border-[#5FF3FF]/40 text-[#5FF3FF]'
+                : 'border-[#FFC15E]/50 text-[#FFC15E]'
+            }`}
+          >
+            {isCadet
+              ? isEs
+                ? '◈ GUÍA ESTUDIANTE'
+                : '◈ STUDENT GUIDE'
+              : '◆ JPL MEV/MGA'}
+          </span>
+        </div>
       </div>
       <FineMeter
         label={isEs ? 'MASA HÚMEDA' : 'WET MASS'}
@@ -134,31 +179,31 @@ export function HudResourceBars() {
         valueText={`${powerNet >= 0 ? '+' : ''}${powerNet.toFixed(0)} W`}
         subText={
           isCadet
-            ? metrics.power.status === 'RED'
+            ? powerStatus === 'RED'
               ? isEs
                 ? '¡Déficit eléctrico en sombra/eclipse!'
                 : 'Power deficit in eclipse shadow!'
               : isEs
                 ? 'Paneles/RTG cubren instrumentos y eclipse'
                 : 'Solar/RTG covers instruments + eclipse shadow'
-            : `Gen ${metrics.power.generatedAtDestination_W.toFixed(0)}W vs EclReq ${metrics.power.eclipseRequired_W.toFixed(0)}W · ${metrics.power.marginPercent.toFixed(1)}%`
+            : `Gen ${effectiveGenW.toFixed(0)}W vs EclReq ${metrics.power.eclipseRequired_W.toFixed(0)}W · ${effectivePowerMargin.toFixed(1)}%`
         }
         pct={powerPct}
-        status={metrics.power.status}
+        status={powerStatus}
         reducedMotion={reducedMotion}
       />
       <FineMeter
         label={isEs ? 'PRESUPUESTO' : 'BUDGET'}
-        valueText={`$${metrics.cost.totalMillionsUSD.toFixed(1)}M / $${metrics.cost.budgetCapMillionsUSD}M`}
+        valueText={`$${metrics.cost.totalMillionsUSD.toFixed(1)}M / $${effectiveBudgetCap}M`}
         subText={
           isCadet
             ? isEs
-              ? `Reserva disponible: $${metrics.cost.reserveMillionsUSD.toFixed(1)}M`
-              : `Remaining reserve: $${metrics.cost.reserveMillionsUSD.toFixed(1)}M`
-            : `HW $${hwCost.toFixed(1)}M + Ops $${groundOps.toFixed(1)}M (Cap $${metrics.cost.budgetCapMillionsUSD}M)`
+              ? `Reserva disponible: $${effectiveReserve.toFixed(1)}M`
+              : `Remaining reserve: $${effectiveReserve.toFixed(1)}M`
+            : `HW $${hwCost.toFixed(1)}M + Ops $${groundOps.toFixed(1)}M (Cap $${effectiveBudgetCap}M)`
         }
         pct={budgetUsedPct}
-        status={metrics.cost.status}
+        status={budgetStatus}
         amberDefault
         reducedMotion={reducedMotion}
       />
