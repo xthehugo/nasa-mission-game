@@ -177,18 +177,21 @@ export function HoloOrbitStage() {
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
-      last = now;
-      if (!pausedRef.current) {
-        setThetaRad((prev) => {
-          const e = eccRef.current;
-          const meanOmega = (2 * Math.PI) / periodSecRef.current;
-          // Kepler 2nd Law: equal areas in equal times -> faster at periapsis
-          const keplerFactor =
-            Math.pow(1 + e * Math.cos(prev), 2) / Math.pow(Math.max(0.25, 1 - e * e), 1.5);
-          const next = prev + meanOmega * Math.min(3.2, Math.max(0.35, keplerFactor)) * dt;
-          return next >= Math.PI * 2 ? next - Math.PI * 2 : next;
-        });
+      const elapsed = (now - last) / 1000;
+      if (elapsed >= 0.032) {
+        const dt = Math.min(0.05, Math.max(0, elapsed));
+        last = now;
+        if (!pausedRef.current && !document.hidden) {
+          setThetaRad((prev) => {
+            const e = eccRef.current;
+            const meanOmega = (2 * Math.PI) / periodSecRef.current;
+            // Kepler 2nd Law: equal areas in equal times -> faster at periapsis
+            const keplerFactor =
+              Math.pow(1 + e * Math.cos(prev), 2) / Math.pow(Math.max(0.25, 1 - e * e), 1.5);
+            const next = prev + meanOmega * Math.min(3.2, Math.max(0.35, keplerFactor)) * dt;
+            return next >= Math.PI * 2 ? next - Math.PI * 2 : next;
+          });
+        }
       }
       raf = requestAnimationFrame(loop);
     };

@@ -166,10 +166,13 @@ export function HoloSpacecraftWireframe() {
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
-      last = now;
-      if (autoSpinRef.current) {
-        setYawDeg((y) => (y + dt * 18) % 360);
+      const elapsed = (now - last) / 1000;
+      if (elapsed >= 0.032) {
+        const dt = Math.min(0.05, Math.max(0, elapsed));
+        last = now;
+        if (autoSpinRef.current && !document.hidden) {
+          setYawDeg((y) => (y + dt * 18) % 360);
+        }
       }
       raf = requestAnimationFrame(loop);
     };
@@ -389,7 +392,14 @@ export function HoloSpacecraftWireframe() {
       )}
 
       {/* Dimension Banner from Official CAD Specs */}
-      <div className="mb-1.5 w-full max-w-[540px] border border-[#5FF3FF]/25 bg-[#04080F]/85 px-2.5 py-1 text-center font-mono text-[8.5px] tracking-[0.1em] text-[#5FF3FF] uppercase">
+      <div
+        title={
+          phase === 'CML_1'
+            ? `${isEs ? 'BOCETO CONCEPTUAL ·' : 'NAPKIN BLUEPRINT ·'} ${cotaHeader}`
+            : cotaHeader
+        }
+        className="mb-1 w-full max-w-[540px] truncate border border-[#5FF3FF]/25 bg-[#04080F]/85 px-2.5 py-1 text-center font-mono text-[8.5px] tracking-[0.1em] text-[#5FF3FF] uppercase"
+      >
         {phase === 'CML_1'
           ? `${isEs ? 'BOCETO CONCEPTUAL ·' : 'NAPKIN BLUEPRINT ·'} ${cotaHeader}`
           : cotaHeader}
@@ -409,7 +419,7 @@ export function HoloSpacecraftWireframe() {
         }}
         onPointerUp={() => setDragState(null)}
         onPointerLeave={() => setDragState(null)}
-        className={`h-[300px] w-full max-w-[540px] select-none sm:h-[345px] ${
+        className={`h-[300px] max-h-[54dvh] w-full max-w-[660px] select-none sm:h-[370px] lg:h-[420px] ${
           dragState ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
@@ -542,11 +552,25 @@ export function HoloSpacecraftWireframe() {
               );
             })()}
 
-            {/* Billboard Cota Callouts */}
-            <g className="font-mono text-[8px]" fill="#FFC15E">
+            {/* Billboard Cota Callouts + Floating Amber Leader Callouts */}
+            <g className="font-mono text-[8.5px]" fill="#FFC15E">
               <text x="250" y="42" textAnchor="middle">
                 {isEs ? 'CONO DE VISIÓN (FOV) · ±Z STANDOFF ≥6.5 mm' : 'PAYLOAD FOV CONE · ±Z STANDOFF ≥6.5 mm'}
               </text>
+              <line x1="312" y1="122" x2="368" y2="86" stroke="#FFC15E" strokeOpacity="0.6" strokeWidth="1" />
+              <circle cx="312" cy="122" r="2.2" fill="#FFC15E" />
+              <text x="374" y="88" textAnchor="start" fontWeight="600">
+                {isEs ? `CHASIS · ${cubesatFormFactor}` : `CHASSIS · ${cubesatFormFactor}`}
+              </text>
+
+              <line x1="184" y1="202" x2="124" y2="238" stroke="#FFC15E" strokeOpacity="0.6" strokeWidth="1" />
+              <circle cx="184" cy="202" r="2.2" fill="#FFC15E" />
+              <text x="118" y="241" textAnchor="end" fontWeight="600">
+                {isEs
+                  ? `ENERGÍA · ${metrics.power.generatedAtDestination_W.toFixed(0)}W`
+                  : `POWER · ${metrics.power.generatedAtDestination_W.toFixed(0)}W`}
+              </text>
+
               <text x="250" y="314" textAnchor="middle" fill="#5FF3FF">
                 1U RAIL: 100×100 mm · TUNA CAN Ø64×36 mm
               </text>
@@ -947,7 +971,7 @@ export function HoloSpacecraftWireframe() {
       </svg>
 
       {/* Lightweight 3D CAD Turntable Controls */}
-      <div className="mt-1.5 flex w-full max-w-[540px] flex-wrap items-center justify-between gap-2 border border-[#5FF3FF]/25 bg-[#04080F]/90 px-2.5 py-1.5 font-mono text-[9px]">
+      <div className="relative z-10 mt-1.5 flex w-full max-w-[540px] flex-wrap items-center justify-between gap-2 border border-[#5FF3FF]/25 bg-[#04080F]/90 px-2.5 py-1.5 font-mono text-[9px]">
         <div className="flex flex-wrap items-center gap-1">
           <button
             type="button"

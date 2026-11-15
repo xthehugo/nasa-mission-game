@@ -102,6 +102,7 @@ export interface UISlice {
   decisionLog: DecisionLogEntry[];
 
   playerXP: number;
+  activeCampaignLevelId: string;
   campaignProgress: Record<string, { stars: number; completed: boolean; bestGrade?: string }>;
   hullIntegrity: number;
 
@@ -133,6 +134,7 @@ export interface UISlice {
   setCampaignModalOpen: (open: boolean) => void;
   setAIStudioModalOpen: (open: boolean) => void;
   addXP: (amount: number) => void;
+  setActiveCampaignLevelId: (contractId: string) => void;
   recordContractResult: (contractId: string, stars: number, grade?: string) => void;
   damageHull: (amount: number) => void;
   repairHull: (amount: number) => void;
@@ -266,6 +268,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   decisionLog: createInitialDecisionLog(),
 
   playerXP: 0,
+  activeCampaignLevelId: 'contract-leo-bionutrients',
   campaignProgress: { 'contract-leo-bionutrients': { stars: 0, completed: false } },
   hullIntegrity: 100,
 
@@ -345,6 +348,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   setCampaignModalOpen: (isCampaignModalOpen) => set({ isCampaignModalOpen }),
   setAIStudioModalOpen: (isAIStudioModalOpen) => set({ isAIStudioModalOpen }),
   addXP: (amount) => set((s) => ({ playerXP: Math.max(0, s.playerXP + amount) })),
+  setActiveCampaignLevelId: (activeCampaignLevelId) => set({ activeCampaignLevelId }),
   recordContractResult: (contractId, stars, grade) =>
     set((s) => {
       const prev = s.campaignProgress[contractId] || { stars: 0, completed: false };

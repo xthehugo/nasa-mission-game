@@ -174,7 +174,7 @@ function OnboardingContent() {
     <motion.div
       initial={reducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={reducedMotion ? undefined : { opacity: 0 }}
+      exit={reducedMotion ? undefined : { opacity: 0, pointerEvents: 'none' }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#02050B]/90 p-4 backdrop-blur-md font-mono"
     >
       <motion.div

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CAMPAIGN_CONTRACTS, findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import { computeLevelStars, playHoloTone } from './holoAudio';
@@ -35,6 +35,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
   } = useMissionStore();
 
   const [crisisTimer, setCrisisTimer] = useState(15);
+  const crisisTimerRef = useRef(15);
   const isEs = language === 'es';
   const isCadet = experienceMode === 'CADET';
   const objective = findObjectiveById(selection.objectiveId);
@@ -54,28 +55,29 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     if (!simulationResult || resolvedCount >= simulationResult.dilemmas.length || !simIsPlaying) return;
 
     const interval = setInterval(() => {
-      setCrisisTimer((prev) => {
-        if (prev <= 1) {
-          damageHull(25);
-          playHoloTone('ALARM', soundEnabled);
-          const firstUnresolved = simulationResult.dilemmas.find((d) => !resolvedCrises[d.id]);
-          if (firstUnresolved) {
-            const fallbackOpt =
-              firstUnresolved.options.find((o) => !o.isOptimal) ?? firstUnresolved.options[0];
-            resolveCrisis(firstUnresolved.id, fallbackOpt.id);
-            appendDecisionLog({
-              phase: 'SIMULATION',
-              label: {
-                en: `Emergency timeout on crisis ${firstUnresolved.title.en}: Hull damaged (-25%).`,
-                es: `Tiempo límite de emergencia en crisis ${firstUnresolved.title.es}: Casco dañado (-25%).`,
-              },
-              impact: 'CRITICAL',
-            });
-          }
-          return 15;
+      if (crisisTimerRef.current <= 1) {
+        crisisTimerRef.current = 15;
+        setCrisisTimer(15);
+        damageHull(25);
+        playHoloTone('ALARM', soundEnabled);
+        const firstUnresolved = simulationResult.dilemmas.find((d) => !resolvedCrises[d.id]);
+        if (firstUnresolved) {
+          const fallbackOpt =
+            firstUnresolved.options.find((o) => !o.isOptimal) ?? firstUnresolved.options[0];
+          resolveCrisis(firstUnresolved.id, fallbackOpt.id);
+          appendDecisionLog({
+            phase: 'SIMULATION',
+            label: {
+              en: `Emergency timeout on crisis ${firstUnresolved.title.en}: Hull damaged (-25%).`,
+              es: `Tiempo límite de emergencia en crisis ${firstUnresolved.title.es}: Casco dañado (-25%).`,
+            },
+            impact: 'CRITICAL',
+          });
         }
-        return prev - 1;
-      });
+      } else {
+        crisisTimerRef.current -= 1;
+        setCrisisTimer(crisisTimerRef.current);
+      }
     }, Math.max(250, Math.round(1000 / simSpeed)));
 
     return () => clearInterval(interval);

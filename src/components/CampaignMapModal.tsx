@@ -13,7 +13,12 @@ import {
   Volume2,
   X,
 } from 'lucide-react';
-import { CAMPAIGN_CONTRACTS, getPlayerRank } from '../engine';
+import {
+  CAMPAIGN_CONTRACTS,
+  getCampaignLevelById,
+  getPlayerRank,
+  isCampaignLevelUnlocked,
+} from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone, unlockAudioContext } from './holoAudio';
 import { CONTRACT_TO_CINEMATIC } from './narrativeConfig';
@@ -23,9 +28,11 @@ export const CampaignMapModal: React.FC = () => {
     language,
     soundEnabled,
     playerXP,
+    activeCampaignLevelId,
     campaignProgress,
     isCampaignModalOpen,
     setCampaignModalOpen,
+    setActiveCampaignLevelId,
     loadPreset,
     setPhase,
     setLevel1TutorialStep,
@@ -33,7 +40,19 @@ export const CampaignMapModal: React.FC = () => {
     openCinematic,
   } = useMissionStore();
 
-  const [activeIdx, setActiveIdx] = useState(0);
+  const [activeIdx, setActiveIdx] = useState(() => {
+    const idx = CAMPAIGN_CONTRACTS.findIndex((c) => c.id === activeCampaignLevelId);
+    return idx >= 0 ? idx : 0;
+  });
+  const [prevModalOpen, setPrevModalOpen] = useState(isCampaignModalOpen);
+
+  if (isCampaignModalOpen && !prevModalOpen) {
+    setPrevModalOpen(true);
+    const idx = CAMPAIGN_CONTRACTS.findIndex((c) => c.id === activeCampaignLevelId);
+    if (idx >= 0) setActiveIdx(idx);
+  } else if (!isCampaignModalOpen && prevModalOpen) {
+    setPrevModalOpen(false);
+  }
 
   const isEs = language === 'es';
   const currentRank = getPlayerRank(playerXP);
@@ -43,7 +62,10 @@ export const CampaignMapModal: React.FC = () => {
   );
 
   const contract = CAMPAIGN_CONTRACTS[activeIdx] || CAMPAIGN_CONTRACTS[0];
-  const isUnlocked = playerXP >= contract.requiredXPToUnlock;
+  const isUnlocked = isCampaignLevelUnlocked(contract, campaignProgress, playerXP);
+  const unlockPrevLevel = contract.unlockRequiresContractId
+    ? getCampaignLevelById(contract.unlockRequiresContractId)
+    : null;
   const progress = campaignProgress[contract.id] || { stars: 0, completed: false };
   const isCompleted = progress.completed;
   const isFirstIntroCampaign = contract.id === 'contract-leo-bionutrients';
@@ -62,6 +84,7 @@ export const CampaignMapModal: React.FC = () => {
     if (!isUnlocked) return;
     unlockAudioContext();
     playHoloTone('STAR', soundEnabled);
+    setActiveCampaignLevelId(contract.id);
     loadPreset(contract.presetKey);
     setPhase('CML_1');
 
@@ -91,6 +114,7 @@ export const CampaignMapModal: React.FC = () => {
     soundEnabled,
     contract,
     isFirstIntroCampaign,
+    setActiveCampaignLevelId,
     loadPreset,
     setPhase,
     setLevel1TutorialStep,
@@ -218,7 +242,7 @@ export const CampaignMapModal: React.FC = () => {
           <div className="flex items-center gap-2 overflow-x-auto py-1 px-2 no-scrollbar">
             {CAMPAIGN_CONTRACTS.map((c, idx) => {
               const isSelected = idx === activeIdx;
-              const isUnlockedItem = playerXP >= c.requiredXPToUnlock;
+              const isUnlockedItem = isCampaignLevelUnlocked(c, campaignProgress, playerXP);
               const cProg = campaignProgress[c.id] || { stars: 0, completed: false };
 
               return (
@@ -439,8 +463,8 @@ export const CampaignMapModal: React.FC = () => {
                       </div>
                       <div className="text-[11px] text-slate-300">
                         {isEs
-                          ? `Necesitas acumular ${contract.requiredXPToUnlock} XP completando las campañas anteriores con éxito (Actualmente tienes ${playerXP} XP).`
-                          : `Requires ${contract.requiredXPToUnlock} XP by completing previous missions (Currently at ${playerXP} XP).`}
+                          ? `${unlockPrevLevel ? `Completa "${unlockPrevLevel.code}" o acumula ` : 'Acumula '}${contract.requiredXPToUnlock} XP (Tienes ${playerXP} XP).`
+                          : `${unlockPrevLevel ? `Complete "${unlockPrevLevel.code}" or reach ` : 'Reach '}${contract.requiredXPToUnlock} XP (Currently ${playerXP} XP).`}
                       </div>
                     </div>
                   </div>
@@ -491,13 +515,17 @@ export const CampaignMapModal: React.FC = () => {
                       <>
                         <Rocket className="h-4 w-4" />
                         <span>
-                          {isFirstIntroCampaign
+                          {isCompleted
                             ? isEs
-                              ? 'DESPLEGAR MISIÓN TUTORIAL →'
-                              : 'DEPLOY INTRO TUTORIAL →'
-                            : isEs
-                              ? 'ACEPTAR CONTRATO DE MISIÓN →'
-                              : 'ACCEPT FLIGHT CONTRACT →'}
+                              ? 'REJUGAR PARA MEJORAR ESTRELLAS →'
+                              : 'REPLAY FOR MORE STARS →'
+                            : isFirstIntroCampaign
+                              ? isEs
+                                ? 'DESPLEGAR MISIÓN TUTORIAL →'
+                                : 'DEPLOY INTRO TUTORIAL →'
+                              : isEs
+                                ? 'ACEPTAR CONTRATO DE MISIÓN →'
+                                : 'ACCEPT FLIGHT CONTRACT →'}
                         </span>
                       </>
                     ) : (

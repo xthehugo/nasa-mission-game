@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown, ArrowLeft } from 'lucide-react';
+import { ArrowDown, ArrowLeft, Check, Lock } from 'lucide-react';
 import {
   CampaignMapModal,
   COMMANDER_PHASE_BEATS,
@@ -23,7 +24,7 @@ import {
   TopBar,
   TradeSpacePanel,
 } from './components';
-import { playHoloTone } from './components/holoAudio';
+import { playBgmTrack, playHoloTone, stopBgmTrack } from './components/holoAudio';
 import { findDestinationById, findObjectiveById } from './engine';
 import { useMissionStore } from './store';
 import type { CMLPhase } from './types/mission';
@@ -59,6 +60,9 @@ export function App() {
     metrics,
     reducedMotion,
     soundEnabled,
+    activeCinematicId,
+    activeRandomEvent,
+    isCertificateOpen,
     setPhase,
     setSubsystem,
     setGroundStation,
@@ -140,6 +144,56 @@ export function App() {
     if (target === 'SIMULATION') launchSimulation();
     else setPhase(target);
   };
+
+  // Cohesive Dynamic Soundtrack (BGM) according to current game state & narrative beat
+  useEffect(() => {
+    if (!soundEnabled) {
+      stopBgmTrack();
+      return;
+    }
+
+    if (isCertificateOpen) {
+      playBgmTrack('VICTORY_FANFARE', true);
+      return;
+    }
+
+    if (activeCinematicId) {
+      if (activeCinematicId === 'ACT2_PROLOGUE' || activeCinematicId === 'ACT1_CLIMAX_JPL_TWIST') {
+        playBgmTrack('JUPITER_DEEP_SPACE', true);
+      } else if (activeCinematicId === 'ACT2_FINALE_SANDBOX') {
+        playBgmTrack('VICTORY_FANFARE', true);
+      } else {
+        playBgmTrack('HANGAR_AMBIENT', true);
+      }
+      return;
+    }
+
+    if (phase === 'SIMULATION') {
+      // Epic Launch theme starting at second 30 (the climax!)
+      playBgmTrack('LAUNCH_EPIC', true);
+      return;
+    }
+
+    if (activeRandomEvent !== 'NONE') {
+      playBgmTrack('TENSION_CRISIS', true);
+      return;
+    }
+
+    if (experienceMode === 'JPL_ENGINEER' || selection.destinationId === 'dest-jupiter') {
+      playBgmTrack('JUPITER_DEEP_SPACE', true);
+      return;
+    }
+
+    playBgmTrack('HANGAR_AMBIENT', true);
+  }, [
+    soundEnabled,
+    phase,
+    activeRandomEvent,
+    activeCinematicId,
+    isCertificateOpen,
+    experienceMode,
+    selection.destinationId,
+  ]);
 
   return (
     <div
@@ -337,6 +391,7 @@ export function App() {
         <nav aria-label="Mission Levels" className="mx-auto grid max-w-[1600px] grid-cols-3 gap-2 sm:grid-cols-6">
           {LEVELS.map((lvl, idx) => {
             const active = phase === lvl.id;
+            const completed = idx < currentIdx;
             const unlocked = idx + 1 <= maxUnlockedLevel || idx === currentIdx + 1;
             return (
               <button
@@ -344,15 +399,21 @@ export function App() {
                 type="button"
                 disabled={!unlocked}
                 onClick={() => goToLevel(lvl.id)}
-                className={`border-t-2 pt-2 text-left font-mono text-[10px] tracking-[0.16em] uppercase transition ${
+                className={`flex items-center gap-1.5 border-t-2 pt-2 text-left font-mono text-[10.5px] tracking-[0.14em] uppercase transition ${
                   active
-                    ? 'border-[#5FF3FF] text-[#5FF3FF] shadow-[0_-6px_14px_rgba(95,243,255,0.25)]'
-                    : unlocked
-                      ? 'border-transparent text-slate-400 hover:border-[#5FF3FF]/40 hover:text-slate-200'
-                      : 'cursor-not-allowed border-transparent text-slate-700'
+                    ? 'border-[#5FF3FF] font-semibold text-[#5FF3FF] shadow-[0_-6px_14px_rgba(95,243,255,0.25)]'
+                    : completed
+                      ? 'border-[#5FF3FF]/45 text-[#5FF3FF]/80 hover:text-white'
+                      : unlocked
+                        ? 'border-transparent text-slate-400 hover:border-[#5FF3FF]/40 hover:text-slate-200'
+                        : 'cursor-not-allowed border-transparent text-slate-600 opacity-45'
                 }`}
               >
-                {lvl.num} {lvl.label[language]} {!unlocked ? '· LOCK' : ''}
+                {completed && <Check className="h-3 w-3 shrink-0 text-[#5FF3FF]" />}
+                {!unlocked && <Lock className="h-2.5 w-2.5 shrink-0 text-slate-500" />}
+                <span className="truncate">
+                  {lvl.num} {lvl.label[language]}
+                </span>
               </button>
             );
           })}

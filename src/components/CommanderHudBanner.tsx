@@ -203,15 +203,21 @@ export function CommanderHudBanner() {
     }
     lastSpokenKeyRef.current = currentSpeechKey;
 
+    let safetyWatchdog = 0;
     const timer = window.setTimeout(() => {
       setIsSpeaking(true);
+      safetyWatchdog = window.setTimeout(() => {
+        setIsSpeaking(false);
+      }, 8000);
       speakCharacterLine(vegaText, language, 'VEGA', soundEnabled, () => {
+        window.clearTimeout(safetyWatchdog);
         setIsSpeaking(false);
       });
     }, 140);
 
     return () => {
       window.clearTimeout(timer);
+      window.clearTimeout(safetyWatchdog);
       setIsSpeaking(false);
     };
   }, [activeCinematicId, currentSpeechKey, language, soundEnabled, vegaText]);

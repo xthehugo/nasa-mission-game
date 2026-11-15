@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import { findGroundStationById, findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import type { MCRStatus } from '../types/mission';
@@ -18,6 +20,8 @@ function FineMeter({
   status,
   amberDefault = false,
   reducedMotion,
+  expanded,
+  onToggle,
 }: {
   label: string;
   valueText: string;
@@ -26,30 +30,56 @@ function FineMeter({
   status: MCRStatus;
   amberDefault?: boolean;
   reducedMotion: boolean;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   const clamped = Math.max(4, Math.min(100, pct));
   return (
-    <div className="py-1.5">
-      <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] tracking-[0.12em] uppercase">
-        <span className="text-slate-400">{label}</span>
-        <span className={status === 'RED' ? 'text-[#FF4D6D]' : amberDefault ? 'text-[#FFC15E]' : 'text-slate-100'}>
+    <button
+      type="button"
+      onClick={onToggle}
+      title={subText}
+      className="group w-full py-1 text-left transition hover:bg-[#5FF3FF]/5"
+    >
+      <div className="flex items-baseline justify-between gap-2 font-mono text-[13px] tracking-[0.06em] uppercase">
+        <span className="flex items-center gap-1.5 text-slate-300 group-hover:text-white">
+          <span>{label}</span>
+          {subText && (
+            <ChevronDown
+              className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-150 ${
+                expanded ? 'rotate-180 text-[#5FF3FF]' : ''
+              }`}
+            />
+          )}
+        </span>
+        <span
+          className={`font-semibold transition-colors ${
+            status === 'RED'
+              ? 'text-[#FF4D6D]'
+              : amberDefault || status === 'YELLOW'
+                ? 'text-[#FFC15E]'
+                : 'text-slate-100'
+          }`}
+        >
           {valueText}
         </span>
       </div>
-      <div className="mt-1 h-[2px] w-full bg-[#5FF3FF]/15">
+      <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-[#5FF3FF]/15">
         <motion.div
-          className={`h-full ${lineColor(status, amberDefault)}`}
+          className={`h-full ${lineColor(status, amberDefault)} ${
+            !reducedMotion && (status === 'RED' || status === 'YELLOW') ? 'animate-pulse' : ''
+          }`}
           initial={false}
           animate={{ width: `${clamped}%` }}
           transition={{ duration: reducedMotion ? 0 : 0.45 }}
         />
       </div>
-      {subText && (
-        <div className="mt-1 font-mono text-[9px] leading-snug text-slate-400">
+      {subText && expanded && (
+        <div className="mt-1.5 font-mono text-[12px] leading-snug text-slate-300">
           {subText}
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -58,6 +88,7 @@ export function HudResourceBars() {
     language,
     experienceMode,
     phase,
+    level1TutorialStep,
     selection,
     metrics,
     scores,
@@ -68,6 +99,19 @@ export function HudResourceBars() {
   } = useMissionStore();
 
   const isEs = language === 'es';
+  const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+  const [telemetryExpanded, setTelemetryExpanded] = useState(
+    !(phase === 'CML_1' && level1TutorialStep > 0),
+  );
+  const [prevStep, setPrevStep] = useState(level1TutorialStep);
+  if (level1TutorialStep !== prevStep) {
+    setPrevStep(level1TutorialStep);
+    if (phase === 'CML_1') {
+      setTelemetryExpanded(level1TutorialStep === 0);
+    }
+  }
+  const toggleMetric = (key: string) =>
+    setExpandedMetric((prev) => (prev === key ? null : key));
   const isCadet = experienceMode === 'CADET';
   const objective = findObjectiveById(selection.objectiveId);
   const groundStation = findGroundStationById(selection.groundStationId);
@@ -130,19 +174,28 @@ export function HudResourceBars() {
           : null;
 
   return (
-    <div className="space-y-1 border-b border-[#5FF3FF]/20 pb-3">
-      <div className="flex flex-wrap items-center justify-between gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase">
-        <span className="text-[#5FF3FF]">
-          {isEs ? 'TELEMETRÍA EN VIVO' : 'LIVE TELEMETRY'}
+    <div className="space-y-1.5 border-b border-[#5FF3FF]/15 pb-3">
+      <button
+        type="button"
+        onClick={() => setTelemetryExpanded((v) => !v)}
+        className="flex w-full flex-wrap items-center justify-between gap-1.5 font-mono text-[12px] tracking-[0.12em] uppercase hover:text-white"
+      >
+        <span className="flex items-center gap-1.5 text-[#5FF3FF]">
+          <span>{isEs ? 'TELEMETRÍA EN VIVO' : 'LIVE TELEMETRY'}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform duration-200 ${
+              telemetryExpanded ? 'rotate-180' : ''
+            }`}
+          />
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {eventBadgeText && (
-            <span className="border border-[#FFC15E] bg-[#FFC15E]/15 px-1.5 py-0.5 text-[8.5px] font-bold text-[#FFC15E]">
+            <span className="border border-[#FFC15E] bg-[#FFC15E]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#FFC15E]">
               {eventBadgeText}
             </span>
           )}
           <span
-            className={`border px-1.5 py-0.5 text-[8.5px] ${
+            className={`border px-1.5 py-0.5 text-[10px] ${
               isCadet
                 ? 'border-[#5FF3FF]/40 text-[#5FF3FF]'
                 : 'border-[#FFC15E]/50 text-[#FFC15E]'
@@ -155,7 +208,30 @@ export function HudResourceBars() {
               : '◆ JPL MEV/MGA'}
           </span>
         </div>
-      </div>
+      </button>
+
+      {!telemetryExpanded && (
+        <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[12px] text-slate-300">
+          <span className={massStatus === 'RED' ? 'text-[#FF4D6D]' : 'text-[#5FF3FF]'}>
+            {isEs ? 'MASA' : 'MASS'} {massStatus === 'RED' ? '!' : '✓'}
+          </span>
+          <span className="text-slate-600">·</span>
+          <span className={powerStatus === 'RED' ? 'text-[#FF4D6D]' : 'text-[#5FF3FF]'}>
+            EPS {powerStatus === 'RED' ? '!' : '✓'}
+          </span>
+          <span className="text-slate-600">·</span>
+          <span className={budgetStatus === 'RED' ? 'text-[#FF4D6D]' : 'text-[#FFC15E]'}>
+            ${metrics.cost.totalMillionsUSD.toFixed(0)}M
+          </span>
+          <span className="text-slate-600">·</span>
+          <span className={metrics.volume.isCompliant ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
+            {metrics.volume.used_U.toFixed(1)}U
+          </span>
+        </div>
+      )}
+
+      {telemetryExpanded && (
+        <div className="space-y-1.5 pt-1">
       <FineMeter
         label={isEs ? 'MASA HÚMEDA' : 'WET MASS'}
         valueText={`${liveMass.toFixed(1)} / ${metrics.launchCapacity_kg} KG`}
@@ -173,6 +249,8 @@ export function HudResourceBars() {
         pct={massPct}
         status={massStatus}
         reducedMotion={reducedMotion}
+        expanded={expandedMetric === 'MASS'}
+        onToggle={() => toggleMetric('MASS')}
       />
       <FineMeter
         label={isEs ? 'ENERGÍA EPS' : 'EPS POWER'}
@@ -191,6 +269,8 @@ export function HudResourceBars() {
         pct={powerPct}
         status={powerStatus}
         reducedMotion={reducedMotion}
+        expanded={expandedMetric === 'EPS'}
+        onToggle={() => toggleMetric('EPS')}
       />
       <FineMeter
         label={isEs ? 'PRESUPUESTO' : 'BUDGET'}
@@ -206,6 +286,8 @@ export function HudResourceBars() {
         status={budgetStatus}
         amberDefault
         reducedMotion={reducedMotion}
+        expanded={expandedMetric === 'BUDGET'}
+        onToggle={() => toggleMetric('BUDGET')}
       />
       <FineMeter
         label={isEs ? 'COFIA & DATOS' : 'FAIRING & DATA'}
@@ -224,6 +306,8 @@ export function HudResourceBars() {
         pct={volPct}
         status={metrics.volume.isCompliant ? 'GREEN' : 'RED'}
         reducedMotion={reducedMotion}
+        expanded={expandedMetric === 'FAIRING'}
+        onToggle={() => toggleMetric('FAIRING')}
       />
       <FineMeter
         label={isEs ? 'ENLACE RF' : 'RF LINK'}
@@ -242,7 +326,11 @@ export function HudResourceBars() {
         pct={rfPct}
         status={metrics.telecom.status}
         reducedMotion={reducedMotion}
+        expanded={expandedMetric === 'RF'}
+        onToggle={() => toggleMetric('RF')}
       />
+        </div>
+      )}
     </div>
   );
 }
