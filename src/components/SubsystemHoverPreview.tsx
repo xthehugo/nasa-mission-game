@@ -46,13 +46,14 @@ export function SubsystemHoverPreview({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96, y: isFirst ? 4 : -4 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.95, x: -6 }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.12 }}
-      className={`pointer-events-none absolute left-0 right-0 z-50 ${
-        isFirst ? 'top-full mt-2' : 'bottom-full mb-2'
-      }`}
+      className={`pointer-events-none absolute z-50 
+        lg:right-full lg:mr-3 lg:top-0 lg:bottom-auto lg:left-auto lg:w-80
+        ${isFirst ? 'top-full mt-2 left-0 right-0' : 'bottom-full mb-2 left-0 right-0 lg:top-0 lg:mb-0'}
+      `}
     >
       <div className="relative border border-[#5FF3FF] bg-[#04080F]/95 backdrop-blur-md px-3 py-2 font-mono text-[9.5px] text-[#5FF3FF] rounded-lg shadow-[0_0_25px_rgba(95,243,255,0.35)]">
         <div className="flex items-center justify-between border-b border-[#5FF3FF]/30 pb-1 mb-1 font-bold">
@@ -93,9 +94,12 @@ export function SubsystemHoverPreview({
           )}
         </div>
 
-        {/* Balloon tail arrow */}
+        {/* Balloon tail arrow pointing to the right on desktop */}
+        <div className="hidden lg:block absolute -right-1.5 top-4 w-2.5 h-2.5 bg-[#04080F] border-r border-t border-[#5FF3FF] transform rotate-45" />
+
+        {/* Balloon tail arrow for mobile (top/bottom) */}
         <div
-          className={`absolute left-8 w-2.5 h-2.5 bg-[#04080F] border-[#5FF3FF] transform rotate-45 ${
+          className={`lg:hidden absolute left-8 w-2.5 h-2.5 bg-[#04080F] border-[#5FF3FF] transform rotate-45 ${
             isFirst
               ? '-top-1.5 border-l border-t'
               : '-bottom-1.5 border-r border-b'
