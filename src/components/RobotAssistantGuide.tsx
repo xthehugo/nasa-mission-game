@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Volume2, X } from 'lucide-react';
 import { useMissionStore, type RobotSpotlightZone } from '../store';
-import type { CMLPhase } from '../types/mission';
-import { playHoloTone } from './holoAudio';
-import { COMMANDER_PHASE_BEATS } from './narrativeConfig';
+import { playHoloTone, speakCharacterLine, stopCharacterVoice } from './holoAudio';
+import { getPhaseInteractiveTour } from './narrativeConfig';
 
 /**
  * Glowing Cyan Neon Robot Icon matching the ASTRA reference artwork
@@ -104,115 +103,6 @@ export function RobotSvgIcon({ className = 'h-16 w-16' }: { className?: string }
   );
 }
 
-interface AstraStep {
-  zone: RobotSpotlightZone | null;
-  title: { en: string; es: string };
-  body: { en: string; es: string };
-}
-
-function getAstraStepsForPhase(phase: CMLPhase): AstraStep[] {
-  if (phase === 'CML_1') {
-    return [
-      {
-        zone: null,
-        title: { en: 'Hello, Commander!', es: '¡Hola, Comandante!' },
-        body: {
-          en: 'I am ASTRA, your guide mascot. I show you what everything is for. Follow me, or right-click any panel at any time so I fly over and explain it.',
-          es: 'Soy ASTRA, tu mascota guía. Te muestro para qué sirve cada cosa. Sígueme (o haz clic derecho en cualquier parte de la pantalla para que viaje a explicártela).',
-        },
-      },
-      {
-        zone: 'RESOURCES',
-        title: { en: '1. Vital Signs (Top Left)', es: '1. Signos Vitales (Arriba Izquierda)' },
-        body: {
-          en: 'These 5 bars are your ship’s life gauges: Weight (KG), Electricity (W), Budget ($M), Space (U), and Radio (dB). Keep them in Cyan so your spacecraft stays safe.',
-          es: 'Estas 5 barras son la vida de tu nave: Peso (KG), Electricidad (W), Dinero ($M), Espacio (U) y Radio (dB). Si todas están en color Cian, tu diseño es seguro.',
-        },
-      },
-      {
-        zone: 'CHASSIS',
-        title: { en: '2. Step 1 · Chassis (The Body)', es: '2. Paso 1 · Chasis (El Cuerpo)' },
-        body: {
-          en: 'The empty aluminum box of your satellite. Each "1U" is a 10×10 cm cube (like a milk carton). Click 1.5U, 2U, 3U, or CUSTOM to change how many instruments fit inside.',
-          es: 'Es la caja metálica donde caben tus equipos. Cada "1U" mide 10×10 cm (como una caja de leche). Haz clic en 1.5U, 2U, 3U o CUSTOM para dar más espacio a tu satélite.',
-        },
-      },
-      {
-        zone: 'EPS',
-        title: { en: '3. Solar Arrays / EPS (The Heart)', es: '3. Paneles Solares / EPS (La Batería)' },
-        body: {
-          en: 'Generates electricity (+W) in space so your cameras and heaters never freeze in the dark. More +W gives you a stronger safety margin.',
-          es: 'Son las alas solares que producen electricidad (+W) para que tu nave no se apague en la oscuridad. Cuanto mayor sea el número +W, más energía tendrás.',
-        },
-      },
-      {
-        zone: 'MISSION',
-        title: { en: '4. Step 2 · Science Mission (Right)', es: '4. Paso 2 · Misión Científica (Derecha)' },
-        body: {
-          en: 'Sets what planet or orbit you will study and how much money ($M) NASA gives you. At the bottom it tells you which camera ("PAYLOAD:") you will need in Level 03.',
-          es: 'Define qué vamos a investigar en el espacio y cuánto presupuesto ($M) nos da la NASA. Abajo te indica qué cámara ("INSTRUMENTO:") necesitarás en el Nivel 03.',
-        },
-      },
-      {
-        zone: 'HOLOGRAM',
-        title: { en: '5. Center Hologram & Next Level', es: '5. Holograma Central y Siguiente Nivel' },
-        body: {
-          en: 'Draws your spacecraft live as you click each piece. When you are ready, press the glowing "NEXT LEVEL · 02" button below the hologram!',
-          es: 'Aquí ves tu satélite armarse en tiempo real. Cuando termines de elegir Chasis, Energía y Misión, pulsa el botón "SIGUIENTE NIVEL · 02" debajo del holograma.',
-        },
-      },
-    ];
-  }
-
-  const beat = COMMANDER_PHASE_BEATS[phase];
-  const s0 = beat.screwSteps[0];
-  const s1 = beat.screwSteps[1];
-  const s2 = beat.screwSteps[2];
-
-  return [
-    {
-      zone: null,
-      title: { en: 'Hello, Commander!', es: '¡Hola, Comandante!' },
-      body: {
-        en: 'I am ASTRA, your guide mascot. Click "Next" so I move to each panel of this level, or right-click any area on screen for an instant explanation.',
-        es: 'Soy ASTRA, tu mascota guía. Pulsa "Siguiente" para que me mueva por los paneles de este nivel, o haz clic derecho sobre cualquier zona para explicártela.',
-      },
-    },
-    {
-      zone: 'RESOURCES',
-      title: { en: 'Live Telemetry Bars', es: 'Barras de Telemetría en Vivo' },
-      body: {
-        en: 'Watch Weight (KG), Power (W), Budget ($M), Volume (U), and RF Link (dB). Keep margins above 35% and bars out of Red.',
-        es: 'Vigila en todo momento Peso (KG), Energía (W), Presupuesto ($M), Volumen (U) y Radio (dB). Mantén las barras en cian y sin alertas rojas.',
-      },
-    },
-    {
-      zone: 'LEFT_PANEL',
-      title: s0.controlLabel,
-      body: {
-        en: `${s0.whatIsIt.en} ${s0.howItConnects.en}`,
-        es: `${s0.whatIsIt.es} ${s0.howItConnects.es}`,
-      },
-    },
-    {
-      zone: 'HOLOGRAM',
-      title: s1.controlLabel,
-      body: {
-        en: `${s1.whatIsIt.en} ${s1.howItConnects.en}`,
-        es: `${s1.whatIsIt.es} ${s1.howItConnects.es}`,
-      },
-    },
-    {
-      zone: 'RIGHT_PANEL',
-      title: s2.controlLabel,
-      body: {
-        en: `${s2.whatIsIt.en} ${s2.howItConnects.en}`,
-        es: `${s2.whatIsIt.es} ${s2.howItConnects.es}`,
-      },
-    },
-  ];
-}
-
 const DIRECT_ZONE_EXPLANATIONS: Record<
   RobotSpotlightZone,
   { title: { en: string; es: string }; body: { en: string; es: string } }
@@ -294,7 +184,7 @@ function computeCoordsForZone(zone: RobotSpotlightZone | null): { x: number; y: 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const cardWidth = Math.min(460, vw - 24);
-  const cardHeight = 210;
+  const cardHeight = 220;
 
   if (!zone) {
     return {
@@ -339,29 +229,34 @@ export function AstraFloatingCompanion() {
   const {
     language,
     phase,
+    cadetName,
+    engineerName,
+    missionCustomName,
+    experienceMode,
     activeCinematicId,
     soundEnabled,
+    phaseTutorialStep,
+    nextPhaseTutorialStep,
+    prevPhaseTutorialStep,
+    setPhaseTutorialStep,
     setRobotHoverZone,
   } = useMissionStore();
 
   const isEs = language === 'es';
-  const steps = getAstraStepsForPhase(phase);
+  const isCadet = experienceMode === 'CADET';
+  const activeCallsign = isCadet ? cadetName : engineerName;
+
+  // Primary unified interactive tour across all modules
+  const tourSteps = getPhaseInteractiveTour(phase);
+  const safeTourIdx = Math.min(phaseTutorialStep, tourSteps.length - 1);
+  const activeTourStep = tourSteps[safeTourIdx];
 
   const [isOpen, setIsOpen] = useState(true);
-  const [stepIdx, setStepIdx] = useState(0);
   const [customZoneOverride, setCustomZoneOverride] = useState<RobotSpotlightZone | null>(null);
   const [viewportTick, setViewportTick] = useState(0);
-  const [prevPhase, setPrevPhase] = useState<CMLPhase>(phase);
+  const [speakingCharacter, setSpeakingCharacter] = useState<'NONE' | 'ASTRA' | 'VEGA'>('NONE');
 
-  if (phase !== prevPhase) {
-    setPrevPhase(phase);
-    setStepIdx(0);
-    setCustomZoneOverride(null);
-  }
-
-  const safeStepIdx = Math.min(stepIdx, steps.length - 1);
-  const activeStep = steps[safeStepIdx];
-  const effectiveZone = customZoneOverride ?? activeStep.zone;
+  const effectiveZone = customZoneOverride ?? activeTourStep?.targetZone ?? null;
   const coords = viewportTick >= 0 ? computeCoordsForZone(effectiveZone) : { x: 24, y: 24 };
 
   useEffect(() => {
@@ -369,7 +264,7 @@ export function AstraFloatingCompanion() {
     setRobotHoverZone(isOpen ? effectiveZone : null);
   }, [activeCinematicId, effectiveZone, isOpen, setRobotHoverZone]);
 
-  // Listen for Right-Click (Anticlick) anywhere on the screen to summon ASTRA to that panel!
+  // Listen for Right-Click (Anticlick) anywhere on the screen to summon ASTRA to that panel
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       if (activeCinematicId) return;
@@ -384,11 +279,11 @@ export function AstraFloatingCompanion() {
       e.preventDefault();
       setIsOpen(true);
 
-      // Check if this zone is part of the current phase's step list
-      const matchingIdx = steps.findIndex((s) => s.zone === zoneAttr);
+      // Check if this zone is part of the current phase's tour steps
+      const matchingIdx = tourSteps.findIndex((s) => s.targetZone === zoneAttr);
       if (matchingIdx >= 0) {
         setCustomZoneOverride(null);
-        setStepIdx(matchingIdx);
+        setPhaseTutorialStep(matchingIdx);
       } else {
         setCustomZoneOverride(zoneAttr);
       }
@@ -408,19 +303,31 @@ export function AstraFloatingCompanion() {
       window.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('resize', handleResize);
     };
-  }, [activeCinematicId, isOpen, setRobotHoverZone, steps]);
+  }, [activeCinematicId, isOpen, setPhaseTutorialStep, setRobotHoverZone, tourSteps]);
 
   if (activeCinematicId) return null;
 
+  const displayBadge = customZoneOverride
+    ? isEs
+      ? 'ASTRA · INSPECCIÓN ANTICLIC'
+      : 'ASTRA · RIGHT-CLICK INSPECTION'
+    : activeTourStep?.badge[language] ?? `ASTRA · ${safeTourIdx + 1}/${tourSteps.length}`;
+
   const displayTitle = customZoneOverride
     ? DIRECT_ZONE_EXPLANATIONS[customZoneOverride].title[language]
-    : activeStep.title[language];
+    : activeTourStep?.title[language] ?? '';
 
-  const displayBody = customZoneOverride
+  const rawBody = customZoneOverride
     ? DIRECT_ZONE_EXPLANATIONS[customZoneOverride].body[language]
-    : activeStep.body[language];
+    : activeTourStep?.instruction[language] ?? '';
 
-  // When resting quietly in the bottom-left corner:
+  const displayBody = rawBody
+    .replace(/{cadet}/g, cadetName)
+    .replace(/{engineer}/g, engineerName)
+    .replace(/{callsign}/g, activeCallsign)
+    .replace(/{mission}/g, missionCustomName);
+
+  // When resting quietly in the bottom-left corner
   if (!isOpen) {
     return (
       <motion.div
@@ -451,10 +358,12 @@ export function AstraFloatingCompanion() {
           </motion.div>
           <div className="text-left">
             <div className="font-mono text-[10px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
-              ASTRA · {isEs ? 'GUÍA' : 'GUIDE'}
+              ASTRA · {isEs ? 'GUÍA VINCULADA' : 'LINKED GUIDE'}
             </div>
             <div className="text-[10px] text-slate-300">
-              {isEs ? 'Clic o Anticlic en un panel' : 'Click or Right-click any panel'}
+              {isEs
+                ? `Paso ${safeTourIdx + 1}/${tourSteps.length} · Clic para abrir`
+                : `Step ${safeTourIdx + 1}/${tourSteps.length} · Click to open`}
             </div>
           </div>
         </button>
@@ -475,7 +384,7 @@ export function AstraFloatingCompanion() {
       style={{ position: 'fixed' }}
       className="z-40 flex max-w-[calc(100vw-24px)] items-start gap-3 sm:gap-4 pointer-events-none"
     >
-      {/* Glowing Neon Robot Mascot ASTRA (Left of the card, just like the reference image) */}
+      {/* Glowing Neon Robot Mascot ASTRA */}
       <motion.button
         type="button"
         onClick={() => {
@@ -484,98 +393,157 @@ export function AstraFloatingCompanion() {
         }}
         animate={{ y: [0, -5, 0] }}
         transition={{ repeat: Infinity, duration: 2.6, ease: 'easeInOut' }}
-        title={isEs ? 'Descansar en la esquina' : 'Rest in corner'}
+        title={isEs ? 'Minimizar a la esquina' : 'Minimize to corner'}
         className="mt-2 shrink-0 cursor-pointer focus:outline-none pointer-events-auto"
       >
         <RobotSvgIcon className="h-16 w-16 sm:h-20 sm:w-20" />
       </motion.button>
 
-      {/* ASTRA Cyan-Bordered Dialog Box (Matching the reference image) */}
-      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[375px] sm:p-5 pointer-events-auto">
+      {/* ASTRA Cyan-Bordered Dialog Box */}
+      <div className="relative w-[320px] border border-[#5FF3FF]/85 bg-[#040B14]/96 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.88),0_0_28px_rgba(95,243,255,0.22)] sm:w-[380px] sm:p-5 pointer-events-auto">
         {/* Top-right subtle close/minimize button + step indicator */}
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="font-mono text-[9px] tracking-[0.16em] text-[#5FF3FF]/80 uppercase">
-            {customZoneOverride
-              ? isEs
-                ? 'ASTRA · INSPECCIÓN POR ANTICLIC'
-                : 'ASTRA · RIGHT-CLICK INSPECT'
-              : `ASTRA · ${safeStepIdx + 1}/${steps.length}`}
+          <span className="font-mono text-[9px] tracking-[0.16em] text-[#5FF3FF] uppercase font-bold">
+            {displayBadge}
           </span>
-          <button
-            type="button"
-            onClick={() => {
-              playHoloTone('STEP', soundEnabled);
-              setIsOpen(false);
-              setRobotHoverZone(null);
-            }}
-            className="inline-flex items-center gap-1 font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
-            title={isEs ? 'Enviar a la esquina' : 'Minimize to corner'}
-          >
-            <X className="h-3 w-3" />
-            <span>{isEs ? 'ESQUINA' : 'CORNER'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] text-[#FFC15E]">
+              {isEs
+                ? `${safeTourIdx + 1} DE ${tourSteps.length}`
+                : `${safeTourIdx + 1} OF ${tourSteps.length}`}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                playHoloTone('STEP', soundEnabled);
+                setIsOpen(false);
+                setRobotHoverZone(null);
+              }}
+              className="inline-flex items-center gap-1 font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
+              title={isEs ? 'Enviar a la esquina' : 'Minimize to corner'}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
         </div>
 
-        {/* Large Title */}
-        <h3 className="text-xl font-normal tracking-tight text-white sm:text-[22px]">
+        {/* Title */}
+        <h3 className="text-lg font-normal tracking-tight text-white sm:text-xl">
           {displayTitle}
         </h3>
 
-        {/* Easy-to-understand Body Text */}
-        <p className="mt-2.5 text-sm leading-relaxed text-slate-200 sm:text-[15px]">
+        {/* Body Text */}
+        <p className="mt-2 text-xs leading-relaxed text-slate-200 sm:text-[13.5px]">
           {displayBody}
         </p>
 
-        {/* Bottom Buttons: Anterior / Siguiente */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        {/* Audio buttons row: Commander Vega (Primary voice) & Astra (The Girl) */}
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#5FF3FF]/20 pt-2.5">
+          <div className="flex items-center gap-1.5">
+            {/* Commander Vega Voice (Primary for everything) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (speakingCharacter === 'VEGA') {
+                  stopCharacterVoice();
+                  setSpeakingCharacter('NONE');
+                  return;
+                }
+                setSpeakingCharacter('VEGA');
+                speakCharacterLine(displayBody, language, 'VEGA', true, () => {
+                  setSpeakingCharacter('NONE');
+                });
+              }}
+              className={`inline-flex items-center gap-1 border px-2 py-1 font-mono text-[9px] uppercase transition ${
+                speakingCharacter === 'VEGA'
+                  ? 'border-[#5FF3FF] bg-[#5FF3FF]/25 text-white'
+                  : 'border-[#5FF3FF]/50 bg-[#5FF3FF]/10 text-[#5FF3FF] hover:bg-[#5FF3FF]/20'
+              }`}
+              title={isEs ? 'Escuchar voz del Comandante Vega' : 'Listen to Commander Vega'}
+            >
+              <Volume2 className="h-3 w-3" />
+              <span>{isEs ? 'COMANDANTE' : 'COMMANDER'}</span>
+            </button>
+
+            {/* ASTRA Voice ("la chica" -> Rostova) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (speakingCharacter === 'ASTRA') {
+                  stopCharacterVoice();
+                  setSpeakingCharacter('NONE');
+                  return;
+                }
+                setSpeakingCharacter('ASTRA');
+                speakCharacterLine(displayBody, language, 'ROSTOVA', true, () => {
+                  setSpeakingCharacter('NONE');
+                });
+              }}
+              className={`inline-flex items-center gap-1 border px-2 py-1 font-mono text-[9px] uppercase transition ${
+                speakingCharacter === 'ASTRA'
+                  ? 'border-[#FFC15E] bg-[#FFC15E]/25 text-white'
+                  : 'border-[#FFC15E]/50 bg-[#FFC15E]/10 text-[#FFC15E] hover:bg-[#FFC15E]/20'
+              }`}
+              title={isEs ? 'Escuchar voz de la Mascota ASTRA (la chica)' : 'Listen to ASTRA (companion girl)'}
+            >
+              <Volume2 className="h-3 w-3" />
+              <span>ASTRA</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Navigation Buttons: Anterior / Siguiente (Linked to Store) */}
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           <button
             type="button"
-            disabled={!customZoneOverride && safeStepIdx === 0}
+            disabled={!customZoneOverride && safeTourIdx === 0}
             onClick={() => {
               playHoloTone('STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
                 return;
               }
-              setStepIdx((i) => Math.max(0, i - 1));
+              prevPhaseTutorialStep();
             }}
-            className={`border py-2 text-center text-sm transition ${
-              !customZoneOverride && safeStepIdx === 0
+            className={`flex items-center justify-center gap-1 border py-1.5 text-center font-mono text-xs uppercase transition ${
+              !customZoneOverride && safeTourIdx === 0
                 ? 'cursor-not-allowed border-slate-800 bg-[#070E18]/60 text-slate-600'
                 : 'border-slate-700 bg-[#08111E] text-slate-300 hover:border-[#5FF3FF]/60 hover:text-white'
             }`}
           >
-            {isEs ? 'Anterior' : 'Previous'}
+            <ChevronLeft className="h-3 w-3" />
+            <span>{isEs ? 'Anterior' : 'Previous'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => {
-              const isLast = !customZoneOverride && safeStepIdx === steps.length - 1;
+              const isLast = !customZoneOverride && safeTourIdx === tourSteps.length - 1;
               playHoloTone(isLast ? 'STAR' : 'STEP', soundEnabled);
               if (customZoneOverride) {
                 setCustomZoneOverride(null);
-                setStepIdx((i) => (i + 1 < steps.length ? i + 1 : 0));
+                nextPhaseTutorialStep(tourSteps.length);
                 return;
               }
-              if (safeStepIdx + 1 < steps.length) {
-                setStepIdx(safeStepIdx + 1);
+              if (!isLast) {
+                nextPhaseTutorialStep(tourSteps.length);
               } else {
                 setIsOpen(false);
                 setRobotHoverZone(null);
               }
             }}
-            className="border border-[#5FF3FF] bg-[#061826] py-2 text-center text-sm font-medium text-[#5FF3FF] shadow-[0_0_16px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/20"
+            className="flex items-center justify-center gap-1 border border-[#5FF3FF] bg-[#061826] py-1.5 text-center font-mono text-xs font-bold text-[#5FF3FF] uppercase shadow-[0_0_16px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/20"
           >
-            {!customZoneOverride && safeStepIdx === steps.length - 1 ? (
+            {!customZoneOverride && safeTourIdx === tourSteps.length - 1 ? (
               <span className="inline-flex items-center justify-center gap-1">
                 <Check className="h-3.5 w-3.5" />
                 <span>{isEs ? 'Listo' : 'Done'}</span>
               </span>
-            ) : isEs ? (
-              'Siguiente'
             ) : (
-              'Next'
+              <span className="inline-flex items-center justify-center gap-1">
+                <span>{isEs ? 'Siguiente' : 'Next'}</span>
+                <ChevronRight className="h-3 w-3" />
+              </span>
             )}
           </button>
         </div>

@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Film, Volume2, Zap } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Film,
+  Volume2,
+} from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
@@ -13,7 +18,7 @@ import {
   COMMANDER_PHASE_BEATS,
   formatCommanderBeat,
   formatStoryText,
-  LEVEL1_INTERACTIVE_TOUR,
+  getPhaseInteractiveTour,
 } from './narrativeConfig';
 
 export function CommanderHudBanner() {
@@ -26,7 +31,8 @@ export function CommanderHudBanner() {
     engineerName,
     missionCustomName,
     activeCinematicId,
-    level1TutorialStep,
+    phaseTutorialStep,
+    isGuideTourActive,
     metrics,
     concurrentConflicts,
     activeRandomEvent,
@@ -35,7 +41,9 @@ export function CommanderHudBanner() {
     reducedMotion,
     soundEnabled,
     openCinematic,
-    setLevel1TutorialStep,
+    nextPhaseTutorialStep,
+    prevPhaseTutorialStep,
+    setGuideTourActive,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -43,9 +51,10 @@ export function CommanderHudBanner() {
   const activeCallsign = isCadet ? cadetName : engineerName;
   const beat = COMMANDER_PHASE_BEATS[phase];
 
-  const isLevel1GuidedTour = phase === 'CML_1' && level1TutorialStep < 5;
-  const activeTourStep = isLevel1GuidedTour
-    ? LEVEL1_INTERACTIVE_TOUR[level1TutorialStep]
+  const tourSteps = getPhaseInteractiveTour(phase);
+  const safeTourIdx = Math.min(phaseTutorialStep, tourSteps.length - 1);
+  const activeTourStep = isGuideTourActive && safeTourIdx < tourSteps.length
+    ? tourSteps[safeTourIdx]
     : null;
 
   const extraKg =
@@ -78,19 +87,19 @@ export function CommanderHudBanner() {
       ? isEs
         ? `Cadete ${cadetName}: masa o cofia rebasada (${starInfo.effectiveMassKg.toFixed(1)} kg). Aligera tanques o escala el cohete.`
         : `Cadet ${cadetName}: mass or fairing exceeded (${starInfo.effectiveMassKg.toFixed(1)} kg). Trim propellant or upgrade rocket.`
-      : `ROSTOVA // ALARM MASS: ${starInfo.effectiveMassKg.toFixed(1)}/${metrics.launchCapacity_kg} KG · VOL ${metrics.volume.used_U}/${metrics.volume.maxFairing_U}U.`;
+      : `VEGA // ALARMA MASA: ${starInfo.effectiveMassKg.toFixed(1)}/${metrics.launchCapacity_kg} KG · VOL ${metrics.volume.used_U}/${metrics.volume.maxFairing_U}U.`;
   } else if (powerDeficit) {
     vegaText = isCadet
       ? isEs
         ? `Cadete ${cadetName}: como en el Ícaro-1, la energía cae en el eclipse. Despliega alas solares mayores o usa RTG.`
         : `Cadet ${cadetName}: like Icarus-1, power drops in eclipse. Deploy larger solar wings or RTG.`
-      : `ROSTOVA // ALARM EPS: ${metrics.power.generatedAtDestination_W.toFixed(0)}W < ${metrics.power.eclipseRequired_W.toFixed(0)}W ECLIPSE.`;
+      : `VEGA // ALARMA EPS: ${metrics.power.generatedAtDestination_W.toFixed(0)}W < ${metrics.power.eclipseRequired_W.toFixed(0)}W ECLIPSE.`;
   } else if (rfRed) {
     vegaText = isCadet
       ? isEs
         ? `Cadete ${cadetName}: señal débil hacia Tierra. Cambia a Banda X/Ka o antena DSN.`
         : `Cadet ${cadetName}: weak RF link to Earth. Upgrade to X/Ka dish or DSN ground antenna.`
-      : `ROSTOVA // ALARM RF LINK: ${metrics.telecom.linkMargin_dB.toFixed(1)} DB < REQ.`;
+      : `VEGA // ALARMA ENLACE RF: ${metrics.telecom.linkMargin_dB.toFixed(1)} DB < REQ.`;
   } else if (activeRandomEvent !== 'NONE') {
     vegaText =
       activeRandomEvent === 'BUDGET_CUT'
@@ -131,9 +140,10 @@ export function CommanderHudBanner() {
           ? activeRandomEvent
           : 'NORMAL';
 
-  const currentSpeechKey = `${phase}|${level1TutorialStep}|${flightAlert}|${language}|${isCadet ? 'CADET' : 'JPL'}`;
+  // Primary Commander Vega Voice used for ALL instructions
+  const currentSpeechKey = `${phase}|${phaseTutorialStep}|${flightAlert}|${language}|VEGA_PRIMARY`;
 
-  // Speak Commander Vega / Director Rostova instruction when cutscene closes or tutorial step advances
+  // Speak Commander Vega instruction when step changes or cutscene closes
   useEffect(() => {
     if (activeCinematicId || !soundEnabled) {
       stopCharacterVoice();
@@ -145,10 +155,9 @@ export function CommanderHudBanner() {
     }
     lastSpokenKeyRef.current = currentSpeechKey;
 
-    const speaker = isCadet ? 'VEGA' : 'ROSTOVA';
     const timer = window.setTimeout(() => {
       setIsSpeaking(true);
-      speakCharacterLine(vegaText, language, speaker, soundEnabled, () => {
+      speakCharacterLine(vegaText, language, 'VEGA', soundEnabled, () => {
         setIsSpeaking(false);
       });
     }, 140);
@@ -157,7 +166,7 @@ export function CommanderHudBanner() {
       window.clearTimeout(timer);
       setIsSpeaking(false);
     };
-  }, [activeCinematicId, currentSpeechKey, isCadet, language, soundEnabled, vegaText]);
+  }, [activeCinematicId, currentSpeechKey, language, soundEnabled, vegaText]);
 
   const chapterBadge =
     storyChapter === 'FREE_SANDBOX'
@@ -210,9 +219,7 @@ export function CommanderHudBanner() {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-1.5 font-mono text-[9.5px] tracking-[0.14em] uppercase">
             <span className="text-[#5FF3FF]">
-              {isCadet
-                ? isEs ? 'CMDR VEGA · EN VIVO' : 'CMDR VEGA · LIVE'
-                : isEs ? 'ROSTOVA & VEGA · JPL' : 'ROSTOVA & VEGA · JPL'}
+              {isEs ? 'CMDR FRANK VEGA · EN VIVO' : 'CMDR FRANK VEGA · LIVE'}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -222,7 +229,7 @@ export function CommanderHudBanner() {
                   speakCharacterLine(
                     vegaText,
                     language,
-                    isCadet ? 'VEGA' : 'ROSTOVA',
+                    'VEGA',
                     true,
                     () => setIsSpeaking(false),
                   );
@@ -258,64 +265,93 @@ export function CommanderHudBanner() {
         </div>
       </div>
 
-      {/* Level 01 Interactive Guided Tour (Detects when the player moves controls) */}
+      {/* Interactive Guided Tour Card across ALL Modules */}
       {activeTourStep && (
-        <div className="border-2 border-[#FFC15E] bg-[#FFC15E]/10 p-2.5 shadow-[0_0_22px_rgba(255,193,94,0.18)]">
-          <div className="flex items-center justify-between gap-2 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase">
-            <span>{activeTourStep.badge[language]}</span>
-            <button
-              type="button"
-              onClick={() => setLevel1TutorialStep(5)}
-              className="text-[8.5px] text-slate-400 underline hover:text-white"
-            >
-              {isEs ? 'Saltar tour' : 'Skip tour'}
-            </button>
+        <div className="border-2 border-[#5FF3FF] bg-[#5FF3FF]/10 p-3 shadow-[0_0_24px_rgba(95,243,255,0.22)]">
+          <div className="flex items-center justify-between gap-2 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[#5FF3FF] animate-pulse" />
+              <span>{activeTourStep.badge[language]}</span>
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[8.5px] text-[#FFC15E]">
+                {isEs
+                  ? `PASO ${safeTourIdx + 1} DE ${tourSteps.length}`
+                  : `STEP ${safeTourIdx + 1} OF ${tourSteps.length}`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setGuideTourActive(!isGuideTourActive)}
+                className="text-[8.5px] text-slate-400 underline hover:text-white"
+              >
+                {isEs ? 'Ocultar guía' : 'Hide guide'}
+              </button>
+            </div>
           </div>
-          <p className="mt-1 text-[11px] font-medium leading-snug text-white">
+
+          <p className="mt-1 text-[11.5px] font-semibold leading-snug text-white">
             {activeTourStep.title[language]}
           </p>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            {level1TutorialStep === 0 ? (
+
+          <p className="mt-1.5 text-[11px] leading-relaxed text-slate-200">
+            {activeTourStep.instruction[language]
+              .replace('{cadet}', cadetName)
+              .replace('{callsign}', activeCallsign)}
+          </p>
+
+          <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-[#5FF3FF]/20">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={safeTourIdx === 0}
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  prevPhaseTutorialStep();
+                }}
+                className={`inline-flex items-center gap-1 border px-2.5 py-1 font-mono text-[9px] uppercase transition ${
+                  safeTourIdx === 0
+                    ? 'cursor-not-allowed border-slate-800 bg-[#04080F]/40 text-slate-600'
+                    : 'border-slate-700 bg-[#08111E] text-slate-300 hover:border-[#5FF3FF]/60 hover:text-white'
+                }`}
+              >
+                <ChevronLeft className="h-3 w-3" />
+                <span>{isEs ? 'Anterior' : 'Previous'}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
-                  playHoloTone('STEP', soundEnabled);
-                  setLevel1TutorialStep(1);
+                  const isLast = safeTourIdx === tourSteps.length - 1;
+                  playHoloTone(isLast ? 'STAR' : 'STEP', soundEnabled);
+                  if (!isLast) {
+                    nextPhaseTutorialStep(tourSteps.length);
+                  } else {
+                    setGuideTourActive(false);
+                  }
                 }}
-                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[9.5px] font-bold tracking-[0.16em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+                className="inline-flex items-center gap-1 border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1 font-mono text-[9px] font-bold text-[#5FF3FF] uppercase shadow-[0_0_12px_rgba(95,243,255,0.25)] hover:bg-[#5FF3FF]/30 transition"
               >
-                {isEs
-                  ? 'ENTENDIDO · CONTINUAR AL CHASIS →'
-                  : 'GOT IT · CONTINUE TO CHASSIS →'}
-              </button>
-            ) : level1TutorialStep < 4 ? (
-              <>
-                <span className="inline-flex items-center gap-1 font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
-                  <Zap className="h-3 w-3 text-[#FFC15E]" />
-                  <span>
-                    {isEs
-                      ? 'SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
-                      : 'SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setLevel1TutorialStep((level1TutorialStep + 1) as 2 | 3 | 4)}
-                  className="shrink-0 border border-[#5FF3FF]/40 px-2 py-0.5 font-mono text-[8.5px] text-slate-300 hover:text-white"
-                >
-                  {isEs ? 'Siguiente →' : 'Next →'}
-                </button>
-              </>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#5FF3FF]" />
                 <span>
-                  {isEs
-                    ? '¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
-                    : 'TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+                  {safeTourIdx === tourSteps.length - 1
+                    ? isEs ? '✓ Listo' : '✓ Done'
+                    : isEs ? 'Siguiente →' : 'Next →'}
                 </span>
-              </span>
-            )}
+                {safeTourIdx < tourSteps.length - 1 && <ChevronRight className="h-3 w-3" />}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsSpeaking(true);
+                speakCharacterLine(vegaText, language, 'VEGA', true, () => setIsSpeaking(false));
+              }}
+              title={isEs ? 'Repetir voz del Comandante' : 'Replay Commander voice'}
+              className="inline-flex items-center gap-1 border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-2 py-1 font-mono text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/20 transition"
+            >
+              <Volume2 className="h-3 w-3" />
+              <span>{isEs ? 'VOZ' : 'REPLAY'}</span>
+            </button>
           </div>
         </div>
       )}

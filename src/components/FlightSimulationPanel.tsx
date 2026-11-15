@@ -30,6 +30,8 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     openCinematic,
     simIsPlaying,
     simSpeed,
+    phaseTutorialStep,
+    setPhaseTutorialStep,
   } = useMissionStore();
 
   const [crisisTimer, setCrisisTimer] = useState(15);
@@ -101,6 +103,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     });
     repairHull(20);
     addXP(100);
+    if (phaseTutorialStep <= 2) setPhaseTutorialStep(3);
     playHoloTone('STAR', soundEnabled);
     appendDecisionLog({
       phase: 'SIMULATION',
@@ -356,6 +359,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
                       type="button"
                       onClick={() => {
                         resolveCrisis(dilemma.id, opt.id);
+                        if (phaseTutorialStep <= 2) setPhaseTutorialStep(3);
                         if (opt.isOptimal) {
                           repairHull(10);
                           addXP(50);

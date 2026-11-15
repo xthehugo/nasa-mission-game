@@ -20,9 +20,11 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     orbitAltitudeKm,
     orbitInclinationDeg,
     soundEnabled,
+    phaseTutorialStep,
     setOrbitParams,
     setDestination,
     setGroundStation,
+    setPhaseTutorialStep,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -62,7 +64,10 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             max={maxAlt}
             step={stepAlt}
             value={clampedAlt}
-            onChange={(e) => setOrbitParams(Number(e.target.value), orbitInclinationDeg)}
+            onChange={(e) => {
+              setOrbitParams(Number(e.target.value), orbitInclinationDeg);
+              if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
+            }}
             className="mt-2 w-full accent-[#5FF3FF]"
           />
           <div className="mt-1 flex justify-between font-mono text-[9px] text-slate-500">
@@ -87,6 +92,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 type="button"
                 onClick={() => {
                   setOrbitParams(preset.km, orbitInclinationDeg);
+                  if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className="border border-[#5FF3FF]/25 py-1 font-mono text-[9px] text-slate-300 hover:border-[#5FF3FF] hover:text-white"
@@ -110,7 +116,10 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             max={98}
             step={0.5}
             value={orbitInclinationDeg}
-            onChange={(e) => setOrbitParams(clampedAlt, Number(e.target.value))}
+            onChange={(e) => {
+              setOrbitParams(clampedAlt, Number(e.target.value));
+              if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
+            }}
             className="mt-2 w-full accent-[#FFC15E]"
           />
           <div className="mt-2 grid grid-cols-3 gap-1.5">
@@ -120,6 +129,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 type="button"
                 onClick={() => {
                   setOrbitParams(clampedAlt, p.deg);
+                  if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className="border border-[#5FF3FF]/25 py-1 font-mono text-[9px] text-slate-300 hover:border-[#5FF3FF] hover:text-white"
@@ -160,6 +170,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 type="button"
                 onClick={() => {
                   setDestination(dest.id);
+                  if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className={`w-full border p-2.5 text-left transition ${
@@ -204,6 +215,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
               type="button"
               onClick={() => {
                 setGroundStation(gs.id);
+                if (phaseTutorialStep <= 2) setPhaseTutorialStep(3);
                 playHoloTone('STEP', soundEnabled);
               }}
               className={`border p-2 text-left transition ${

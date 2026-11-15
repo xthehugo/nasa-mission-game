@@ -41,9 +41,11 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     selection,
     concurrentConflicts,
     soundEnabled,
+    phaseTutorialStep,
     setActiveSubsystemTab,
     togglePayload,
     setSubsystem,
+    setPhaseTutorialStep,
     appendDecisionLog,
   } = useMissionStore();
 
@@ -87,6 +89,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 onClick={() => {
                   setHoveredOpt(null);
                   setActiveSubsystemTab(tab.id);
+                  if (phaseTutorialStep <= 0) setPhaseTutorialStep(1);
                   playHoloTone('STEP', soundEnabled);
                 }}
                 className={`group flex w-full flex-col border-l-2 px-3 py-2 text-left font-mono text-[11px] transition ${
@@ -218,6 +221,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 onClick={() => {
                   if (opt.category === 'PAYLOAD') togglePayload(opt.id);
                   else setSubsystem(opt.category, opt.id);
+                  if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                   playHoloTone('STEP', soundEnabled);
                   appendDecisionLog({
                     phase: 'CML_3',
@@ -250,6 +254,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                         e.stopPropagation();
                         if (opt.category === 'PAYLOAD') togglePayload(opt.id);
                         else setSubsystem(opt.category, opt.id);
+                        if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
                         playHoloTone('STAR', soundEnabled);
                         appendDecisionLog({
                           phase: 'CML_3',
