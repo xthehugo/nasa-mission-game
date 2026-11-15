@@ -1,3 +1,4 @@
+export { CadIconBadge } from './CadIconBadge';
 export { CampaignMapModal } from './CampaignMapModal';
 export { CommanderHudBanner } from './CommanderHudBanner';
 export { CommanderOnboardingModal } from './CommanderOnboardingModal';

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Check, X } from 'lucide-react';
 import { useMissionStore, type RobotSpotlightZone } from '../store';
 import type { CMLPhase } from '../types/mission';
 import { COMMANDER_PHASE_BEATS } from './narrativeConfig';
@@ -253,8 +254,8 @@ const DIRECT_ZONE_EXPLANATIONS: Record<
   COMMANDER_HUD: {
     title: { en: 'Mission Control Transmission', es: 'Transmisión del Comandante' },
     body: {
-      en: 'Live radio channel from Commander Vega and Director Rostova. Use "🔊 VOICE" to hear the audio again or "🎬 CUTSCENE" to replay the animation.',
-      es: 'Canal de radio en vivo del Comandante Vega y la Directora Rostova. Puedes pulsar "🔊 VOZ" para volver a escuchar el audio o "🎬 CINEMÁTICA" para ver la escena.',
+      en: 'Live radio channel from Commander Vega and Director Rostova. Use [VOICE] to hear the audio again or [CUTSCENE] to replay the animation.',
+      es: 'Canal de radio en vivo del Comandante Vega y la Directora Rostova. Puedes pulsar [VOZ] para volver a escuchar el audio o [CINEMÁTICA] para ver la escena.',
     },
   },
   LEFT_PANEL: {
@@ -503,10 +504,11 @@ export function AstraFloatingCompanion() {
               setIsOpen(false);
               setRobotHoverZone(null);
             }}
-            className="font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
+            className="inline-flex items-center gap-1 font-mono text-[10px] text-slate-400 transition hover:text-[#5FF3FF]"
             title={isEs ? 'Enviar a la esquina' : 'Minimize to corner'}
           >
-            {isEs ? '[Esquina ✕]' : '[Corner ✕]'}
+            <X className="h-3 w-3" />
+            <span>{isEs ? 'ESQUINA' : 'CORNER'}</span>
           </button>
         </div>
 
@@ -558,13 +560,16 @@ export function AstraFloatingCompanion() {
             }}
             className="border border-[#5FF3FF] bg-[#061826] py-2 text-center text-sm font-medium text-[#5FF3FF] shadow-[0_0_16px_rgba(95,243,255,0.2)] transition hover:bg-[#5FF3FF]/20"
           >
-            {!customZoneOverride && safeStepIdx === steps.length - 1
-              ? isEs
-                ? 'Listo ✓'
-                : 'Done ✓'
-              : isEs
-                ? 'Siguiente'
-                : 'Next'}
+            {!customZoneOverride && safeStepIdx === steps.length - 1 ? (
+              <span className="inline-flex items-center justify-center gap-1">
+                <Check className="h-3.5 w-3.5" />
+                <span>{isEs ? 'Listo' : 'Done'}</span>
+              </span>
+            ) : isEs ? (
+              'Siguiente'
+            ) : (
+              'Next'
+            )}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Languages, Volume2, VolumeX, X } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   playHoloTone,
@@ -555,9 +555,10 @@ export function StoryCinematicModal() {
             <button
               type="button"
               onClick={() => setLanguage(isEs ? 'en' : 'es')}
-              className="border border-[#5FF3FF]/40 bg-[#06101f] px-3 py-1.5 text-[#5FF3FF] uppercase hover:border-[#5FF3FF]"
+              className="inline-flex items-center gap-1.5 border border-[#5FF3FF]/40 bg-[#06101f] px-3 py-1.5 text-[#5FF3FF] uppercase hover:border-[#5FF3FF]"
             >
-              {isEs ? '🌐 IDIOMA: ES' : '🌐 LANG: EN'}
+              <Languages className="h-3.5 w-3.5 text-[#5FF3FF]" />
+              <span>{isEs ? 'IDIOMA: ES' : 'LANG: EN'}</span>
             </button>
 
             <button
@@ -575,9 +576,10 @@ export function StoryCinematicModal() {
                 stopCharacterVoice();
                 closeCinematic();
               }}
-              className="border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-slate-300 uppercase hover:border-[#5FF3FF] hover:text-white"
+              className="inline-flex items-center gap-1.5 border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-slate-300 uppercase hover:border-[#5FF3FF] hover:text-white"
             >
-              {isEs ? 'SALTAR CINEMÁTICA ✕' : 'SKIP CUTSCENE ✕'}
+              <X className="h-3.5 w-3.5 text-slate-400" />
+              <span>{isEs ? 'SALTAR CINEMÁTICA' : 'SKIP CUTSCENE'}</span>
             </button>
           </div>
         </div>
@@ -610,9 +612,10 @@ export function StoryCinematicModal() {
                   onClick={() =>
                     speakCharacterLine(fullDialogue, language, currentSlide.speaker, true)
                   }
-                  className="font-mono text-[9.5px] text-[#5FF3FF] underline hover:text-white"
+                  className="inline-flex items-center gap-1 font-mono text-[9.5px] text-[#5FF3FF] underline hover:text-white"
                 >
-                  {isEs ? '🔊 Escuchar voz' : '🔊 Replay voice'}
+                  <Volume2 className="h-3 w-3" />
+                  <span>{isEs ? 'Escuchar voz' : 'Replay voice'}</span>
                 </button>
                 <span className="font-mono text-[10px] text-slate-400">
                   {safeIdx + 1} / {slides.length}

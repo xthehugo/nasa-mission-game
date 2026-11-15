@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { CheckCircle2, Film, Volume2, Zap } from 'lucide-react';
 import { useMissionStore } from '../store';
 import {
   computeLevelStars,
@@ -190,9 +191,10 @@ export function CommanderHudBanner() {
                     true,
                   );
                 }}
-                className="border border-[#5FF3FF]/50 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20"
+                className="inline-flex items-center gap-1 border border-[#5FF3FF]/50 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20"
               >
-                {isEs ? '🔊 VOZ' : '🔊 VOICE'}
+                <Volume2 className="h-3 w-3" />
+                <span>{isEs ? 'VOZ' : 'VOICE'}</span>
               </button>
               <button
                 type="button"
@@ -202,9 +204,10 @@ export function CommanderHudBanner() {
                     isCadet ? beat.defaultCinematicId.cadet : beat.defaultCinematicId.jpl,
                   );
                 }}
-                className="border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
+                className="inline-flex items-center gap-1 border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
               >
-                {isEs ? '🎬 CINEMÁTICA' : '🎬 CUTSCENE'}
+                <Film className="h-3 w-3" />
+                <span>{isEs ? 'CINEMÁTICA' : 'CUTSCENE'}</span>
               </button>
             </div>
           </div>
@@ -247,10 +250,13 @@ export function CommanderHudBanner() {
               </button>
             ) : level1TutorialStep < 4 ? (
               <>
-                <span className="font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
-                  {isEs
-                    ? '⚡ SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
-                    : '⚡ SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
+                <span className="inline-flex items-center gap-1 font-mono text-[8.5px] tracking-[0.12em] text-[#5FF3FF] uppercase animate-pulse">
+                  <Zap className="h-3 w-3 text-[#FFC15E]" />
+                  <span>
+                    {isEs
+                      ? 'SENSOR ACTIVO: DETECTARÁ TU CLIC EN EL PANEL'
+                      : 'SENSOR ACTIVE: DETECTS YOUR CLICK ON THE PANEL'}
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -261,10 +267,13 @@ export function CommanderHudBanner() {
                 </button>
               </>
             ) : (
-              <span className="font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
-                {isEs
-                  ? '✓ ¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
-                  : '✓ TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#5FF3FF]" />
+                <span>
+                  {isEs
+                    ? '¡ENTRENAMIENTO COMPLETADO! PULSA SIGUIENTE NIVEL 02 EN EL CENTRO'
+                    : 'TRAINING COMPLETE! CLICK NEXT LEVEL 02 IN THE CENTER'}
+                </span>
               </span>
             )}
           </div>

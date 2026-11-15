@@ -1,4 +1,5 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import { CAMPAIGN_CONTRACTS, getPlayerRank } from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone } from './holoAudio';
@@ -75,9 +76,10 @@ export const CampaignMapModal: React.FC = () => {
               setCampaignModalOpen(false);
             }}
             aria-label="Cerrar modal"
-            className="px-3 py-1 text-sm font-bold border border-[#5FF3FF]/40 rounded hover:bg-[#5FF3FF]/20 text-[#5FF3FF] transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1 text-sm font-bold border border-[#5FF3FF]/40 rounded hover:bg-[#5FF3FF]/20 text-[#5FF3FF] transition-colors"
           >
-            ✕ ESC
+            <X className="h-3.5 w-3.5" />
+            <span>ESC</span>
           </button>
         </div>
 

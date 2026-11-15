@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowDown, ArrowLeft } from 'lucide-react';
 import {
   AstraFloatingCompanion,
   CampaignMapModal,
@@ -145,10 +146,13 @@ export function App() {
           >
             {phase === 'CML_1' && level1TutorialStep === 0 && (
               <div className="mb-2 space-y-1.5 border border-[#FFC15E] bg-[#FFC15E]/15 p-2">
-                <div className="font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-                  {isEs
-                    ? '👈 PASO 1/5: ESTOS SON LOS 5 SIGNOS VITALES DE TU NAVE'
-                    : '👈 STEP 1/5: THESE ARE THE 5 VITAL SIGNS OF YOUR SPACECRAFT'}
+                <div className="font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+                  <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+                  <span>
+                    {isEs
+                      ? 'PASO 1/5: ESTOS SON LOS 5 SIGNOS VITALES DE TU NAVE'
+                      : 'STEP 1/5: THESE ARE THE 5 VITAL SIGNS OF YOUR SPACECRAFT'}
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -223,10 +227,13 @@ export function App() {
           {nextPhase && (
             <div className="mt-4 flex flex-col items-center gap-1.5">
               {phase === 'CML_1' && level1TutorialStep === 4 && (
-                <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase animate-pulse">
-                  {isEs
-                    ? '👈 PASO 5/5: ¡PLANO COMPLETADO! PULSA AQUÍ PARA IR AL NIVEL 02'
-                    : '👈 STEP 5/5: BLUEPRINT COMPLETE! CLICK HERE FOR LEVEL 02'}
+                <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+                  <ArrowDown className="h-3 w-3 text-[#FFC15E]" />
+                  <span>
+                    {isEs
+                      ? 'PASO 5/5: ¡PLANO COMPLETADO! PULSA AQUÍ PARA IR AL NIVEL 02'
+                      : 'STEP 5/5: BLUEPRINT COMPLETE! CLICK HERE FOR LEVEL 02'}
+                  </span>
                 </div>
               )}
               <button

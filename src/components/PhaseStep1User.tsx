@@ -1,3 +1,4 @@
+import { ArrowLeft, Check } from 'lucide-react';
 import {
   findObjectiveById,
   findSubsystemById,
@@ -63,10 +64,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           }`}
         >
           {phase === 'CML_1' && level1TutorialStep === 1 && (
-            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-              {isEs
-                ? '👈 PASO 2/5: HAZ CLIC EN UN CHASIS PARA PROBAR EL PLANO'
-                : '👈 STEP 2/5: CLICK ANY CHASSIS TO TEST THE BLUEPRINT'}
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+              <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+              <span>
+                {isEs
+                  ? 'PASO 2/5: HAZ CLIC EN UN CHASIS PARA PROBAR EL PLANO'
+                  : 'STEP 2/5: CLICK ANY CHASSIS TO TEST THE BLUEPRINT'}
+              </span>
             </div>
           )}
           <div className="mb-2 flex items-center justify-between gap-2 font-mono text-[10px] tracking-[0.14em] uppercase">
@@ -111,10 +115,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           }`}
         >
           {phase === 'CML_1' && level1TutorialStep === 2 && (
-            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-              {isEs
-                ? '👈 PASO 3/5: HAZ CLIC EN UN SISTEMA DE ENERGÍA SOLAR / EPS'
-                : '👈 STEP 3/5: CLICK ANY SOLAR / EPS POWER SYSTEM'}
+            <div className="mb-2 border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+              <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+              <span>
+                {isEs
+                  ? 'PASO 3/5: HAZ CLIC EN UN SISTEMA DE ENERGÍA SOLAR / EPS'
+                  : 'STEP 3/5: CLICK ANY SOLAR / EPS POWER SYSTEM'}
+              </span>
             </div>
           )}
           <div className="mb-2 font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
@@ -175,10 +182,13 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       }`}
     >
       {phase === 'CML_1' && level1TutorialStep === 3 && (
-        <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase animate-pulse">
-          {isEs
-            ? '👈 PASO 4/5: HAZ CLIC EN UNA MISIÓN CIENTÍFICA PARA TU NAVE'
-            : '👈 STEP 4/5: CLICK A SCIENCE MISSION FOR YOUR SPACECRAFT'}
+        <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-2 py-1 font-mono text-[9.5px] font-bold tracking-[0.12em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
+          <ArrowLeft className="h-3 w-3 text-[#FFC15E]" />
+          <span>
+            {isEs
+              ? 'PASO 4/5: HAZ CLIC EN UNA MISIÓN CIENTÍFICA PARA TU NAVE'
+              : 'STEP 4/5: CLICK A SCIENCE MISSION FOR YOUR SPACECRAFT'}
+          </span>
         </div>
       )}
       <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
@@ -282,14 +292,18 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
           {reqPayloads.map((rp) => (
             <span
               key={rp.id}
-              className={`border px-1.5 py-0.5 ${
+              className={`inline-flex items-center gap-1 border px-1.5 py-0.5 ${
                 rp.equipped
                   ? 'border-[#5FF3FF]/45 text-[#5FF3FF]'
                   : 'border-[#FFC15E]/50 text-[#FFC15E]'
               }`}
             >
-              {isEs ? 'INSTRUMENTO:' : 'PAYLOAD:'} {rp.name}{' '}
-              {rp.equipped ? '✓' : isEs ? '(EQUIPAR EN CML 3)' : '(EQUIP IN CML 3)'}
+              <span>{isEs ? 'INSTRUMENTO:' : 'PAYLOAD:'} {rp.name}</span>
+              {rp.equipped ? (
+                <Check className="h-3 w-3 text-[#5FF3FF]" />
+              ) : (
+                <span className="text-[8px] opacity-80">{isEs ? '(EN CML 3)' : '(IN CML 3)'}</span>
+              )}
             </span>
           ))}
         </div>
