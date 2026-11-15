@@ -1,6 +1,13 @@
-import { useMissionStore } from '../store';
+import { useMissionStore, type RandomEventType } from '../store';
 import type { CMLPhase } from '../types/mission';
 import { computeLevelStars, computeTankExtraMassKg, playHoloTone } from './holoAudio';
+
+const EVENT_LABELS: Record<RandomEventType, { en: string; es: string }> = {
+  NONE: { en: 'NONE', es: 'NINGUNO' },
+  BUDGET_CUT: { en: 'BUDGET -15%', es: 'RECORTE -15%' },
+  SOLAR_STORM: { en: 'SOLAR -10%', es: 'TORMENTA -10%' },
+  MASS_PENALTY: { en: 'MASS +8%', es: 'MASA +8%' },
+};
 
 const LEVEL_META: Record<
   CMLPhase,
@@ -96,7 +103,7 @@ export function TopBar() {
                 : 'border-[#FFC15E] bg-[#FFC15E]/15 text-[#FFC15E]'
             }`}
           >
-            {isEs ? 'EVENTO SIM' : 'SIM EVENT'}: {activeRandomEvent}
+            {isEs ? 'EVENTO SIM' : 'SIM EVENT'}: {EVENT_LABELS[activeRandomEvent][language]}
           </button>
 
           <div className="inline-flex border border-[#5FF3FF]/30 bg-[#04080F]" role="group" aria-label="Experience Mode">
@@ -153,7 +160,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={() => setTelemetryOpen(true)}
+            onClick={() => {
+              setTelemetryOpen(true);
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2.5 py-1 text-slate-300 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
           >
             {isEs ? 'GRÁFICAS SWaP-C' : 'SWaP-C CHARTS'}
@@ -161,7 +171,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={toggleReducedMotion}
+            onClick={() => {
+              toggleReducedMotion();
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-400 hover:text-white"
           >
             FX:{reducedMotion ? 'OFF' : 'ON'}
@@ -169,7 +182,11 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={toggleSound}
+            onClick={() => {
+              const nextEnabled = !soundEnabled;
+              toggleSound();
+              playHoloTone('STEP', nextEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-400 hover:text-white"
           >
             SFX:{soundEnabled ? 'ON' : 'OFF'}
@@ -177,7 +194,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={() => setLanguage(isEs ? 'en' : 'es')}
+            onClick={() => {
+              setLanguage(isEs ? 'en' : 'es');
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2 py-1 text-[#5FF3FF]"
           >
             {language.toUpperCase()}
@@ -185,7 +205,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={reopenOnboarding}
+            onClick={() => {
+              reopenOnboarding();
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-300 hover:border-[#5FF3FF]"
           >
             {isEs ? 'PERFIL' : 'PROFILE'}
@@ -193,7 +216,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={() => setPitchModalOpen(true)}
+            onClick={() => {
+              setPitchModalOpen(true);
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#5FF3FF]/25 px-2 py-1 text-slate-300 hover:border-[#5FF3FF]"
           >
             PITCH
@@ -201,7 +227,10 @@ export function TopBar() {
 
           <button
             type="button"
-            onClick={resetAllMission}
+            onClick={() => {
+              resetAllMission();
+              playHoloTone('STEP', soundEnabled);
+            }}
             className="border border-[#FF4D6D]/40 px-2 py-1 text-[#FF4D6D] hover:bg-[#FF4D6D]/10"
           >
             RESET

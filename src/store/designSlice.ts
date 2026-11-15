@@ -5,8 +5,10 @@ import {
   findDestinationById,
   findObjectiveById,
   PRESET_MISSION_SELECTIONS,
+  runMissionSimulation,
 } from '../engine';
 import type {
+  CMLPhase,
   MissionSelection,
   PhysicsMetrics,
   SimulationResult,
@@ -77,15 +79,22 @@ export function resolvePresetSelection(presetKey: string): MissionSelection {
 export function deriveOrbitalDefaults(
   destinationId: string,
   volumeUsed_U: number,
+  objectiveId?: string,
 ): { altitudeKm: number; inclinationDeg: number; formFactor: CubeSatFormFactor } {
   const orbitMap: Record<string, { altitudeKm: number; inclinationDeg: number }> = {
     'dest-leo': { altitudeKm: 550, inclinationDeg: 97.6 },
     'dest-geo': { altitudeKm: 35786, inclinationDeg: 0.0 },
+    'dest-l2': { altitudeKm: 1500, inclinationDeg: 28.5 },
     'dest-moon': { altitudeKm: 100, inclinationDeg: 90.0 },
     'dest-mars': { altitudeKm: 400, inclinationDeg: 93.0 },
     'dest-jupiter': { altitudeKm: 1800, inclinationDeg: 45.0 },
   };
-  const orbit = orbitMap[destinationId] ?? orbitMap['dest-leo'];
+  let orbit = orbitMap[destinationId] ?? orbitMap['dest-leo'];
+  if (objectiveId === 'obj-sso-tracers') {
+    orbit = { altitudeKm: 590, inclinationDeg: 97.7 };
+  } else if (objectiveId === 'obj-earth-bionutrients') {
+    orbit = { altitudeKm: 400, inclinationDeg: 51.6 };
+  }
   const formFactor: CubeSatFormFactor =
     volumeUsed_U <= 1.5
       ? '1.5U'
@@ -103,6 +112,8 @@ export function deriveOrbitalDefaults(
 }
 
 type FullDesignDeps = DesignSlice & {
+  phase?: CMLPhase;
+  resolvedCrises?: Record<string, string>;
   testing: TestingCampaignState;
   preFlightVerdict: PreFlightVerdict;
   concurrentConflicts: ConcurrentConflict[];
@@ -137,7 +148,12 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
     const derived = deriveOrbitalDefaults(
       nextSelection.destinationId,
       nextMetrics.volume.used_U,
+      nextSelection.objectiveId,
     );
+    const nextSimulationResult =
+      get().phase === 'SIMULATION'
+        ? runMissionSimulation(nextSelection, nextMetrics, get().resolvedCrises ?? {})
+        : null;
 
     set({
       selection: nextSelection,
@@ -145,7 +161,7 @@ export const createDesignSlice: StateCreator<FullDesignDeps, [], [], DesignSlice
       scores: nextScores,
       concurrentConflicts: nextConflicts,
       preFlightVerdict: nextVerdict,
-      simulationResult: null,
+      simulationResult: nextSimulationResult,
       ...(syncOptions?.syncOrbit
         ? {
             orbitAltitudeKm: derived.altitudeKm,

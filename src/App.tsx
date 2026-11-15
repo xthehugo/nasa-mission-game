@@ -155,6 +155,7 @@ export function App() {
               {phase === 'SIMULATION' && (
                 <div className="min-h-[460px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
                   <MissionStage
+                    key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
                     destination={findDestinationById(selection.destinationId)}
                     volume={metrics.volume}
                     metrics={metrics}
