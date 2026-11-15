@@ -19,7 +19,6 @@ export { PointDesignStep } from './PointDesignStep';
 export { PostMissionCertificateModal } from './PostMissionCertificateModal';
 export { SubsystemHoverPreview } from './SubsystemHoverPreview';
 export { TelemetryModalDrawer } from './TelemetryModalDrawer';
-export { TelemetryRightPanel } from './TelemetryRightPanel';
 export { TopBar } from './TopBar';
 export { TradeSpacePanel } from './TradeSpacePanel';
 export { VVTestingCard } from './VVTestingCard';

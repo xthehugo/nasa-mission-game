@@ -852,6 +852,8 @@ export function HoloOrbitStage() {
             {isEs ? 'ANOMALÍA ν:' : 'TRUE ANOMALY ν:'}
           </span>
           <input
+            id="orbit-true-anomaly-range"
+            name="orbitTrueAnomalyDeg"
             type="range"
             min={0}
             max={359}

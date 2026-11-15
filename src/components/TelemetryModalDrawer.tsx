@@ -1,6 +1,12 @@
+import { lazy, Suspense } from 'react';
 import { X } from 'lucide-react';
 import { useMissionStore } from '../store';
-import { TelemetryRightPanel } from './TelemetryRightPanel';
+
+const LazyTelemetryRightPanel = lazy(() =>
+  import('./TelemetryRightPanel').then((m) => ({
+    default: m.TelemetryRightPanel,
+  })),
+);
 
 export function TelemetryModalDrawer() {
   const { language, isTelemetryOpen, setTelemetryOpen } = useMissionStore();
@@ -18,12 +24,21 @@ export function TelemetryModalDrawer() {
           <button
             type="button"
             onClick={() => setTelemetryOpen(false)}
+            aria-label={isEs ? 'Cerrar panel de telemetría' : 'Close telemetry panel'}
             className="border border-[#5FF3FF]/30 p-1 text-[#5FF3FF] hover:bg-[#5FF3FF]/10"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <TelemetryRightPanel />
+        <Suspense
+          fallback={
+            <div className="py-10 text-center font-mono text-[11px] tracking-[0.16em] text-[#5FF3FF] uppercase">
+              {isEs ? 'CARGANDO TELEMETRÍA SWaP-C...' : 'LOADING SWaP-C ANALYTICS...'}
+            </div>
+          }
+        >
+          <LazyTelemetryRightPanel />
+        </Suspense>
       </div>
     </div>
   );

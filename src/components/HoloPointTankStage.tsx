@@ -400,6 +400,8 @@ export function HoloPointTankStage() {
         <div className="flex flex-1 items-center gap-2">
           <span className="text-slate-400">{isEs ? 'ÁNGULO:' : 'YAW:'}</span>
           <input
+            id="holo-fairing-yaw-range"
+            name="holoFairingYawDeg"
             type="range"
             min={0}
             max={359}

@@ -992,6 +992,8 @@ export function HoloSpacecraftWireframe() {
 
         <div className="flex items-center gap-2">
           <input
+            id="holo-spacecraft-yaw-range"
+            name="holoSpacecraftYawDeg"
             type="range"
             min={0}
             max={359}
