@@ -1,4 +1,5 @@
 import type { Language, VolumeMetrics } from '../types/mission';
+import { getStressColor } from './subsystemStress';
 
 export type FailureMode =
   | 'NONE'
@@ -16,12 +17,6 @@ interface Props {
   failureMode?: FailureMode;
   failedActive?: boolean;
   fuelRemainingPct?: number;
-}
-
-function getStressColor(pct: number): string {
-  if (pct >= 100) return '#FF4D6D';
-  if (pct >= 65) return '#FFC15E';
-  return '#22c55e';
 }
 
 export default function SpacecraftBlueprint({

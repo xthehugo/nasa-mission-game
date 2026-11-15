@@ -7,6 +7,7 @@ import type { Language, OrbitalDestination, PhysicsMetrics, VolumeMetrics } from
 import OrbitalMapVisualizer from './OrbitalMapVisualizer';
 import SpacecraftBlueprint, { type FailureMode } from './SpacecraftBlueprint';
 import TelemetryStripCharts, { type TelemetrySample } from './TelemetryStripCharts';
+import SubsystemStressHeatmap from '../components/SubsystemStressHeatmap';
 
 interface Props {
   destination: OrbitalDestination | null;
@@ -19,7 +20,7 @@ interface Props {
 }
 
 type Stage = 'IDLE' | 'COUNTDOWN' | 'LAUNCH_ASCENT' | 'FAILURE' | 'CRUISE' | 'ORBIT_INSERTION';
-type EmbeddedView = 'SPLIT' | 'MAP' | 'BLUEPRINT' | 'CHARTS';
+type EmbeddedView = 'SPLIT' | 'MAP' | 'BLUEPRINT' | 'CHARTS' | 'HEATMAP';
 
 const COUNTDOWN_MS = 3000;
 const ASCENT_MS = 6000;
@@ -34,6 +35,7 @@ const T = {
     viewMap: 'ORBITAL MAP',
     viewAscent: 'FAIRING & STRESS',
     viewCharts: 'CHARTS',
+    viewHeatmap: 'STRESS HEATMAP',
     autoFix: '[FIX] AUTO-FIX & RELAUNCH',
     alt: 'Altitude',
     vel: 'Velocity',
@@ -90,6 +92,7 @@ const T = {
     viewMap: 'MAPA ORBITAL',
     viewAscent: 'COFIA Y TENSIÓN',
     viewCharts: 'GRÁFICOS',
+    viewHeatmap: 'MAPA ESTRÉS',
     autoFix: '[FIX] AUTO-REPARAR FALLO Y RELANZAR',
     alt: 'Altitud',
     vel: 'Velocidad',
@@ -445,8 +448,9 @@ export default function MissionStage({
         : 'none';
 
   const showChartsOnly = embedded && embeddedView === 'CHARTS';
-  const showMap = !showChartsOnly && (!embedded || embeddedView !== 'BLUEPRINT');
-  const showBlueprint = !showChartsOnly && (!embedded || embeddedView !== 'MAP');
+  const showHeatmapOnly = embedded && embeddedView === 'HEATMAP';
+  const showMap = !showChartsOnly && !showHeatmapOnly && (!embedded || embeddedView !== 'BLUEPRINT');
+  const showBlueprint = !showChartsOnly && !showHeatmapOnly && (!embedded || embeddedView !== 'MAP');
   const showDebris =
     stage === 'FAILURE' && (failureMode === 'FAIRING_COLLISION' || failureMode === 'MASS_BUCKLING');
 
@@ -577,6 +581,7 @@ export default function MissionStage({
                     ['MAP', t.viewMap],
                     ['BLUEPRINT', t.viewAscent],
                     ['CHARTS', t.viewCharts],
+                    ['HEATMAP', t.viewHeatmap],
                   ] as const
                 ).map(([viewKey, label]) => (
                   <button
@@ -617,7 +622,7 @@ export default function MissionStage({
           </span>
         </div>
 
-        {/* Vista principal: mapa + nave con mapa de tensiones OR graficos expandidos */}
+        {/* Vista principal: mapa + nave con mapa de tensiones OR graficos expandidos OR mapa de calor */}
         {showChartsOnly ? (
           <div className="flex flex-1 flex-col justify-center">
             <TelemetryStripCharts
@@ -629,6 +634,17 @@ export default function MissionStage({
               failRatio={failAt / Math.max(1, totalNominalMs)}
               lang={lang}
               expanded
+            />
+          </div>
+        ) : showHeatmapOnly ? (
+          <div className="flex flex-1 flex-col justify-center max-w-xl mx-auto w-full">
+            <SubsystemStressHeatmap
+              metrics={metrics}
+              volume={volume}
+              failureMode={failureMode}
+              tRatio={snap.tRatio}
+              failedActive={stage === 'FAILURE'}
+              lang={lang}
             />
           </div>
         ) : (

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { CAMPAIGN_CONTRACTS, findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import { computeLevelStars, playHoloTone } from './holoAudio';
+import SubsystemStressHeatmap from './SubsystemStressHeatmap';
+import type { FailureMode } from '../visuals/SpacecraftBlueprint';
 
 export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const {
@@ -121,6 +123,24 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
   };
 
   if (zone === 'LEFT') {
+    const fairingOverflow = metrics ? !metrics.volume.isCompliant : false;
+    const massOverload = Boolean(metrics && metrics.wetMass_kg > metrics.launchCapacity_kg);
+    const deltaVShortfall = Boolean(metrics && metrics.deltaV_available_ms < metrics.deltaV_required_ms);
+    const powerFailure = Boolean(metrics && metrics.power.status === 'RED');
+    const telecomFailure = Boolean(metrics && metrics.telecom.status === 'RED');
+
+    const failureMode: FailureMode = fairingOverflow
+      ? 'FAIRING_COLLISION'
+      : massOverload
+        ? 'MASS_BUCKLING'
+        : deltaVShortfall
+          ? 'DELTAV_DEPLETION'
+          : powerFailure
+            ? 'POWER_FREEZE'
+            : telecomFailure
+              ? 'TELECOM_TUMBLE'
+              : 'NONE';
+
     return (
       <div className="space-y-3 font-mono">
         {/* Hull Integrity Health Bar */}
@@ -154,6 +174,15 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
             />
           </div>
         </div>
+
+        {/* Poly Bridge Subsystem Stress Heatmap */}
+        <SubsystemStressHeatmap
+          metrics={metrics}
+          volume={metrics.volume}
+          failureMode={failureMode}
+          failedActive={hullIntegrity <= 0}
+          lang={language}
+        />
 
         {/* Final Grade & Stars */}
         <div className="border border-[#FFC15E]/50 p-3 text-center bg-[#0B1528]/80 rounded">
