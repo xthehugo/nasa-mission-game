@@ -144,7 +144,7 @@ export function App() {
 
   return (
     <div
-      className="flex min-h-screen flex-col justify-between bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25"
+      className="flex min-h-screen lg:h-screen lg:overflow-hidden flex-col justify-between bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25"
       style={{
         fontFamily: "'Space Grotesk', system-ui, sans-serif",
         backgroundImage:
@@ -153,20 +153,22 @@ export function App() {
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500&display=swap'); .font-mono { font-family: 'JetBrains Mono', monospace; }`}</style>
 
-      <TopBar />
+      <div className="shrink-0">
+        <TopBar />
+      </div>
 
-      {/* 3-Zone Holographic Stage (Center Hologram pinned with user as lateral selectors scroll) */}
-      <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 px-4 py-5 sm:px-6 lg:grid-cols-12 lg:items-stretch items-start">
-        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls (Sticky Pinned) */}
+      {/* 3-Zone Holographic Stage: Static pinned center hologram with independently scrolling lateral control wings */}
+      <main className="mx-auto grid w-full max-w-[1600px] flex-1 min-h-0 grid-cols-1 gap-4 lg:gap-6 px-4 py-3 sm:px-6 lg:grid-cols-12 lg:items-stretch lg:overflow-hidden">
+        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls (Scrolls independently) */}
         <section
           data-astra-zone="LEFT_PANEL"
-          className={`order-2 transition-all lg:order-1 lg:col-span-3 lg:self-stretch ${
+          className={`order-2 lg:order-1 lg:col-span-3 lg:h-full lg:overflow-y-auto pr-1.5 transition-all ${
             robotHoverZone === 'LEFT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
           }`}
         >
-          <div className="lg:sticky lg:top-[4.5rem] lg:self-start w-full space-y-4 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto pr-1">
+          <div className="w-full space-y-4">
             <div
               data-astra-zone="RESOURCES"
               className={`transition-all ${
@@ -211,17 +213,17 @@ export function App() {
           </div>
         </section>
 
-        {/* CENTER ZONE: Hero Hologram Stage (Sticky Pinned with user as lateral selectors scroll) */}
+        {/* CENTER ZONE: Hero Hologram Stage (Stays static and centered on screen as laterals scroll) */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 flex flex-col transition-all lg:order-2 lg:col-span-6 lg:self-stretch ${
+          className={`order-1 lg:order-2 lg:col-span-6 lg:h-full lg:overflow-y-auto flex flex-col justify-between py-1 px-1 transition-all ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
           }`}
         >
-          <div className="lg:sticky lg:top-[4.5rem] lg:self-start w-full flex flex-col items-center justify-start py-1 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto pr-1">
-            <div className="mb-2.5 w-full flex items-center justify-between border border-[#5FF3FF]/25 bg-[#04080F]/90 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF] backdrop-blur-md shadow-[0_0_15px_rgba(95,243,255,0.08)]">
+          <div className="w-full flex flex-col items-center justify-between h-full min-h-0 space-y-2">
+            <div className="w-full flex items-center justify-between border border-[#5FF3FF]/25 bg-[#04080F]/90 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-[#5FF3FF] backdrop-blur-md shadow-[0_0_15px_rgba(95,243,255,0.08)] shrink-0">
               <div className="flex items-center gap-2 truncate">
                 <span className="font-bold text-[#FFC15E] shrink-0">{beat.beatCode}</span>
                 <span className="text-slate-200 truncate">
@@ -234,38 +236,40 @@ export function App() {
               </div>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={phase}
-                initial={reducedMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={reducedMotion ? undefined : { opacity: 0 }}
-                transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
-                className="w-full"
-              >
-                {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
-                  <HoloSpacecraftWireframe />
-                )}
-                {phase === 'CML_2' && <HoloOrbitStage />}
-                {phase === 'CML_4' && <HoloPointTankStage />}
-                {phase === 'SIMULATION' && (
-                  <div className="min-h-[460px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
-                    <MissionStage
-                      key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
-                      destination={findDestinationById(selection.destinationId)}
-                      volume={metrics.volume}
-                      metrics={metrics}
-                      lang={language}
-                      onQuickFix={handleQuickFixFailure}
-                      embedded
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={phase}
+                  initial={reducedMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={reducedMotion ? undefined : { opacity: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
+                  className="w-full flex items-center justify-center"
+                >
+                  {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
+                    <HoloSpacecraftWireframe />
+                  )}
+                  {phase === 'CML_2' && <HoloOrbitStage />}
+                  {phase === 'CML_4' && <HoloPointTankStage />}
+                  {phase === 'SIMULATION' && (
+                    <div className="min-h-[440px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
+                      <MissionStage
+                        key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
+                        destination={findDestinationById(selection.destinationId)}
+                        volume={metrics.volume}
+                        metrics={metrics}
+                        lang={language}
+                        onQuickFix={handleQuickFixFailure}
+                        embedded
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
             {nextPhase && (
-              <div className="mt-3 flex flex-col items-center gap-1.5 w-full">
+              <div className="mt-2 flex flex-col items-center gap-1.5 w-full shrink-0">
                 {phase === 'CML_1' && level1TutorialStep === 4 && (
                   <div className="border border-[#FFC15E] bg-[#FFC15E]/15 px-3 py-1 font-mono text-[9.5px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase flex items-center gap-1.5 animate-pulse">
                     <ArrowDown className="h-3 w-3 text-[#FFC15E]" />
@@ -284,7 +288,7 @@ export function App() {
                     }
                     goToLevel(nextPhase);
                   }}
-                  className={`border px-6 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition ${
+                  className={`border px-6 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition cursor-pointer ${
                     phase === 'CML_1' && level1TutorialStep === 4
                       ? 'border-[#FFC15E] bg-[#FFC15E]/20 text-[#FFC15E] ring-2 ring-[#FFC15E] shadow-[0_0_28px_rgba(255,193,94,0.35)] animate-pulse'
                       : 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-[#5FF3FF] shadow-[0_0_20px_rgba(95,243,255,0.18)] hover:bg-[#5FF3FF]/20'
@@ -303,10 +307,10 @@ export function App() {
           </div>
         </section>
 
-        {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
+        {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions (Scrolls independently) */}
         <section
           data-astra-zone="RIGHT_PANEL"
-          className={`order-3 space-y-4 transition-all lg:col-span-3 ${
+          className={`order-3 lg:order-3 lg:col-span-3 lg:h-full lg:overflow-y-auto pr-1.5 space-y-4 transition-all ${
             robotHoverZone === 'RIGHT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
@@ -325,7 +329,7 @@ export function App() {
       {/* Bottom 6-Level Progressive Navigation Strip */}
       <footer
         data-astra-zone="FOOTER_LEVELS"
-        className={`border-t border-[#5FF3FF]/20 px-4 py-3 transition-all sm:px-6 ${
+        className={`shrink-0 border-t border-[#5FF3FF]/20 px-4 py-2.5 transition-all sm:px-6 ${
           robotHoverZone === 'FOOTER_LEVELS'
             ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
             : ''
