@@ -104,7 +104,6 @@ export function TopBar() {
               {playerRank.badge} ({playerXP} XP)
             </span>
           </div>
-          </div>
           <h1 className="mt-0.5 text-2xl font-light tracking-tight text-white sm:text-3xl">
             {meta.title[language]}
           </h1>
@@ -266,8 +265,6 @@ export function TopBar() {
             {language.toUpperCase()}
           </button>
 
-          <button
-            type="button"
           <button
             type="button"
             onClick={() => {
