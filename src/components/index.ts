@@ -31,7 +31,9 @@ export {
   RobotSvgIcon,
 } from './RobotAssistantGuide';
 export { StoryCinematicModal } from './StoryCinematicModal';
+export { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
 export { SubsystemHoverPreview } from './SubsystemHoverPreview';
+export { SubsystemInspectionModal } from './SubsystemInspectionModal';
 export { TelemetryModalDrawer } from './TelemetryModalDrawer';
 export { TopBar } from './TopBar';
 export { TradeSpacePanel } from './TradeSpacePanel';

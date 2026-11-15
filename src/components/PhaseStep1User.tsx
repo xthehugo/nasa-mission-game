@@ -1,4 +1,5 @@
-import { ArrowLeft, Check } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Check, Info } from 'lucide-react';
 import {
   findObjectiveById,
   findSubsystemById,
@@ -6,8 +7,10 @@ import {
   SCIENCE_OBJECTIVES,
 } from '../engine';
 import { useMissionStore, type CubeSatFormFactor } from '../store';
-import type { ScienceDiscipline } from '../types/mission';
+import type { ScienceDiscipline, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
+import { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
+import { SubsystemInspectionModal } from './SubsystemInspectionModal';
 
 const DISCIPLINES: Record<ScienceDiscipline, { en: string; es: string }> = {
   EARTH_SCIENCE: { en: 'EARTH / BIO', es: 'TIERRA / BIO' },
@@ -44,6 +47,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   } = useMissionStore();
 
   const isEs = language === 'es';
+  const [inspectingEps, setInspectingEps] = useState<SubsystemOption | null>(null);
   const epsOptions = getSubsystemsByCategory('EPS');
   const highlightChassis =
     (phase === 'CML_1' && level1TutorialStep === 1) || robotHoverZone === 'CHASSIS';
@@ -79,7 +83,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
               {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
             </span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {CHASSIS_OPTS.map((ch) => {
               const active = cubesatFormFactor === ch.id;
               return (
@@ -93,15 +97,25 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                     }
                     playHoloTone('STEP', soundEnabled);
                   }}
-                  className={`w-full border-l-2 px-3 py-2 text-left transition ${
+                  className={`w-full flex items-center gap-3 border-l-2 p-2 text-left transition ${
                     active
-                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_18px_rgba(95,243,255,0.14)]'
-                      : 'border-[#5FF3FF]/15 hover:border-[#5FF3FF]/50 hover:bg-[#5FF3FF]/5'
+                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 shadow-[0_0_18px_rgba(95,243,255,0.18)] text-white'
+                      : 'border-[#5FF3FF]/20 bg-[#04080F]/60 text-slate-300 hover:border-[#5FF3FF]/50 hover:bg-[#5FF3FF]/5'
                   }`}
                 >
-                  <div className="text-lg font-light tracking-tight text-white">{ch.id}</div>
-                  <div className="font-mono text-[9px] tracking-[0.16em] text-slate-400 uppercase">
-                    {ch.sub[language]}
+                  <SubsystemHoloGraphic id={ch.id} size="sm" isSelected={active} className="h-10 w-10 shrink-0" />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-tight text-white flex items-center gap-2">
+                      <span>{ch.id}</span>
+                      {active && (
+                        <span className="font-mono text-[8px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1 py-0.2 rounded border border-[#5FF3FF]/40">
+                          {isEs ? 'SELECCIONADO' : 'SELECTED'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-mono text-[9px] tracking-[0.16em] text-slate-400 uppercase mt-0.5">
+                      {ch.sub[language]}
+                    </div>
                   </div>
                 </button>
               );
@@ -134,36 +148,90 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
             {epsOptions.map((opt) => {
               const active = selection.epsId === opt.id;
               return (
-                <button
+                <div
                   key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    setSubsystem('EPS', opt.id);
-                    if (level1TutorialStep <= 2) {
-                      setLevel1TutorialStep(3);
-                    }
-                    playHoloTone('STEP', soundEnabled);
-                  }}
-                  className={`w-full border px-3 py-2 text-left transition ${
+                  className={`flex items-stretch border transition ${
                     active
-                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white'
-                      : 'border-[#5FF3FF]/20 text-slate-300 hover:border-[#5FF3FF]/50'
+                      ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 text-white shadow-[0_0_12px_rgba(95,243,255,0.15)]'
+                      : 'border-[#5FF3FF]/20 bg-[#04080F]/70 text-slate-300 hover:border-[#5FF3FF]/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-light">{opt.name[language]}</span>
-                    <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
-                  </div>
-                  <div className="mt-1 text-[10px] leading-snug text-slate-400">
-                    {experienceMode === 'CADET'
-                      ? opt.analogyTooltip[language]
-                      : `CBE ${opt.massCBE_kg}kg · TRL ${opt.trl} (+${Math.round(opt.mgaContingencyFactor * 100)}% MGA) · $${opt.cost_MillionsUSD}M`}
-                  </div>
-                </button>
+                  {/* Holographic Thumbnail */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInspectingEps(opt);
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    title={isEs ? 'Ver diseño holográfico y detalles' : 'View holographic design & details'}
+                    className="p-1.5 shrink-0 bg-[#02050B]/90 flex items-center justify-center border-r border-[#5FF3FF]/15 hover:bg-[#5FF3FF]/15 transition cursor-pointer"
+                  >
+                    <SubsystemHoloGraphic id={opt.id} size="sm" isSelected={active} className="h-10 w-10" />
+                  </button>
+
+                  {/* Main Equip Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubsystem('EPS', opt.id);
+                      if (level1TutorialStep <= 2) {
+                        setLevel1TutorialStep(3);
+                      }
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="flex-1 p-2 text-left flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-medium text-white">{opt.name[language]}</span>
+                        {active && (
+                          <span className="font-mono text-[8px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1 py-0.2 rounded border border-[#5FF3FF]/40">
+                            {isEs ? 'ACTIVO' : 'ACTIVE'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[10px] text-[#FFC15E]">+{opt.powerGenerated1AU_W}W</span>
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between text-[9px] font-mono text-slate-400">
+                      <span>{opt.massCBE_kg}kg · ${opt.cost_MillionsUSD}M</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspectingEps(opt);
+                          playHoloTone('STEP', soundEnabled);
+                        }}
+                        className="text-[#5FF3FF] hover:underline flex items-center gap-0.5"
+                      >
+                        <Info className="h-2.5 w-2.5" />
+                        <span>INFO</span>
+                      </button>
+                    </div>
+                  </button>
+                </div>
               );
             })}
           </div>
         </div>
+
+        {/* Subsystem Inspection Modal for EPS in Step 1 */}
+        <SubsystemInspectionModal
+          isOpen={inspectingEps !== null}
+          initialOption={inspectingEps}
+          options={epsOptions}
+          selection={selection}
+          language={language}
+          experienceMode={experienceMode}
+          soundEnabled={soundEnabled}
+          onClose={() => setInspectingEps(null)}
+          onEquip={(opt) => {
+            setSubsystem('EPS', opt.id);
+            if (level1TutorialStep <= 2) {
+              setLevel1TutorialStep(3);
+            }
+          }}
+        />
       </div>
     );
   }

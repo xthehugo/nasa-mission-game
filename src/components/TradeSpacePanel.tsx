@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Info, Maximize2 } from 'lucide-react';
 import {
   computeActiveSynergies,
   findObjectiveById,
@@ -8,7 +9,9 @@ import { equippedIdForCategory, useMissionStore } from '../store';
 import type { SubsystemCategory, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
 import { SUBSYSTEM_TAB_GUIDE } from './narrativeConfig';
+import { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
 import { SubsystemHoverPreview } from './SubsystemHoverPreview';
+import { SubsystemInspectionModal } from './SubsystemInspectionModal';
 
 const TABS: { id: SubsystemCategory; label: { en: string; es: string } }[] = [
   { id: 'PAYLOAD', label: { en: 'PAYLOAD', es: 'CARGA ÚTIL' } },
@@ -44,6 +47,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
   } = useMissionStore();
 
   const [hoveredOpt, setHoveredOpt] = useState<SubsystemOption | null>(null);
+  const [inspectingOpt, setInspectingOpt] = useState<SubsystemOption | null>(null);
   const isEs = language === 'es';
   const isCadet = experienceMode === 'CADET';
   const activeObj = findObjectiveById(selection.objectiveId);
@@ -142,28 +146,12 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
           const selected = isSelected(opt);
           const pick = isCadet && isCadetPick(opt);
           return (
-            <button
+            <div
               key={opt.id}
-              type="button"
-              onMouseEnter={() => setHoveredOpt(opt)}
-              onMouseLeave={() => setHoveredOpt(null)}
-              onClick={() => {
-                if (opt.category === 'PAYLOAD') togglePayload(opt.id);
-                else setSubsystem(opt.category, opt.id);
-                playHoloTone('STEP', soundEnabled);
-                appendDecisionLog({
-                  phase: 'CML_3',
-                  label: {
-                    en: `${opt.category}: ${opt.name.en} ($${opt.cost_MillionsUSD}M)`,
-                    es: `${opt.category}: ${opt.name.es} ($${opt.cost_MillionsUSD}M)`,
-                  },
-                  impact: 'POSITIVE',
-                });
-              }}
-              className={`relative w-full border p-3 text-left transition ${
+              className={`group relative flex items-stretch border transition ${
                 selected
                   ? 'border-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_16px_rgba(95,243,255,0.16)]'
-                  : 'border-[#5FF3FF]/20 hover:border-[#5FF3FF]/55'
+                  : 'border-[#5FF3FF]/20 bg-[#04080F]/90 hover:border-[#5FF3FF]/60 hover:bg-[#5FF3FF]/5'
               }`}
             >
               {hoveredOpt?.id === opt.id && (
@@ -175,47 +163,143 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                 />
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-1.5">
-                <span className="text-xs font-light text-white">{opt.name[language]}</span>
-                {pick && (
-                  <span className="font-mono text-[9px] text-[#5FF3FF] uppercase">
-                    {isEs ? 'PISTA CADETE' : 'CADET PICK'}
-                  </span>
-                )}
-                {!isCadet && (
-                  <span className="font-mono text-[9px] text-[#FFC15E]">
-                    TRL {opt.trl} +{Math.round(opt.mgaContingencyFactor * 100)}%MGA
-                  </span>
-                )}
-              </div>
+              {/* Holographic CAD Thumbnail on the side */}
+              <button
+                type="button"
+                onClick={() => {
+                  setInspectingOpt(opt);
+                  playHoloTone('STEP', soundEnabled);
+                }}
+                title={isEs ? 'Explorar diseño holográfico en 3D' : 'Inspect 3D holographic design'}
+                className="relative flex w-16 sm:w-20 shrink-0 flex-col items-center justify-center border-r border-[#5FF3FF]/20 bg-[#02050B]/90 p-1.5 transition hover:bg-[#5FF3FF]/15 group/thumb cursor-pointer"
+              >
+                <SubsystemHoloGraphic
+                  id={opt.id}
+                  size="sm"
+                  isSelected={selected}
+                  className="h-12 w-12"
+                />
+                <span className="mt-1 font-mono text-[8px] tracking-wider text-[#5FF3FF] opacity-75 group-hover/thumb:opacity-100 flex items-center gap-0.5">
+                  <Maximize2 className="h-2 w-2" /> CAD
+                </span>
+              </button>
 
-              <div className="mt-1.5 flex flex-wrap gap-2 font-mono text-[9px] text-slate-400">
-                {opt.category !== 'LAUNCH_VEHICLE' ? (
-                  <>
-                    <span>{opt.massCBE_kg} KG</span>
-                    <span>
-                      {opt.powerGenerated1AU_W > 0
-                        ? `+${opt.powerGenerated1AU_W}W`
-                        : `-${opt.powerDrawNominal_W}W`}
+              {/* Main Equippable Body */}
+              <div
+                onMouseEnter={() => setHoveredOpt(opt)}
+                onMouseLeave={() => setHoveredOpt(null)}
+                onClick={() => {
+                  if (opt.category === 'PAYLOAD') togglePayload(opt.id);
+                  else setSubsystem(opt.category, opt.id);
+                  playHoloTone('STEP', soundEnabled);
+                  appendDecisionLog({
+                    phase: 'CML_3',
+                    label: {
+                      en: `${opt.category}: ${opt.name.en} ($${opt.cost_MillionsUSD}M)`,
+                      es: `${opt.category}: ${opt.name.es} ($${opt.cost_MillionsUSD}M)`,
+                    },
+                    impact: 'POSITIVE',
+                  });
+                }}
+                className="flex-1 p-2.5 text-left flex flex-col justify-between cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-medium text-white">{opt.name[language]}</span>
+                      {selected && (
+                        <span className="font-mono text-[8.5px] bg-[#5FF3FF]/20 text-[#5FF3FF] px-1.5 py-0.2 rounded border border-[#5FF3FF]/40 font-bold">
+                          {isEs ? '✓ EQUIPADO' : '✓ EQUIPPED'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info / Dossier modal trigger button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInspectingOpt(opt);
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="shrink-0 flex items-center gap-1 border border-[#5FF3FF]/30 bg-[#04080F] px-1.5 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition"
+                    title={isEs ? 'Abrir ficha técnica y carrusel' : 'Open specs & carousel'}
+                  >
+                    <Info className="h-2.5 w-2.5" />
+                    <span>{isEs ? 'DETALLES' : 'SPECS'}</span>
+                  </button>
+                </div>
+
+                {/* Metric Chips Row */}
+                <div className="mt-2 flex flex-wrap gap-1 font-mono text-[9px] text-slate-300">
+                  {opt.category !== 'LAUNCH_VEHICLE' ? (
+                    <>
+                      <span className="border border-[#5FF3FF]/15 bg-[#5FF3FF]/8 px-1.5 py-0.5 rounded">
+                        {opt.massCBE_kg} KG
+                      </span>
+                      <span className="border border-[#5FF3FF]/15 bg-[#5FF3FF]/8 px-1.5 py-0.5 rounded">
+                        {opt.powerGenerated1AU_W > 0
+                          ? `+${opt.powerGenerated1AU_W}W`
+                          : `-${opt.powerDrawNominal_W}W`}
+                      </span>
+                      <span className="border border-[#5FF3FF]/15 bg-[#5FF3FF]/8 px-1.5 py-0.5 rounded">
+                        {opt.volume_U}U
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="border border-[#5FF3FF]/15 bg-[#5FF3FF]/8 px-1.5 py-0.5 rounded">
+                        MAX {opt.maxPayloadMass_kg} KG
+                      </span>
+                      <span className="border border-[#5FF3FF]/15 bg-[#5FF3FF]/8 px-1.5 py-0.5 rounded">
+                        {isEs ? 'COFIA' : 'FAIRING'} {opt.fairingVolume_U}U
+                      </span>
+                    </>
+                  )}
+                  <span className="border border-[#FFC15E]/20 bg-[#FFC15E]/10 text-[#FFC15E] px-1.5 py-0.5 rounded font-bold">
+                    ${opt.cost_MillionsUSD}M
+                  </span>
+                  {pick && (
+                    <span className="font-mono text-[8.5px] text-[#5FF3FF] uppercase border border-[#5FF3FF]/30 bg-[#5FF3FF]/15 px-1 py-0.5 rounded">
+                      {isEs ? 'PISTA CADETE' : 'CADET PICK'}
                     </span>
-                    <span>{opt.volume_U}U</span>
-                  </>
-                ) : (
-                  <>
-                    <span>MAX {opt.maxPayloadMass_kg} KG</span>
-                    <span>{isEs ? 'COFIA' : 'FAIRING'} {opt.fairingVolume_U}U</span>
-                  </>
-                )}
-                <span className="text-[#FFC15E]">${opt.cost_MillionsUSD}M</span>
+                  )}
+                  {!isCadet && (
+                    <span className="font-mono text-[8.5px] text-[#FFC15E] border border-[#FFC15E]/25 bg-[#FFC15E]/10 px-1 py-0.5 rounded">
+                      TRL {opt.trl}
+                    </span>
+                  )}
+                </div>
               </div>
-
-              <p className="mt-1.5 text-[11px] leading-snug text-slate-300">
-                {isCadet ? opt.analogyTooltip[language] : opt.tradeOffNote[language]}
-              </p>
-            </button>
+            </div>
           );
         })}
       </div>
+
+      {/* Subsystem Inspection Modal / Carousel */}
+      <SubsystemInspectionModal
+        isOpen={inspectingOpt !== null}
+        initialOption={inspectingOpt}
+        options={getSubsystemsByCategory(activeSubsystemTab)}
+        selection={selection}
+        language={language}
+        experienceMode={experienceMode}
+        soundEnabled={soundEnabled}
+        onClose={() => setInspectingOpt(null)}
+        onEquip={(opt) => {
+          if (opt.category === 'PAYLOAD') togglePayload(opt.id);
+          else setSubsystem(opt.category, opt.id);
+          appendDecisionLog({
+            phase: 'CML_3',
+            label: {
+              en: `${opt.category}: ${opt.name.en} ($${opt.cost_MillionsUSD}M)`,
+              es: `${opt.category}: ${opt.name.es} ($${opt.cost_MillionsUSD}M)`,
+            },
+            impact: 'POSITIVE',
+          });
+        }}
+      />
     </div>
   );
 }
