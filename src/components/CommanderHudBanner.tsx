@@ -20,10 +20,12 @@ import {
 } from './holoAudio';
 import {
   COMMANDER_PHASE_BEATS,
+  CONTRACT_TO_CINEMATIC,
   formatCommanderBeat,
   formatStoryText,
   getPhaseInteractiveTour,
 } from './narrativeConfig';
+import { getMissionPhaseContent } from './missionDialogueConfig';
 import {
   LEVEL1_TOTAL_STEPS,
   LEVEL1_TUTORIAL_STEPS,
@@ -47,6 +49,7 @@ export function CommanderHudBanner() {
     metrics,
     concurrentConflicts,
     activeRandomEvent,
+    selection,
     tankFillPercent,
     oxidizerFillPercent,
     reducedMotion,
@@ -65,6 +68,7 @@ export function CommanderHudBanner() {
   const isCadet = experienceMode === 'CADET';
   const activeCallsign = isCadet ? cadetName : engineerName;
   const beat = COMMANDER_PHASE_BEATS[phase];
+  const missionContent = getMissionPhaseContent(activeCampaignLevelId, phase);
 
   const isLevel1GuidedTour =
     activeCampaignLevelId === 'contract-leo-bionutrients' &&
@@ -109,10 +113,15 @@ export function CommanderHudBanner() {
         : `Cadet ${cadetName}: mass or fairing exceeded (${starInfo.effectiveMassKg.toFixed(1)} kg). Trim propellant or upgrade rocket.`
       : `ROSTOVA // ALARM MASS: ${starInfo.effectiveMassKg.toFixed(1)}/${metrics.launchCapacity_kg} KG · VOL ${metrics.volume.used_U}/${metrics.volume.maxFairing_U}U.`;
   } else if (powerDeficit) {
+    const isJupiter = selection.destinationId === 'dest-jupiter';
     vegaText = isCadet
       ? isEs
-        ? `Cadete ${cadetName}: como en el Ícaro-1, la energía cae en el eclipse. Despliega alas solares mayores o usa RTG.`
-        : `Cadet ${cadetName}: like Icarus-1, power drops in eclipse. Deploy larger solar wings or RTG.`
+        ? isJupiter
+          ? `Cadete ${cadetName}: a 5.2 UA la luz solar cae al 3.7%. Necesitas un generador nuclear RTG para operar en Júpiter.`
+          : `Cadete ${cadetName}: la energía cae en el eclipse orbital. Despliega alas solares mayores o amplía la batería.`
+        : isJupiter
+          ? `Cadet ${cadetName}: at 5.2 AU solar power drops to 3.7%. Equip an RTG nuclear generator for Jupiter.`
+          : `Cadet ${cadetName}: power drops during orbital eclipse. Deploy larger solar wings or expand battery.`
       : `ROSTOVA // ALARM EPS: ${metrics.power.generatedAtDestination_W.toFixed(0)}W < ${metrics.power.eclipseRequired_W.toFixed(0)}W ECLIPSE.`;
   } else if (rfRed) {
     vegaText = isCadet
@@ -135,13 +144,13 @@ export function CommanderHudBanner() {
             : `EVENT: Thermal mass penalty (+8% mass). Watch launch cap.`;
   } else if (isCadet) {
     vegaText = formatCommanderBeat(
-      beat.cadetScript[language],
+      missionContent.commanderBrief.cadet[language],
       cadetName,
       missionCustomName,
     );
   } else {
     vegaText = formatCommanderBeat(
-      beat.jplScript[language],
+      missionContent.commanderBrief.jpl[language],
       engineerName,
       missionCustomName,
     );
@@ -161,6 +170,17 @@ export function CommanderHudBanner() {
   }, [isLevel1GuidedTour, level1TutorialStep]);
   const lastSpokenKeyRef = useRef<string>('');
 
+  // Clean previous voice/feedback state when switching active campaign mission
+  useEffect(() => {
+    stopCharacterVoice();
+    lastSpokenKeyRef.current = '';
+    const timer = window.setTimeout(() => {
+      setIsSpeaking(false);
+      setTutorialFeedback(null);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [activeCampaignLevelId, setTutorialFeedback]);
+
   const flightAlert = overMass
     ? 'OVERMASS'
     : powerDeficit
@@ -171,7 +191,7 @@ export function CommanderHudBanner() {
           ? activeRandomEvent
           : 'NORMAL';
 
-  const currentSpeechKey = `${phase}|${level1TutorialStep}|${flightAlert}|${language}|${isCadet ? 'CADET' : 'JPL'}`;
+  const currentSpeechKey = `${activeCampaignLevelId}|${phase}|${level1TutorialStep}|${flightAlert}|${language}|${isCadet ? 'CADET' : 'JPL'}`;
 
   // Speak Commander Vega / Director Rostova instruction when cutscene closes or tutorial step advances
   useEffect(() => {
@@ -287,9 +307,10 @@ export function CommanderHudBanner() {
                 type="button"
                 onClick={() => {
                   playHoloTone('STEP', soundEnabled);
-                  openCinematic(
-                    isCadet ? beat.defaultCinematicId.cadet : beat.defaultCinematicId.jpl,
-                  );
+                  const activeCinematic =
+                    CONTRACT_TO_CINEMATIC[activeCampaignLevelId] ??
+                    (isCadet ? beat.defaultCinematicId.cadet : beat.defaultCinematicId.jpl);
+                  openCinematic(activeCinematic);
                 }}
                 className="inline-flex items-center gap-1 border border-[#FFC15E]/50 bg-[#FFC15E]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
               >
@@ -304,6 +325,34 @@ export function CommanderHudBanner() {
           <p className="mt-1 text-[12.5px] leading-snug text-slate-200 line-clamp-3 hover:line-clamp-none">
             {vegaText}
           </p>
+
+          {!isLevel1GuidedTour && !isGuideTourActive && (
+            <div className="mt-2 border-l-2 border-[#5FF3FF]/70 bg-[#5FF3FF]/5 px-2.5 py-1.5 font-mono text-[11px]">
+              <div className="flex items-center justify-between text-[#5FF3FF]">
+                <span className="font-bold text-[#FFC15E]">ASTRA // {isEs ? 'GUÍA DE PASO' : 'STEP GUIDE'}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playHoloTone('STEP', soundEnabled);
+                    setIsSpeaking(true);
+                    speakCharacterLine(
+                      missionContent.astraGuide.oneLiner[language],
+                      language,
+                      'ROSTOVA',
+                      true,
+                      () => setIsSpeaking(false),
+                    );
+                  }}
+                  title={isEs ? 'Escuchar guía de ASTRA' : 'Listen to ASTRA guide'}
+                  className="inline-flex items-center gap-1 border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-1 py-0.5 text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20"
+                >
+                  <Bot className="h-3 w-3" />
+                  <span>{isEs ? 'VOZ ASTRA' : 'VOICE ASTRA'}</span>
+                </button>
+              </div>
+              <p className="mt-0.5 text-slate-200">{missionContent.astraGuide.oneLiner[language]}</p>
+            </div>
+          )}
         </div>
       </div>
 

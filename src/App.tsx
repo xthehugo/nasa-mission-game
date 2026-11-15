@@ -28,6 +28,7 @@ import {
   TopBar,
   TradeSpacePanel,
 } from './components';
+import { getMissionPhaseContent } from './components/missionDialogueConfig';
 import { playBgmTrack, playHoloTone, stopBgmTrack } from './components/holoAudio';
 import { findDestinationById, findObjectiveById } from './engine';
 import { useMissionStore } from './store';
@@ -143,6 +144,7 @@ export function App() {
   const nextPhase = NEXT_PHASE[phase];
   const currentIdx = LEVELS.findIndex((l) => l.id === phase);
   const beat = COMMANDER_PHASE_BEATS[phase];
+  const activeMissionContent = getMissionPhaseContent(activeCampaignLevelId, phase);
   const isL1Tut =
     activeCampaignLevelId === 'contract-leo-bionutrients' &&
     level1TutorialStep < LEVEL1_TOTAL_STEPS;
@@ -311,7 +313,7 @@ export function App() {
             <div className="mb-1.5 w-full shrink-0 border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1 text-center font-mono text-[9.5px] tracking-[0.06em] text-[#5FF3FF]">
               <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
               <span className="text-slate-200">
-                {experienceMode === 'CADET' ? beat.cadetGoal[language] : beat.jplSpec[language]}
+                {activeMissionContent.headerGoal[language]}
               </span>
             </div>
 

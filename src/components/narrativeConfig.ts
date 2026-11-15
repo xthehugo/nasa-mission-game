@@ -491,8 +491,8 @@ export const SUBSYSTEM_TAB_GUIDE: Record<
       es: 'Paneles solares o núcleo RTG más baterías para sobrevivir en la sombra del eclipse.',
     },
     connectionRule: {
-      en: 'In Jupiter (5.2 AU), sunlight drops to 3.7% (1/R²): only RTG or LILT arrays work.',
-      es: 'En Júpiter (5.2 UA) el Sol cae al 3.7%: los paneles comunes fallan y necesitas RTG.',
+      en: 'Solar flux drops with 1/R²: ensure adequate solar wing area and battery capacity for orbital eclipses.',
+      es: 'La energía solar decae con 1/R²: asegura área de paneles y baterías suficientes para soportar los eclipses.',
     },
   },
   TELECOM: {
@@ -560,8 +560,8 @@ export const COMMANDER_PHASE_BEATS: Record<CMLPhase, NarrativePhaseBeat> = {
       es: 'Cadete {commander}, tras perder al Ícaro-1 prometí enseñarte tornillo por tornillo. Sigue mi guía para armar {mission}.',
     },
     jplScript: {
-      en: 'Dir. Rostova: Chief Engineer {commander}, configure {mission} for deep-space radiation survival. Zero margin errors.',
-      es: 'Dir. Rostova: Ingeniero Jefe {commander}, configure {mission} para sobrevivir a la radiación de Júpiter. Cero errores.',
+      en: 'Dir. Rostova: Chief Engineer {commander}, configure {mission} baseline SWaP-C requirements. Zero margin errors.',
+      es: 'Dir. Rostova: Ingeniero Jefe {commander}, configure {mission} según los requerimientos SWaP-C de la misión. Cero errores.',
     },
     screwSteps: [
       {
@@ -580,11 +580,11 @@ export const COMMANDER_PHASE_BEATS: Record<CMLPhase, NarrativePhaseBeat> = {
         stepNum: '2/3',
         controlLabel: { en: 'LEFT · SOLAR ARRAYS / EPS', es: 'IZQUIERDA · PANELES SOLARES / EPS' },
         whatIsIt: {
-          en: 'The wings or nuclear generator (RTG) that produce electricity in space.',
-          es: 'Las alas solares o núcleo nuclear (RTG) que generan electricidad en el vacío.',
+          en: 'The solar wings or power generator that produce electricity in space.',
+          es: 'Las alas solares o generador de potencia que producen electricidad en el espacio.',
         },
         howItConnects: {
-          en: 'Feeds Watts to all cameras and radios. In Jupiter, only RTG works!',
+          en: 'Feeds Watts to all cameras and radios. Deploy wings to match payload consumption.',
           es: 'Alimenta las cámaras y la radio. Al elegirlo verás desplegarse las alas en el centro.',
         },
       },
@@ -620,8 +620,8 @@ export const COMMANDER_PHASE_BEATS: Record<CMLPhase, NarrativePhaseBeat> = {
       es: 'Cadete {commander}, si calculas mal la altura, la atmósfera frenará a {mission} y arderá como estrella fugaz. Ajusta la altitud a la izquierda y la antena terrena a la derecha.',
     },
     jplScript: {
-      en: 'Dir. Rostova: Engineer {commander}, Jupiter gravity well demands 6,800 m/s ΔV and a 70m DSN Goldstone link.',
-      es: 'Dir. Rostova: Ingeniero {commander}, el pozo gravitatorio joviano exige 6,800 m/s de ΔV y antena DSN de 70m.',
+      en: 'Dir. Rostova: Engineer {commander}, calculate orbital insertion ΔV and ground station link margin for {mission}.',
+      es: 'Dir. Rostova: Ingeniero {commander}, calcule el ΔV de inserción orbital y el margen de enlace terreno para {mission}.',
     },
     screwSteps: [
       {
@@ -680,8 +680,8 @@ export const COMMANDER_PHASE_BEATS: Record<CMLPhase, NarrativePhaseBeat> = {
       es: 'En el frío de -150°C del eclipse, {commander}, hay que saber renunciar. Recorre los 7 módulos a la izquierda y elige las piezas con "PISTA CADETE" a la derecha.',
     },
     jplScript: {
-      en: 'Vega (Sec. Channel): Partner, remember Icarus-1 failed in a solar storm. Lock RTG power and Rad-Hard margins!',
-      es: 'Vega (Canal Sec.): Socio, recuerda que el Ícaro-1 cayó por energía. ¡Asegura el RTG y cero conflictos!',
+      en: 'Vega (Sec. Channel): Partner, remember Icarus-1 failed in a power crisis. Balance SWaP-C and maintain positive margins!',
+      es: 'Vega (Canal Sec.): Socio, recuerda que el Ícaro-1 cayó por balance de energía. ¡Equilibra SWaP-C y mantén márgenes positivos!',
     },
     screwSteps: [
       {
