@@ -92,6 +92,8 @@ export interface UISlice {
   seenCinematics: Record<string, boolean>;
   tutorialStepIndex: number;
   level1TutorialStep: number;
+  phaseTutorialStep: number;
+  isGuideTourActive: boolean;
   tutorialFeedback: { en: string; es: string; isError?: boolean } | null;
   robotHoverZone: RobotSpotlightZone | null;
   missionCustomName: string;
@@ -148,6 +150,10 @@ export interface UISlice {
   closeCinematic: () => void;
   setTutorialStepIndex: (idx: number) => void;
   setLevel1TutorialStep: (step: number) => void;
+  setPhaseTutorialStep: (step: number) => void;
+  nextPhaseTutorialStep: (maxSteps?: number) => void;
+  prevPhaseTutorialStep: () => void;
+  setGuideTourActive: (active: boolean) => void;
   setTutorialFeedback: (fb: { en: string; es: string; isError?: boolean } | null) => void;
   setRobotHoverZone: (zone: RobotSpotlightZone | null) => void;
   advanceToAct2Jpl: (engineerName?: string, missionName?: string) => void;
@@ -254,6 +260,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   seenCinematics: {},
   tutorialStepIndex: 0,
   level1TutorialStep: 0,
+  phaseTutorialStep: 0,
+  isGuideTourActive: true,
   tutorialFeedback: null,
   robotHoverZone: null,
   missionCustomName: 'Ícaro-Pionero',
@@ -412,7 +420,21 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
       };
     }),
   setTutorialStepIndex: (tutorialStepIndex) => set({ tutorialStepIndex }),
-  setLevel1TutorialStep: (level1TutorialStep) => set({ level1TutorialStep }),
+  setLevel1TutorialStep: (level1TutorialStep) =>
+    set({ level1TutorialStep, phaseTutorialStep: level1TutorialStep }),
+  setPhaseTutorialStep: (phaseTutorialStep) =>
+    set({ phaseTutorialStep, level1TutorialStep: phaseTutorialStep }),
+  nextPhaseTutorialStep: (maxSteps = 4) =>
+    set((s) => {
+      const next = Math.min(maxSteps, s.phaseTutorialStep + 1);
+      return { phaseTutorialStep: next, level1TutorialStep: next };
+    }),
+  prevPhaseTutorialStep: () =>
+    set((s) => {
+      const prev = Math.max(0, s.phaseTutorialStep - 1);
+      return { phaseTutorialStep: prev, level1TutorialStep: prev };
+    }),
+  setGuideTourActive: (isGuideTourActive) => set({ isGuideTourActive }),
   setTutorialFeedback: (tutorialFeedback) => set({ tutorialFeedback }),
   setRobotHoverZone: (robotHoverZone) => set({ robotHoverZone }),
   advanceToAct2Jpl: () =>
