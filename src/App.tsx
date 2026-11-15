@@ -143,7 +143,7 @@ export function App() {
 
   return (
     <div
-      className="flex min-h-screen flex-col justify-between bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25"
+      className="flex min-h-screen lg:h-screen lg:overflow-hidden flex-col justify-between bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25"
       style={{
         fontFamily: "'Space Grotesk', system-ui, sans-serif",
         backgroundImage:
@@ -152,22 +152,22 @@ export function App() {
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500&display=swap'); .font-mono { font-family: 'JetBrains Mono', monospace; }`}</style>
 
-      <div className="shrink-0">
+      <div className="shrink-0 z-30">
         <TopBar />
       </div>
 
-      {/* 3-Zone Holographic Stage: Static sticky center hologram that stays in view as laterals scroll */}
-      <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-4 lg:gap-6 px-4 py-3 sm:px-6 lg:grid-cols-12 lg:items-start">
-        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls */}
+      {/* 3-Zone Holographic Cockpit: Center hologram stays 100% locked & visible while left/right wings scroll independently */}
+      <main className="mx-auto grid w-full max-w-[1600px] flex-1 min-h-0 grid-cols-1 gap-4 lg:gap-6 px-4 py-2 sm:px-6 lg:grid-cols-12 lg:overflow-hidden">
+        {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls (Independent Smooth Scroll) */}
         <section
           data-astra-zone="LEFT_PANEL"
-          className={`order-2 lg:order-1 lg:col-span-3 pr-1.5 transition-all ${
+          className={`order-2 lg:order-1 lg:col-span-3 pr-1.5 lg:h-full lg:overflow-y-auto telemetry-scrollbar transition-all ${
             robotHoverZone === 'LEFT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
           }`}
         >
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-4 pb-8">
             <div
               data-astra-zone="RESOURCES"
               className={`transition-all ${
@@ -212,10 +212,10 @@ export function App() {
           </div>
         </section>
 
-        {/* CENTER ZONE: Hero Hologram Stage (Stays sticky and centered in view as laterals scroll) */}
+        {/* CENTER ZONE: Hero Hologram Stage (Locked in view, stays centered while laterals scroll) */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 lg:order-2 lg:col-span-6 lg:sticky lg:top-14 lg:self-start flex flex-col justify-between py-1 px-1 transition-all z-20 ${
+          className={`order-1 lg:order-2 lg:col-span-6 lg:h-full flex flex-col justify-between py-1 px-1 transition-all z-20 shrink-0 lg:overflow-y-auto telemetry-scrollbar ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2.5 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
@@ -306,10 +306,10 @@ export function App() {
           </div>
         </section>
 
-        {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
+        {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions (Independent Smooth Scroll) */}
         <section
           data-astra-zone="RIGHT_PANEL"
-          className={`order-3 lg:order-3 lg:col-span-3 pr-1.5 space-y-4 transition-all ${
+          className={`order-3 lg:order-3 lg:col-span-3 pr-1.5 lg:h-full lg:overflow-y-auto telemetry-scrollbar space-y-4 pb-8 transition-all ${
             robotHoverZone === 'RIGHT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
@@ -325,10 +325,10 @@ export function App() {
         </section>
       </main>
 
-      {/* Bottom 6-Level Progressive Navigation Strip */}
+      {/* Bottom 6-Level Progressive Navigation Strip (Locked on bottom) */}
       <footer
         data-astra-zone="FOOTER_LEVELS"
-        className={`shrink-0 border-t border-[#5FF3FF]/20 px-4 py-2.5 transition-all sm:px-6 ${
+        className={`shrink-0 z-30 border-t border-[#5FF3FF]/20 px-4 py-2 transition-all sm:px-6 ${
           robotHoverZone === 'FOOTER_LEVELS'
             ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
             : ''
