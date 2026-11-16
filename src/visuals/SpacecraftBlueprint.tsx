@@ -20,6 +20,90 @@ interface Props {
   tRatio?: number;
 }
 
+function StressJointNode({
+  cx,
+  cy,
+  stress,
+  label,
+}: {
+  cx: number;
+  cy: number;
+  stress: number;
+  label?: string;
+}) {
+  const isOverload = stress >= 80;
+  const isSnapped = stress >= 100;
+  const color = getStressColor(stress);
+
+  return (
+    <g>
+      {/* Halo de advertencia pulsante bajo tensión alta */}
+      {isOverload && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={isSnapped ? 12 : 8.5}
+          fill="none"
+          stroke={color}
+          strokeWidth="1.2"
+          strokeDasharray="3 2"
+          className="spark-flicker"
+          opacity={0.85}
+        />
+      )}
+
+      {/* Chispas de soldadura Poly Bridge si stress >= 80% */}
+      {isOverload && (
+        <g className="spark-flicker">
+          <line x1={cx} y1={cy} x2={cx - 7} y2={cy - 6} stroke="#fde047" strokeWidth="1.4" />
+          <circle cx={cx - 9} cy={cy - 8} r="1.3" fill="#f97316" />
+          <line x1={cx} y1={cy} x2={cx + 8} y2={cy - 5} stroke="#fbbf24" strokeWidth="1.4" />
+          <circle cx={cx + 10} cy={cy - 7} r="1.2" fill="#ef4444" />
+          <line x1={cx} y1={cy} x2={cx + 6} y2={cy + 7} stroke="#f59e0b" strokeWidth="1.2" />
+          <circle cx={cx + 8} cy={cy + 9} r="1.1" fill="#fde047" />
+          <line x1={cx} y1={cy} x2={cx - 6} y2={cy + 7} stroke="#fb923c" strokeWidth="1.2" />
+          <circle cx={cx - 8} cy={cy + 9} r="1.2" fill="#f97316" />
+        </g>
+      )}
+
+      {/* Arco de fractura / grieta si colapsa (stress >= 100%) */}
+      {isSnapped && (
+        <g>
+          <path
+            d={`M ${cx - 9} ${cy - 2} L ${cx - 3} ${cy + 4} L ${cx + 3} ${cy - 4} L ${cx + 9} ${cy + 2}`}
+            fill="none"
+            stroke="#FF4D6D"
+            strokeWidth="2.2"
+            className="arc-crack"
+          />
+          <text
+            x={cx}
+            y={cy - 12}
+            textAnchor="middle"
+            fill="#FF4D6D"
+            fontSize="7.5"
+            fontWeight="bold"
+            className="fairing-alert"
+          >
+            {label ? `${label} SNAP!` : 'SNAP!'}
+          </text>
+        </g>
+      )}
+
+      {/* Nodo central */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isSnapped ? 6 : 4.2}
+        fill={color}
+        stroke="#020617"
+        strokeWidth="1.5"
+        className={isSnapped ? 'joint-snap' : ''}
+      />
+    </g>
+  );
+}
+
 export default function SpacecraftBlueprint({
   volume,
   lang = 'en',
@@ -82,11 +166,16 @@ export default function SpacecraftBlueprint({
           100% { transform: rotate(360deg); }
         }
         @keyframes jointSnap { 0%,100% { r: 5.5; opacity: 1 } 50% { r: 8; opacity: 0.45 } }
-        @keyframes sparkFlicker { 0%,100% { opacity: 1 } 50% { opacity: 0.2 } }
+        @keyframes sparkFlicker { 0%,100% { opacity: 1 } 50% { opacity: 0.25 } }
+        @keyframes arcCrack {
+          0%, 100% { opacity: 0.4; stroke-dashoffset: 0; }
+          50% { opacity: 1; stroke-dashoffset: 8; }
+        }
         .fairing-alert { animation: fairingPulse 0.8s infinite; }
         .craft-tumble { animation: craftTumble 3.4s linear infinite; transform-origin: 150px 260px; }
         .joint-snap { animation: jointSnap 0.65s ease-in-out infinite; }
-        .spark-flicker { animation: sparkFlicker 0.35s linear infinite; }
+        .spark-flicker { animation: sparkFlicker 0.25s linear infinite; }
+        .arc-crack { animation: arcCrack 0.2s linear infinite; }
       `}</style>
       <svg viewBox="0 0 300 420" width="100%" style={{ background: '#020617', borderRadius: 12 }}>
         <defs>
@@ -422,55 +511,15 @@ export default function SpacecraftBlueprint({
             </g>
           )}
 
-          {/* Nodos de tension Poly Bridge (4 juntas clave) */}
-          <circle
-            cx="105"
-            cy={wingY}
-            r={wingStress >= 100 ? 6 : 4}
-            fill={getStressColor(wingStress)}
-            stroke="#020617"
-            strokeWidth="1.4"
-            className={wingStress >= 100 ? 'joint-snap' : ''}
-          />
-          <circle
-            cx="150"
-            cy={baseBottom - 16}
-            r={copvStress >= 100 ? 6 : 4}
-            fill={getStressColor(copvStress)}
-            stroke="#020617"
-            strokeWidth="1.4"
-            className={copvStress >= 100 ? 'joint-snap' : ''}
-          />
-          <circle
-            cx="150"
-            cy={bodyTop}
-            r={adcsStress >= 100 ? 6 : 4}
-            fill={getStressColor(adcsStress)}
-            stroke="#020617"
-            strokeWidth="1.4"
-            className={adcsStress >= 100 ? 'joint-snap' : ''}
-          />
+          {/* Nodos de tensión Poly Bridge (4 juntas clave) con chispas dinámicas y fractura */}
+          <StressJointNode cx={105} cy={wingY} stress={wingStress} label="WING" />
+          <StressJointNode cx={150} cy={baseBottom - 16} stress={copvStress} label="COPV" />
+          <StressJointNode cx={150} cy={bodyTop} stress={adcsStress} label="ADCS" />
         </g>
 
-        {/* Nodos base PAF/ESPA fijos + etiquetas criticas */}
-        <circle
-          cx="116"
-          cy="356"
-          r={pafStress >= 100 ? 6 : 4.2}
-          fill={getStressColor(pafStress)}
-          stroke="#020617"
-          strokeWidth="1.5"
-          className={pafStress >= 100 ? 'joint-snap' : ''}
-        />
-        <circle
-          cx="184"
-          cy="356"
-          r={pafStress >= 100 ? 6 : 4.2}
-          fill={getStressColor(pafStress)}
-          stroke="#020617"
-          strokeWidth="1.5"
-          className={pafStress >= 100 ? 'joint-snap' : ''}
-        />
+        {/* Nodos base PAF/ESPA fijos + etiquetas críticas */}
+        <StressJointNode cx={116} cy={356} stress={pafStress} label="PAF" />
+        <StressJointNode cx={184} cy={356} stress={pafStress} label="ESPA" />
 
         {/* Flecha de sobrecarga T/W < 1.0 en MASS_BUCKLING */}
         {isMassBuckle && (

@@ -3,13 +3,26 @@ import { useMissionStore } from '../store';
 import type { ExperienceMode, PhysicsMetrics } from '../types/mission';
 import { PREBAKED_VOICE_MANIFEST } from './voiceManifest';
 
-export type HoloToneKind = 'STEP' | 'ALARM' | 'STAR' | 'FILL';
+export type HoloToneKind =
+  | 'STEP'
+  | 'ALARM'
+  | 'STAR'
+  | 'FILL'
+  | 'IGNITION'
+  | 'SONIC_BOOM'
+  | 'STRESS_CREAK';
 
-const TONE_SPEC: Record<HoloToneKind, { freq: number; endFreq: number; dur: number; gain: number }> = {
+const TONE_SPEC: Record<
+  HoloToneKind,
+  { freq: number; endFreq: number; dur: number; gain: number }
+> = {
   STEP: { freq: 620, endFreq: 880, dur: 0.08, gain: 0.035 },
   FILL: { freq: 340, endFreq: 520, dur: 0.11, gain: 0.03 },
   STAR: { freq: 740, endFreq: 1120, dur: 0.15, gain: 0.04 },
   ALARM: { freq: 240, endFreq: 180, dur: 0.18, gain: 0.045 },
+  IGNITION: { freq: 75, endFreq: 42, dur: 0.45, gain: 0.06 },
+  SONIC_BOOM: { freq: 115, endFreq: 28, dur: 0.38, gain: 0.075 },
+  STRESS_CREAK: { freq: 310, endFreq: 230, dur: 0.22, gain: 0.04 },
 };
 
 let sharedAudioCtx: AudioContext | null = null;
@@ -57,7 +70,12 @@ export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
     const gainNode = ctx.createGain();
     const spec = TONE_SPEC[kind];
 
-    osc.type = kind === 'ALARM' ? 'sawtooth' : 'sine';
+    osc.type =
+      kind === 'ALARM' || kind === 'STRESS_CREAK'
+        ? 'sawtooth'
+        : kind === 'IGNITION' || kind === 'SONIC_BOOM'
+          ? 'triangle'
+          : 'sine';
     osc.frequency.setValueAtTime(spec.freq, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(spec.endFreq, ctx.currentTime + spec.dur);
 

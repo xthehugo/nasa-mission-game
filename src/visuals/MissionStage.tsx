@@ -179,6 +179,35 @@ const css = `
 @keyframes failFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1 } 100% { transform: translateY(155px) rotate(22deg); opacity: .2 } }
 @keyframes driftFail { 0% { transform: translate(0,0) rotate(0deg); opacity: 1 } 100% { transform: translate(26px,-18px) rotate(-14deg); opacity: .75 } }
 @keyframes debris { 0% { transform: translate(0,0) rotate(0deg); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) rotate(360deg); opacity: 0 } }
+@keyframes padSteamLeft {
+  0% { transform: translate(0, 0) scale(0.65); opacity: 0.9; }
+  50% { transform: translate(-40px, -18px) scale(1.6); opacity: 0.6; }
+  100% { transform: translate(-85px, -35px) scale(2.3); opacity: 0; }
+}
+@keyframes padSteamRight {
+  0% { transform: translate(0, 0) scale(0.65); opacity: 0.9; }
+  50% { transform: translate(40px, -18px) scale(1.6); opacity: 0.6; }
+  100% { transform: translate(85px, -35px) scale(2.3); opacity: 0; }
+}
+@keyframes machDiamonds {
+  0%, 100% { transform: scaleY(1) scaleX(1); opacity: 0.95; }
+  50% { transform: scaleY(1.22) scaleX(0.86); opacity: 0.75; }
+}
+@keyframes plumeTurbulence {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  25% { transform: scaleX(1.12) scaleY(0.96) skewX(1.2deg); }
+  50% { transform: scaleX(0.92) scaleY(1.1) skewX(-1.2deg); }
+  75% { transform: scaleX(1.08) scaleY(1.02); }
+}
+@keyframes shockwavePulse {
+  0% { transform: scale(0.92) translateY(0); opacity: 0.45; }
+  50% { transform: scale(1.14) translateY(-3px); opacity: 0.9; }
+  100% { transform: scale(1.28) translateY(-6px); opacity: 0; }
+}
+@keyframes sparkShower {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(62px) scale(0.25); opacity: 0; }
+}
 `;
 
 const fmtLight = (s: number) => (s < 60 ? `${s.toFixed(1)} s` : `${(s / 60).toFixed(1)} min`);
@@ -355,6 +384,34 @@ export default function MissionStage({
 
   const snap = computeTelemetrySnapshot(eff, ascentEnd, cruiseMs, destKm, failureMode, metrics);
 
+  const playedSoundsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (elapsedMs === 0) {
+      playedSoundsRef.current.clear();
+      return;
+    }
+    if (!soundEnabled) return;
+
+    // T-0 Ignition deep bass rumble
+    if (eff >= COUNTDOWN_MS && !playedSoundsRef.current.has('IGNITION')) {
+      playedSoundsRef.current.add('IGNITION');
+      playHoloTone('IGNITION', true);
+    }
+
+    // Max-Q Transonic sonic boom shock thump
+    if (snap.ascent >= 0.50 && snap.ascent <= 0.62 && !playedSoundsRef.current.has('SONIC_BOOM')) {
+      playedSoundsRef.current.add('SONIC_BOOM');
+      playHoloTone('SONIC_BOOM', true);
+    }
+
+    // High structural stress creak
+    if (snap.stressPct >= 85 && !playedSoundsRef.current.has('STRESS_CREAK')) {
+      playedSoundsRef.current.add('STRESS_CREAK');
+      playHoloTone('STRESS_CREAK', true);
+    }
+  }, [eff, snap.ascent, snap.stressPct, soundEnabled, elapsedMs]);
+
   const samples: TelemetrySample[] = useMemo(() => {
     const out: TelemetrySample[] = [];
     const N = 36;
@@ -439,11 +496,15 @@ export default function MissionStage({
   const titleColor =
     stage === 'ORBIT_INSERTION' ? '#5FF3FF' : stage === 'FAILURE' ? '#FF4D6D' : '#e2e8f0';
 
+  const isMaxQZone = stage === 'LAUNCH_ASCENT' && snap.ascent >= 0.42 && snap.ascent <= 0.68;
+
   const shipAnimation =
     stage === 'LAUNCH_ASCENT'
       ? failureMode === 'FAIRING_COLLISION' || failureMode === 'MASS_BUCKLING'
         ? 'shakeHard .06s infinite'
-        : 'shake .12s infinite'
+        : isMaxQZone
+          ? 'shakeHard .075s infinite'
+          : 'shake .12s infinite'
       : stage === 'FAILURE'
         ? failureMode === 'FAIRING_COLLISION' || failureMode === 'MASS_BUCKLING'
           ? 'failFall 2.5s ease-in forwards'
@@ -777,22 +838,198 @@ export default function MissionStage({
                   </div>
                 )}
 
+                {/* Velo de condensación y onda de choque transónica Max-Q (Prandtl-Glauert) */}
+                {stage === 'LAUNCH_ASCENT' && snap.ascent >= 0.38 && snap.ascent <= 0.72 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '16%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 240,
+                      height: 120,
+                      pointerEvents: 'none',
+                      zIndex: 3,
+                      animation: 'shockwavePulse 0.12s ease-in-out infinite',
+                      opacity: Math.max(0, Math.min(1, Math.exp(-Math.pow((snap.ascent - 0.55) / 0.14, 2)))),
+                    }}
+                  >
+                    <svg viewBox="0 0 240 120" width="100%" height="100%">
+                      <defs>
+                        <radialGradient id="shockConeGrad" cx="50%" cy="30%" r="50%">
+                          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
+                          <stop offset="35%" stopColor="#5FF3FF" stopOpacity="0.6" />
+                          <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+                        </radialGradient>
+                      </defs>
+                      <path
+                        d="M120 10 L30 105 Q120 120 210 105 Z"
+                        fill="url(#shockConeGrad)"
+                        filter="blur(1.5px)"
+                      />
+                      <path
+                        d="M120 16 L44 98 M120 16 L196 98"
+                        stroke="#5FF3FF"
+                        strokeWidth="2"
+                        strokeDasharray="4 3"
+                        opacity={0.8}
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Pluma de Escape Multi-capa y Diamantes Mach */}
                 {stage === 'LAUNCH_ASCENT' && (
                   <div
                     style={{
                       position: 'absolute',
-                      top: '93%',
+                      top: '91%',
                       left: '50%',
-                      marginLeft: -9,
-                      width: 18,
-                      height: 84,
-                      borderRadius: '0 0 50% 50%',
-                      background: 'linear-gradient(#fde68a, #f97316, transparent)',
-                      transformOrigin: 'top',
-                      animation: 'flame .1s infinite',
-                      filter: 'blur(1px)',
+                      transform: 'translateX(-50%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      pointerEvents: 'none',
+                      zIndex: 2,
                     }}
-                  />
+                  >
+                    {/* Pluma exterior turbulenta de queroseno */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        width: 32,
+                        height: 98,
+                        borderRadius: '0 0 50% 50%',
+                        background:
+                          'radial-gradient(ellipse at 50% 20%, #fef08a 0%, #f97316 45%, #ef4444 80%, transparent 100%)',
+                        transformOrigin: 'top center',
+                        animation: 'plumeTurbulence 0.14s ease-in-out infinite alternate',
+                        filter: 'blur(2px)',
+                        boxShadow: '0 0 24px rgba(249, 115, 22, 0.7)',
+                      }}
+                    />
+
+                    {/* Núcleo hipersónico con Diamantes Mach */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        width: 14,
+                        height: 72,
+                        borderRadius: '0 0 45% 45%',
+                        background:
+                          'linear-gradient(180deg, #ffffff 0%, #67e8f9 35%, #0284c7 75%, transparent 100%)',
+                        transformOrigin: 'top center',
+                        animation: 'machDiamonds 0.09s ease-in-out infinite alternate',
+                        filter: 'blur(0.8px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                        padding: '6px 0',
+                      }}
+                    >
+                      {/* Diamantes de choque Mach */}
+                      {[0, 1, 2].map((idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            width: 6 - idx * 1.2,
+                            height: 6 - idx * 1.2,
+                            background: '#ffffff',
+                            transform: 'rotate(45deg)',
+                            boxShadow: '0 0 8px #5FF3FF',
+                            opacity: 0.9 - idx * 0.15,
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Lluvia de Chispas y Brasas Poly Bridge */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 40,
+                        width: 30,
+                        height: 60,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {[
+                        { left: 6, delay: '0s', dur: '0.35s', bg: '#fbbf24', size: 3 },
+                        { left: 14, delay: '0.12s', dur: '0.4s', bg: '#f97316', size: 2.5 },
+                        { left: 22, delay: '0.07s', dur: '0.32s', bg: '#ef4444', size: 3 },
+                        { left: 10, delay: '0.18s', dur: '0.38s', bg: '#fde047', size: 2 },
+                        { left: 18, delay: '0.24s', dur: '0.42s', bg: '#fb923c', size: 2.8 },
+                      ].map((sp, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            position: 'absolute',
+                            left: sp.left,
+                            top: 0,
+                            width: sp.size,
+                            height: sp.size,
+                            borderRadius: '50%',
+                            background: sp.bg,
+                            boxShadow: `0 0 6px ${sp.bg}`,
+                            animation: `sparkShower ${sp.dur} linear infinite`,
+                            animationDelay: sp.delay,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Humo y Vapor de Diluvio de Agua en Plataforma (T-0 a T+2.5s) */}
+                {stage === 'LAUNCH_ASCENT' && snap.ascent <= 0.40 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '90%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 260,
+                      height: 80,
+                      pointerEvents: 'none',
+                      zIndex: 1,
+                      opacity: 1 - snap.ascent / 0.40,
+                    }}
+                  >
+                    {/* Nube de vapor izquierda */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: '18%',
+                        top: '10%',
+                        width: 80,
+                        height: 50,
+                        borderRadius: '50%',
+                        background:
+                          'radial-gradient(circle, rgba(226, 232, 240, 0.85) 0%, rgba(148, 163, 184, 0.4) 60%, transparent 80%)',
+                        filter: 'blur(8px)',
+                        animation: 'padSteamLeft 0.8s ease-out infinite',
+                      }}
+                    />
+                    {/* Nube de vapor derecha */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '18%',
+                        top: '10%',
+                        width: 80,
+                        height: 50,
+                        borderRadius: '50%',
+                        background:
+                          'radial-gradient(circle, rgba(226, 232, 240, 0.85) 0%, rgba(148, 163, 184, 0.4) 60%, transparent 80%)',
+                        filter: 'blur(8px)',
+                        animation: 'padSteamRight 0.8s ease-out infinite',
+                      }}
+                    />
+                  </div>
                 )}
 
                 {showDebris &&
