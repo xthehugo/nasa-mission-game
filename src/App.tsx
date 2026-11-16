@@ -157,6 +157,13 @@ export function App() {
 
   const goToLevel = (target: CMLPhase) => {
     playHoloTone('STEP', soundEnabled);
+    if (isL1Tut) {
+      if (target === 'CML_2' && level1TutorialStep < 5) setLevel1TutorialStep(5);
+      else if (target === 'CML_3' && level1TutorialStep < 6) setLevel1TutorialStep(6);
+      else if (target === 'CML_4' && level1TutorialStep < 7) setLevel1TutorialStep(7);
+      else if (target === 'CML_5' && level1TutorialStep < 8) setLevel1TutorialStep(8);
+      else if (target === 'SIMULATION' && level1TutorialStep < 9) setLevel1TutorialStep(9);
+    }
     if (target === 'SIMULATION') launchSimulation();
     else setPhase(target);
   };
@@ -420,8 +427,12 @@ export function App() {
                   title={lockHint}
                   onClick={() => {
                     if (nextLocked) return;
-                    if (phase === 'CML_1' && level1TutorialStep < 5) {
-                      setLevel1TutorialStep(5);
+                    if (isL1Tut) {
+                      if (phase === 'CML_1' && level1TutorialStep < 5) setLevel1TutorialStep(5);
+                      else if (phase === 'CML_2' && level1TutorialStep < 6) setLevel1TutorialStep(6);
+                      else if (phase === 'CML_3' && level1TutorialStep < 7) setLevel1TutorialStep(7);
+                      else if (phase === 'CML_4' && level1TutorialStep < 8) setLevel1TutorialStep(8);
+                      else if (phase === 'CML_5' && level1TutorialStep < 9) setLevel1TutorialStep(9);
                     }
                     goToLevel(nextPhase);
                   }}

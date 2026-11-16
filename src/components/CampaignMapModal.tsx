@@ -21,6 +21,7 @@ import {
 } from '../engine';
 import { useMissionStore } from '../store';
 import { playHoloTone, unlockAudioContext } from './holoAudio';
+import { LEVEL1_TOTAL_STEPS } from './level1TutorialConfig';
 import { CONTRACT_TO_CINEMATIC } from './narrativeConfig';
 
 export const CampaignMapModal: React.FC = () => {
@@ -89,10 +90,10 @@ export const CampaignMapModal: React.FC = () => {
     setPhase('CML_1');
 
     if (isFirstIntroCampaign) {
-      // Step 1 of 10-step interactive tutorial
+      // Step 1 of 11-step interactive tutorial
       setLevel1TutorialStep(0);
     } else {
-      setLevel1TutorialStep(10);
+      setLevel1TutorialStep(LEVEL1_TOTAL_STEPS);
     }
 
     appendDecisionLog({

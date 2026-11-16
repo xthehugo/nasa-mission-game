@@ -9,6 +9,7 @@ import {
 import { equippedIdForCategory, useMissionStore } from '../store';
 import type { SubsystemCategory, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
+import { LEVEL1_TOTAL_STEPS } from './level1TutorialConfig';
 import { SUBSYSTEM_TAB_GUIDE } from './narrativeConfig';
 import { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
 import { SubsystemHoverPreview } from './SubsystemHoverPreview';
@@ -44,16 +45,14 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     metrics,
     concurrentConflicts,
     soundEnabled,
-    setPhase,
     setActiveSubsystemTab,
     togglePayload,
     setSubsystem,
-    setLevel1TutorialStep,
     setTutorialFeedback,
     appendDecisionLog,
   } = useMissionStore();
 
-  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < 10;
+  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < LEVEL1_TOTAL_STEPS;
 
   const [hoveredOpt, setHoveredOpt] = useState<SubsystemOption | null>(null);
   const [inspectingOpt, setInspectingOpt] = useState<SubsystemOption | null>(null);
@@ -235,27 +234,25 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                     },
                     impact: 'POSITIVE',
                   });
-                  if (isL1Tut && level1TutorialStep === 5 && opt.category === 'PAYLOAD') {
-                    setTutorialFeedback({
-                      en: `Payload SWaP-C updated (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Next: make a Telecom/Thermal trade-off!`,
-                      es: `Carga útil SWaP-C actualizada (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Ahora haz un trade-off en Telecom o Térmico.`,
-                    });
-                    setActiveSubsystemTab('TELECOM');
-                    setLevel1TutorialStep(6);
-                  } else if (isL1Tut && level1TutorialStep === 6 && opt.category !== 'PAYLOAD') {
-                    if (metrics.wetMass_kg > metrics.launchCapacity_kg) {
+                  if (isL1Tut && level1TutorialStep === 6) {
+                    if (opt.category === 'PAYLOAD') {
                       setTutorialFeedback({
-                        en: `Watch mass! ${opt.name.en} (+${opt.massCBE_kg} kg) pushes mass over launcher cap. Try a lighter option.`,
-                        es: `¡Cuidado con la masa! ${opt.name.es} (+${opt.massCBE_kg} kg) supera el límite. Prueba una opción más ligera.`,
-                        isError: true,
+                        en: `BioNutrients-2 payload equipped (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Click "Confirm Subsystems & Go to Tanks" to proceed to Level 04.`,
+                        es: `Carga útil BioNutrients-2 equipada (${opt.massCBE_kg} kg, ${opt.powerDrawNominal_W} W). Pulsa "Confirmar Subsistemas e Ir a Tanques" para pasar al Nivel 04.`,
                       });
                     } else {
-                      setTutorialFeedback({
-                        en: `Trade-off complete (${opt.name.en}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). Moving to MCR Gate!`,
-                        es: `Trade-off aplicado (${opt.name.es}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). ¡Pasamos a Revisión MCR!`,
-                      });
-                      setLevel1TutorialStep(7);
-                      setPhase('CML_5');
+                      if (metrics.wetMass_kg > metrics.launchCapacity_kg) {
+                        setTutorialFeedback({
+                          en: `Watch mass! ${opt.name.en} (+${opt.massCBE_kg} kg) pushes mass over launcher cap. Try a lighter option.`,
+                          es: `¡Cuidado con la masa! ${opt.name.es} (+${opt.massCBE_kg} kg) supera el límite. Prueba una opción más ligera.`,
+                          isError: true,
+                        });
+                      } else {
+                        setTutorialFeedback({
+                          en: `Trade-off applied (${opt.name.en}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). Click "Confirm Subsystems & Go to Tanks" to proceed to Level 04.`,
+                          es: `Trade-off aplicado (${opt.name.es}: ${opt.massCBE_kg} kg, $${opt.cost_MillionsUSD}M). Pulsa "Confirmar Subsistemas e Ir a Tanques" para pasar al Nivel 04.`,
+                        });
+                      }
                     }
                   }
                 }}

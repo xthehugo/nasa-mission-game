@@ -11,6 +11,7 @@ import {
 import { useMissionStore, type CubeSatFormFactor } from '../store';
 import type { ScienceDiscipline, SubsystemOption } from '../types/mission';
 import { playHoloTone } from './holoAudio';
+import { LEVEL1_TOTAL_STEPS } from './level1TutorialConfig';
 import { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
 import { SubsystemInspectionModal } from './SubsystemInspectionModal';
 
@@ -119,7 +120,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     appendDecisionLog,
   } = useMissionStore();
 
-  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < 10;
+  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < LEVEL1_TOTAL_STEPS;
 
   const isEs = language === 'es';
   const [inspectingEps, setInspectingEps] = useState<SubsystemOption | null>(null);

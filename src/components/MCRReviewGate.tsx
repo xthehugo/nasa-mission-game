@@ -25,6 +25,8 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     laserScanActive,
     soundEnabled,
     phaseTutorialStep,
+    level1TutorialStep,
+    setLevel1TutorialStep,
     toggleLaserScan,
     setSubsystem,
     setGroundStation,
@@ -357,6 +359,9 @@ export function MCRReviewGate({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
       },
       impact: isStrictJplReady ? 'POSITIVE' : 'WARNING',
     });
+    if (level1TutorialStep === 8) {
+      setLevel1TutorialStep(9);
+    }
     window.setTimeout(() => launchSimulation(), 450);
   };
 

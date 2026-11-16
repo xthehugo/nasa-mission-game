@@ -34,15 +34,19 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     concurrentConflicts,
     soundEnabled,
     phaseTutorialStep,
+    level1TutorialStep,
+    activeCampaignLevelId,
     setActiveTeamRole,
     setTankLevels,
     fillAllTanks,
     commitAndValidate,
     setPhaseTutorialStep,
+    setTutorialFeedback,
     appendDecisionLog,
   } = useMissionStore();
 
   const isEs = language === 'es';
+  const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep === 7;
 
   const objective = findObjectiveById(selection.objectiveId);
   const groundStation = findGroundStationById(selection.groundStationId);
@@ -95,6 +99,12 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
               fillAllTanks();
               checkTankSound(100, 100);
               if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
+              if (isL1Tut) {
+                setTutorialFeedback({
+                  en: 'Tanks & batteries filled! Propellant secures orbit correction and battery sustains the 35 min eclipse. Click "Confirm Tanks & Go to MCR Gate".',
+                  es: '¡Tanques y baterías cargados! El propelente asegura el control orbital y la batería sostiene el eclipse de 35 min. Pulsa "Confirmar Tanques e Ir a Revisión MCR".',
+                });
+              }
             }}
             className="border border-[#5FF3FF] bg-[#5FF3FF]/10 px-2.5 py-1 font-mono text-[10px] text-[#5FF3FF] uppercase transition hover:bg-[#5FF3FF]/20 cursor-pointer"
           >
@@ -139,11 +149,30 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                   if (s.key === 'tankFillPercent') checkTankSound(v, oxidizerFillPercent);
                   if (s.key === 'oxidizerFillPercent') checkTankSound(tankFillPercent, v);
                   if (phaseTutorialStep <= 1) setPhaseTutorialStep(2);
+                  if (isL1Tut) {
+                    setTutorialFeedback({
+                      en: `${s.label} set to ${v}%. Notice wet mass & battery reserves reacting!`,
+                      es: `${s.label} ajustado al ${v}%. ¡Observa la masa húmeda y reservas de batería reaccionando!`,
+                    });
+                  }
                 }}
                 className="mt-1.5 w-full accent-[#5FF3FF]"
               />
             </div>
           ))}
+        </div>
+
+        {/* Tarjeta Didáctica: Por Qué Tanques y Baterías */}
+        <div className="border border-[#5FF3FF]/30 bg-[#040812]/80 p-2.5 font-mono text-[9.5px] leading-relaxed rounded">
+          <div className="flex items-center justify-between text-[#5FF3FF] font-bold uppercase tracking-wider">
+            <span>{isEs ? '⛽ FÍSICA DE TANQUES & BATERÍAS' : '⛽ TANK & BATTERY PHYSICS'}</span>
+            <span className="text-[#FFC15E]">CML 04</span>
+          </div>
+          <p className="mt-1 text-slate-300">
+            {isEs
+              ? '¿Por qué varían los tanques? El cohete solo te coloca en órbita; el satélite necesita propelente propio (ΔV) para orientar sus antenas hacia la Tierra y no desorbitar. Las baterías EPS son vitales: durante los 35 min de eclipse en la sombra de la Tierra (umbra), los paneles solares dan 0W y la batería mantiene con vida los sistemas térmicos a -120°C.'
+              : 'Why do tanks vary? The launch vehicle only places you into orbit; your satellite needs onboard propellant (ΔV) for attitude control and station keeping. EPS batteries are vital: during 35 min orbital eclipse in Earth shadow (umbra), solar panels yield 0W and batteries keep thermal heaters alive at -120°C.'}
+          </p>
         </div>
       </div>
     );

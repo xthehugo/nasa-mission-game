@@ -32,6 +32,9 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     simSpeed,
     phaseTutorialStep,
     setPhaseTutorialStep,
+    level1TutorialStep,
+    setLevel1TutorialStep,
+    setTutorialFeedback,
   } = useMissionStore();
 
   const [crisisTimer, setCrisisTimer] = useState(15);
@@ -362,6 +365,13 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
                       onClick={() => {
                         resolveCrisis(dilemma.id, opt.id);
                         if (phaseTutorialStep <= 2) setPhaseTutorialStep(3);
+                        if (level1TutorialStep === 9) {
+                          setLevel1TutorialStep(10);
+                          setTutorialFeedback({
+                            en: 'Flight crisis resolved with positive margin! Click "Open Flight Certificate" below or in HUD to claim your 3 stars.',
+                            es: '¡Crisis en vuelo resuelta con margen positivo! Pulsa "Abrir Certificado de Vuelo" abajo o en el HUD para reclamar tus 3 estrellas.',
+                          });
+                        }
                         if (opt.isOptimal) {
                           repairHull(10);
                           addXP(50);

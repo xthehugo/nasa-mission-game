@@ -62,6 +62,8 @@ export function CommanderHudBanner() {
     prevPhaseTutorialStep,
     setRobotHoverZone,
     setTutorialFeedback,
+    launchSimulation,
+    setCertificateOpen,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -477,27 +479,125 @@ export function CommanderHudBanner() {
                 onClick={() => {
                   playHoloTone('STAR', soundEnabled);
                   setTutorialFeedback({
-                    en: '35% margin rule understood! Next: equip your science payload.',
-                    es: '¡Regla del 35% clara! Ahora activa tu carga útil científica.',
+                    en: '20% margin rule understood! Next: explore orbit & ground telemetry.',
+                    es: '¡Regla del 20% entendida! Ahora ingresa a Órbita y Estaciones Terrenas.',
                   });
                   setLevel1TutorialStep(5);
-                  setPhase('CML_3');
+                  setPhase('CML_2');
                 }}
-                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30 cursor-pointer"
               >
                 {isEs
-                  ? 'CONFIRMAR MÁRGENES (≥35%) E IR A CARGA ÚTIL →'
-                  : 'CONFIRM MARGINS (≥35%) & GO TO PAYLOAD →'}
+                  ? 'CONFIRMAR MÁRGENES (≥20%) E IR A ÓRBITA (NIVEL 02) →'
+                  : 'CONFIRM MARGINS (≥20%) & GO TO ORBIT (LEVEL 02) →'}
+              </button>
+            ) : level1TutorialStep === 5 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'LEO Orbit & Eclipse verified! Next: configure science payload and trade space.',
+                    es: '¡Órbita LEO y cono de eclipse verificados! Ahora equilibra carga útil y subsistemas.',
+                  });
+                  setLevel1TutorialStep(6);
+                  setPhase('CML_3');
+                }}
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30 cursor-pointer"
+              >
+                {isEs
+                  ? 'CONFIRMAR ÓRBITA E IR A CARGA ÚTIL (NIVEL 03) →'
+                  : 'CONFIRM ORBIT & GO TO PAYLOAD (LEVEL 03) →'}
+              </button>
+            ) : level1TutorialStep === 6 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'Subsystems balanced! Next: fill propellant tanks and configure eclipse batteries.',
+                    es: '¡Subsistemas equilibrados! Ahora carga tanques de propelente y baterías.',
+                  });
+                  setLevel1TutorialStep(7);
+                  setPhase('CML_4');
+                }}
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30 cursor-pointer"
+              >
+                {isEs
+                  ? 'CONFIRMAR SUBSISTEMAS E IR A TANQUES (NIVEL 04) →'
+                  : 'CONFIRM SUBSYSTEMS & GO TO TANKS (LEVEL 04) →'}
+              </button>
+            ) : level1TutorialStep === 7 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STEP', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'Tanks and batteries ready! Next: conduct MCR verification and sign launch gate.',
+                    es: '¡Tanques y baterías listos! Ahora realiza la verificación MCR antes del despegue.',
+                  });
+                  setLevel1TutorialStep(8);
+                  setPhase('CML_5');
+                }}
+                className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30 cursor-pointer"
+              >
+                {isEs
+                  ? 'CONFIRMAR TANQUES E IR A REVISIÓN MCR (NIVEL 05) →'
+                  : 'CONFIRM TANKS & GO TO MCR GATE (LEVEL 05) →'}
+              </button>
+            ) : level1TutorialStep === 8 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STAR', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'MCR Authorized! Cape Canaveral countdown initiated.',
+                    es: '¡MCR Autorizado! Cuenta regresiva en Cabo Cañaveral iniciada.',
+                  });
+                  setLevel1TutorialStep(9);
+                  launchSimulation();
+                }}
+                className="w-full border border-[#10B981] bg-[#10B981]/25 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#10B981] uppercase hover:bg-[#10B981]/35 shadow-[0_0_16px_rgba(16,185,129,0.3)] cursor-pointer"
+              >
+                {isEs
+                  ? 'AUTORIZAR MCR E INICIAR DESPEGUE (NIVEL 06) →'
+                  : 'AUTHORIZE MCR & LAUNCH MISSION (LEVEL 06) →'}
+              </button>
+            ) : level1TutorialStep === 9 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STAR', soundEnabled);
+                  setTutorialFeedback({
+                    en: 'Flight stabilized! Proceed to final evaluation and NASA Certificate.',
+                    es: '¡Vuelo estabilizado! Procede a la evaluación final y Certificado NASA.',
+                  });
+                  setLevel1TutorialStep(10);
+                }}
+                className="w-full border border-[#FFC15E] bg-[#FFC15E]/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase hover:bg-[#FFC15E]/30 cursor-pointer"
+              >
+                {isEs
+                  ? 'AVANZAR A EVALUACIÓN Y CERTIFICADO (PASO FINAL) →'
+                  : 'PROCEED TO EVALUATION & CERTIFICATE (FINAL STEP) →'}
               </button>
             ) : activeTourStep.isFinalExam ? (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.08em] text-[#FFC15E] uppercase">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  {isEs
-                    ? 'EXAMEN SIN HALO: COMPLETA EL VUELO Y ABRE EL CERTIFICADO'
-                    : 'NO-HALO EXAM: COMPLETE FLIGHT & OPEN CERTIFICATE'}
+              <button
+                type="button"
+                onClick={() => {
+                  playHoloTone('STAR', soundEnabled);
+                  setCertificateOpen(true);
+                }}
+                className="w-full border border-[#FFC15E] bg-[#FFC15E]/25 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-[#FFC15E] uppercase hover:bg-[#FFC15E]/35 shadow-[0_0_18px_rgba(255,193,94,0.3)] cursor-pointer"
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-[#FFC15E]" />
+                  <span>
+                    {isEs
+                      ? '🏆 ABRIR CERTIFICADO OFICIAL NASA Y RECLAMAR ESTRELLAS'
+                      : '🏆 OPEN OFFICIAL NASA CERTIFICATE & CLAIM STARS'}
+                  </span>
                 </span>
-              </span>
+              </button>
             ) : (
               <span className="inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.08em] text-[#5FF3FF] uppercase">
                 <Zap className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
