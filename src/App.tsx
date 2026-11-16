@@ -61,7 +61,6 @@ export function App() {
     activeCampaignLevelId,
     level1TutorialStep,
     robotHoverZone,
-    maxUnlockedLevel,
     selection,
     metrics,
     reducedMotion,
@@ -258,8 +257,8 @@ export function App() {
                   <ArrowLeft className="h-3 w-3 shrink-0 text-[#FFC15E]" />
                   <span>
                     {isEs
-                      ? 'PASO 5/10: REGLA DEL 35% EN TELEMETRÍA'
-                      : 'STEP 5/10: 35% RULE IN TELEMETRY'}
+                      ? 'PASO 5/10: REGLA DE MÁRGENES EN TELEMETRÍA'
+                      : 'STEP 5/10: SAFETY MARGINS IN TELEMETRY'}
                   </span>
                 </div>
                 <button
@@ -267,13 +266,13 @@ export function App() {
                   onClick={() => {
                     playHoloTone('STAR', soundEnabled);
                     setLevel1TutorialStep(5);
-                    setPhase('CML_3');
+                    setPhase('CML_2');
                   }}
                   className="w-full border border-[#5FF3FF] bg-[#5FF3FF]/20 py-1 font-mono text-[8.5px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30"
                 >
                   {isEs
-                    ? 'CONFIRMAR MÁRGENES E IR A CARGA ÚTIL →'
-                    : 'CONFIRM MARGINS & GO TO PAYLOAD →'}
+                    ? 'CONFIRMAR MÁRGENES E IR A ÓRBITA (CML 02) →'
+                    : 'CONFIRM MARGINS & GO TO ORBIT (CML 02) →'}
                 </button>
               </div>
             )}
@@ -493,7 +492,8 @@ export function App() {
           {LEVELS.map((lvl, idx) => {
             const active = phase === lvl.id;
             const completed = idx < currentIdx;
-            const unlocked = idx + 1 <= maxUnlockedLevel || idx === currentIdx + 1;
+            // Opción A: Navegación libre para estudiantes, cadetes y docentes
+            const unlocked = true;
             return (
               <button
                 key={lvl.id}

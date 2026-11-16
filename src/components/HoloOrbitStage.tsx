@@ -284,12 +284,21 @@ export function HoloOrbitStage() {
   const l2NextY = 150 + 74 * Math.sin(thetaRad + 0.04);
   const l2Heading = (Math.atan2(l2NextY - l2Y, l2NextX - l2X) * 180) / Math.PI;
 
-  // Eclipse & Occlusion status (Sunlight from -X; Shadow cone along +X when eclipseFraction > 0)
-  const inEclipse =
+  // Eclipse & Occlusion status (Sunlight from -X; Shadow cones along +X when eclipseFraction > 0)
+  const inUmbra =
     !isL2 &&
     dest.eclipseFraction > 0 &&
     satPoint.xWorld > 0 &&
-    Math.hypot(satPoint.yWorld, satPoint.zWorld) < BODY_R * 0.92;
+    Math.hypot(satPoint.yWorld, satPoint.zWorld) < BODY_R * 0.82;
+
+  const inPenumbra =
+    !isL2 &&
+    dest.eclipseFraction > 0 &&
+    satPoint.xWorld > 0 &&
+    !inUmbra &&
+    Math.hypot(satPoint.yWorld, satPoint.zWorld) < BODY_R * 1.18;
+
+  const inEclipse = inUmbra || inPenumbra;
   const satOcculted =
     !isL2 && satPoint.depth < 0 && Math.hypot(satPoint.sx - CX, satPoint.sy - CY) < BODY_R;
 
@@ -321,6 +330,23 @@ export function HoloOrbitStage() {
     <div className="flex w-full flex-col items-center">
       <svg viewBox="0 0 500 320" className="h-[210px] max-h-[36vh] w-full max-w-[540px] select-none sm:h-[260px] lg:h-[300px] lg:max-h-[44vh]">
         <defs>
+          <style>{`
+            @keyframes rfPulseStream {
+              0% { stroke-dashoffset: 24; }
+              100% { stroke-dashoffset: 0; }
+            }
+            @keyframes rfAlertPulse {
+              0%, 100% { stroke-opacity: 1; stroke-width: 1.8; }
+              50% { stroke-opacity: 0.3; stroke-width: 0.9; }
+            }
+            @keyframes frostPulse {
+              0%, 100% { opacity: 0.6; }
+              50% { opacity: 1; }
+            }
+            .rf-stream { animation: rfPulseStream 0.6s linear infinite; }
+            .rf-alert-line { animation: rfAlertPulse 0.4s ease-in-out infinite; }
+            .frost-glow { animation: frostPulse 1.2s ease-in-out infinite; }
+          `}</style>
           <filter id="orbitGlow">
             <feGaussianBlur stdDeviation="1.8" result="blur" />
             <feMerge>
@@ -328,6 +354,16 @@ export function HoloOrbitStage() {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          <linearGradient id="umbraGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#020617" stopOpacity="0.94" />
+            <stop offset="60%" stopColor="#020617" stopOpacity="0.82" />
+            <stop offset="100%" stopColor="#040914" stopOpacity="0.18" />
+          </linearGradient>
+          <linearGradient id="penumbraGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#0f172a" stopOpacity="0.55" />
+            <stop offset="70%" stopColor="#0f172a" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#04080F" stopOpacity="0.04" />
+          </linearGradient>
           <linearGradient id="eclipseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#020617" stopOpacity="0.82" />
             <stop offset="100%" stopColor="#020617" stopOpacity="0.05" />
@@ -423,12 +459,24 @@ export function HoloOrbitStage() {
             </text>
             {dest.eclipseFraction > 0 && (
               <g>
+                {/* Cono exterior de Penumbra (Atenuación Parcial) */}
                 <polygon
-                  points={`${CX},${CY - BODY_R * 0.92} ${CX + 215},${CY - BODY_R * 0.85} ${CX + 215},${CY + BODY_R * 0.85} ${CX},${CY + BODY_R * 0.92}`}
-                  fill="url(#eclipseGrad)"
+                  points={`${CX},${CY - BODY_R * 1.18} ${CX + 230},${CY - BODY_R * 1.38} ${CX + 230},${CY + BODY_R * 1.38} ${CX},${CY + BODY_R * 1.18}`}
+                  fill="url(#penumbraGrad)"
                 />
-                <text x={CX + 128} y={CY + 3} textAnchor="middle" className="font-mono text-[7px]" fill="#64748b">
-                  {isEs ? 'CONO DE ECLIPSE' : 'UMBRA / ECLIPSE'}
+                {/* Cono central de Umbra (Oscuridad Total 0W) */}
+                <polygon
+                  points={`${CX},${CY - BODY_R * 0.92} ${CX + 230},${CY - BODY_R * 0.65} ${CX + 230},${CY + BODY_R * 0.65} ${CX},${CY + BODY_R * 0.92}`}
+                  fill="url(#umbraGrad)"
+                />
+                {/* Límites de umbra geométrica */}
+                <line x1={CX} y1={CY - BODY_R * 0.92} x2={CX + 230} y2={CY - BODY_R * 0.65} stroke="#38bdf8" strokeOpacity="0.25" strokeDasharray="3 3" />
+                <line x1={CX} y1={CY + BODY_R * 0.92} x2={CX + 230} y2={CY + BODY_R * 0.65} stroke="#38bdf8" strokeOpacity="0.25" strokeDasharray="3 3" />
+                <text x={CX + 140} y={CY - 13} textAnchor="middle" className="font-mono text-[6.5px]" fill="#64748b" opacity={0.8}>
+                  {isEs ? 'PENUMBRA (50% LUZ)' : 'PENUMBRA (50% LIGHT)'}
+                </text>
+                <text x={CX + 140} y={CY + 3} textAnchor="middle" className="font-mono text-[7px]" fill="#94a3b8" fontWeight="bold">
+                  {isEs ? '● UMBRA (ECLIPSE TOTAL · 0W)' : '● UMBRA (TOTAL ECLIPSE · 0W)'}
                 </text>
               </g>
             )}
@@ -532,13 +580,27 @@ export function HoloOrbitStage() {
               {/* Polar Spin Axis */}
               <line x1={CX} y1={CY - BODY_R - 12} x2={CX} y2={CY + BODY_R + 12} stroke={body.accent} strokeOpacity="0.38" strokeDasharray="2 3" />
 
-              {/* Surface Ground Station / DSN Antenna */}
-              <polygon
-                points={`${gsX - 4},${gsY + 4} ${gsX + 4},${gsY + 4} ${gsX},${gsY - 3}`}
-                fill="#04080F"
-                stroke="#FFC15E"
-                strokeWidth="1.1"
-              />
+              {/* Surface Ground Station / DSN Antenna con radar y etiqueta */}
+              <g transform={`translate(${gsX}, ${gsY})`}>
+                {!losBlocked && (
+                  <g opacity="0.75">
+                    <circle cx="0" cy="-6" r="4" fill="none" stroke="#FFC15E" strokeWidth="0.8" strokeDasharray="2 2" className="rf-stream" />
+                    <circle cx="0" cy="-6" r="7.5" fill="none" stroke="#5FF3FF" strokeWidth="0.8" strokeDasharray="3 3" className="rf-stream" />
+                  </g>
+                )}
+                <rect x="-3.5" y="1" width="7" height="3.5" rx="1" fill="#1e293b" stroke="#64748b" strokeWidth="0.8" />
+                <path
+                  d="M -6 -2 Q 0 4 6 -2"
+                  fill="none"
+                  stroke={losBlocked ? '#64748b' : rfAlert ? '#FF4D6D' : '#FFC15E'}
+                  strokeWidth="1.6"
+                />
+                <line x1="0" y1="1" x2="0" y2="-4" stroke="#fff" strokeWidth="0.9" />
+                <circle cx="0" cy="-4" r="1.1" fill={losBlocked ? '#64748b' : '#5FF3FF'} />
+                <text x="0" y="10" textAnchor="middle" className="font-mono text-[6.5px]" fill="#FFC15E" fontWeight="bold">
+                  {gs?.id === 'gs-dsn-70m' ? 'DSN-70m' : gs?.id === 'gs-dsn-34m' ? 'DSN-34m' : 'NEN-STDN'}
+                </text>
+              </g>
             </g>
 
             {/* GMAT Hohmann Transfer Ellipse when GEO is selected */}
@@ -615,16 +677,83 @@ export function HoloOrbitStage() {
             )}
 
             {/* Dynamic RF / Optical Link Beam Tracking Live Spacecraft Position */}
-            <line
-              x1={gsX}
-              y1={gsY - 3}
-              x2={satPoint.sx}
-              y2={satPoint.sy}
-              stroke={losBlocked ? '#475569' : rfAlert ? '#FF4D6D' : '#FFC15E'}
-              strokeWidth={losBlocked ? '0.9' : '1.2'}
-              strokeOpacity={losBlocked ? '0.45' : '0.82'}
-              strokeDasharray="3 3"
-            />
+            {losBlocked ? (
+              <g>
+                <line
+                  x1={gsX}
+                  y1={gsY - 4}
+                  x2={satPoint.sx}
+                  y2={satPoint.sy}
+                  stroke="#ef4444"
+                  strokeWidth="1"
+                  strokeOpacity="0.45"
+                  strokeDasharray="3 3"
+                />
+                <g transform={`translate(${(gsX + satPoint.sx) / 2}, ${(gsY + satPoint.sy) / 2})`}>
+                  <rect x="-44" y="-7" width="88" height="14" rx="2" fill="#0b0f19" stroke="#ef4444" strokeWidth="0.9" />
+                  <text x="0" y="3" textAnchor="middle" className="font-mono text-[6.5px]" fill="#ef4444" fontWeight="bold">
+                    {isEs ? '✕ LOS BLOQUEADO (LIMBO)' : '✕ LOS BLOCKED (LIMB)'}
+                  </text>
+                </g>
+              </g>
+            ) : (
+              <g>
+                {/* Haz portador base */}
+                <line
+                  x1={gsX}
+                  y1={gsY - 4}
+                  x2={satPoint.sx}
+                  y2={satPoint.sy}
+                  stroke={rfAlert ? '#FF4D6D' : '#FFC15E'}
+                  strokeWidth={rfAlert ? '1.8' : '1.3'}
+                  strokeOpacity={rfAlert ? '0.9' : '0.45'}
+                  strokeDasharray={rfAlert ? '4 2' : undefined}
+                  className={rfAlert ? 'rf-alert-line' : undefined}
+                />
+                {/* Haz modulado con paquetes de datos en tránsito */}
+                {!rfAlert && (
+                  <>
+                    <line
+                      x1={gsX}
+                      y1={gsY - 4}
+                      x2={satPoint.sx}
+                      y2={satPoint.sy}
+                      stroke="#5FF3FF"
+                      strokeWidth="1.2"
+                      strokeDasharray="4 8"
+                      strokeOpacity="0.85"
+                      className="rf-stream"
+                    />
+                    {/* Paquetes de telemetría y comandos navegando en tiempo real */}
+                    {[0.2, 0.45, 0.7, 0.9].map((tRatio, idx) => {
+                      const tDyn = (tRatio + (thetaRad * 4) / (Math.PI * 2)) % 1;
+                      const pkX = gsX + (satPoint.sx - gsX) * tDyn;
+                      const pkY = (gsY - 4) + (satPoint.sy - (gsY - 4)) * tDyn;
+                      const isDownlink = idx % 2 === 0;
+                      return (
+                        <circle
+                          key={idx}
+                          cx={pkX}
+                          cy={pkY}
+                          r={isDownlink ? 1.8 : 1.4}
+                          fill={isDownlink ? '#5FF3FF' : '#FFC15E'}
+                          filter="url(#orbitGlow)"
+                        />
+                      );
+                    })}
+                  </>
+                )}
+                {/* Alerta si el margen es negativo */}
+                {rfAlert && (
+                  <g transform={`translate(${(gsX + satPoint.sx) / 2}, ${(gsY + satPoint.sy) / 2})`}>
+                    <rect x="-46" y="-7" width="92" height="14" rx="2" fill="#0b0f19" stroke="#FF4D6D" strokeWidth="0.9" />
+                    <text x="0" y="3" textAnchor="middle" className="font-mono text-[6.5px]" fill="#FF4D6D" fontWeight="bold">
+                      {isEs ? '⚠ MARGEN RF < 0 dB (DSN REQ)' : '⚠ RF MARGIN < 0 dB (DSN REQ)'}
+                    </text>
+                  </g>
+                )}
+              </g>
+            )}
 
             {/* Nadir Science Swath Cone */}
             {showSwath && !satOcculted && (
@@ -690,6 +819,16 @@ export function HoloOrbitStage() {
 
                 {/* Articulated Satellite Bus Oriented Tangent to Trajectory */}
                 <g transform={`translate(${satPoint.sx}, ${satPoint.sy}) rotate(${headingDeg})`}>
+                  {/* Escarcha criogénica y halo térmico en eclipse */}
+                  {inEclipse && (
+                    <g className="frost-glow">
+                      <circle cx="0" cy="0" r="16" fill="none" stroke="#38bdf8" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.65" />
+                      <circle cx="-10" cy="-6" r="1.1" fill="#bae6fd" />
+                      <circle cx="11" cy="7" r="0.9" fill="#7dd3fc" />
+                      <circle cx="-8" cy="8" r="0.8" fill="#bae6fd" />
+                    </g>
+                  )}
+
                   {/* Exhaust thruster flare when near periapsis or high speed */}
                   {(eccentricity > 0 || Math.cos(thetaRad) > 0.72) && (
                     <polygon points="-6,-1.6 -13,0 -6,1.6" fill="#FFC15E" opacity="0.85" />
@@ -738,17 +877,27 @@ export function HoloOrbitStage() {
               y="24"
               textAnchor="end"
               className="font-mono text-[8px]"
-              fill={inEclipse ? '#38bdf8' : losBlocked ? '#f87171' : '#86efac'}
+              fill={inUmbra ? '#38bdf8' : inPenumbra ? '#94a3b8' : losBlocked ? '#f87171' : rfAlert ? '#FF4D6D' : '#86efac'}
             >
-              {inEclipse
-                ? '● ECLIPSE'
-                : losBlocked
+              {inUmbra
+                ? isEs
+                  ? '● UMBRA (ECLIPSE TOTAL · 0W SOLAR)'
+                  : '● UMBRA (TOTAL ECLIPSE · 0W SOLAR)'
+                : inPenumbra
                   ? isEs
-                    ? '[RF] OCULTACIÓN LIMBO'
-                    : '[RF] LIMB OCCULTED'
-                  : isEs
-                    ? '☼ SOL · LOS ACTIVO'
-                    : '☼ SUNLIT · LOS LOCKED'}
+                    ? '◐ PENUMBRA (LUZ PARCIAL)'
+                    : '◐ PENUMBRA (PARTIAL LIGHT)'
+                  : losBlocked
+                    ? isEs
+                      ? '[RF] OCULTACIÓN LIMBO'
+                      : '[RF] LIMB OCCULTED'
+                    : rfAlert
+                      ? isEs
+                        ? '⚠ MARGEN RF < 0 dB'
+                        : '⚠ RF MARGIN < 0 dB'
+                      : isEs
+                        ? '☼ SOL · ENLACE RF ACTIVO'
+                        : '☼ SUNLIT · RF LINK ACTIVE'}
             </text>
           </g>
         )}

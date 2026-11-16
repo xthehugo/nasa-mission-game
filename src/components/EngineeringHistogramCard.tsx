@@ -30,11 +30,11 @@ export default function EngineeringHistogramCard({
   const budgetRatio = spentCost / Math.max(1, budgetCap);
   const budgetStarEarned = missionSuccess && budgetRatio <= 0.85;
 
-  // 2. Structural & SWaP-C Safety Margin
+  // 2. Structural & SWaP-C Safety Margin (Calibrado pedagógicamente a >=20% estándar AIAA/NASA)
   const massMargin = metrics.dryMass.marginPercent;
   const powerMargin = metrics.power.marginPercent;
   const minMargin = Math.min(massMargin, powerMargin);
-  const marginStarEarned = missionSuccess && minMargin >= 35 && crisesSolvedCount >= totalCrisesCount;
+  const marginStarEarned = missionSuccess && minMargin >= 20 && crisesSolvedCount >= totalCrisesCount;
 
   // 3. Mission Completion Star
   const missionStarEarned = missionSuccess && scienceScore >= 60;
@@ -189,8 +189,8 @@ export default function EngineeringHistogramCard({
           </div>
           <p className="mt-1 text-[9px] text-slate-300">
             {isEs
-              ? 'Margen ≥35% (NASA-STD-5001B) y 3/3 crisis resueltas.'
-              : '≥35% margin (NASA-STD-5001B) & all crises solved.'}
+              ? 'Margen ≥20% (AIAA S-120A) y todas las crisis resueltas.'
+              : '≥20% margin (AIAA S-120A) & all crises solved.'}
           </p>
           <div className="mt-1 text-[8.5px] font-bold text-[#5FF3FF]">
             {minMargin.toFixed(1)}% {isEs ? 'Margen Mín.' : 'Min Margin'} · {crisesSolvedCount}/{totalCrisesCount} {isEs ? 'Crisis' : 'Crises'}

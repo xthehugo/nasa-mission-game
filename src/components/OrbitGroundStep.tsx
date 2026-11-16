@@ -234,6 +234,23 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
             </button>
           ))}
         </div>
+
+        {/* Guía Pedagógica de Telecomunicaciones y Eclipse para Cadetes */}
+        <div className="mt-3 border border-[#5FF3FF]/30 bg-[#040812]/80 p-2.5 font-mono text-[9.5px] leading-relaxed rounded">
+          <div className="flex items-center justify-between text-[#5FF3FF] font-bold uppercase tracking-wider">
+            <span>{isEs ? '📡 FÍSICA DEL ENLACE RF & ECLIPSE' : '📡 RF LINK PHYSICS & ECLIPSE'}</span>
+            <span className="text-[#FFC15E]">
+              {selection.groundStationId === 'gs-near-earth'
+                ? isEs ? 'LEO / SSO (CERCANO)' : 'LEO / SSO (NEAR)'
+                : isEs ? 'RED ESPACIO PROFUNDO (DSN)' : 'DEEP SPACE NETWORK'}
+            </span>
+          </div>
+          <p className="mt-1 text-slate-300">
+            {isEs
+              ? 'La señal de radio se atenúa con el cuadrado de la distancia (Friis). Para misiones lunares o interplanetarias (Marte/Júpiter), las antenas de 34m/70m del DSN son obligatorias para no perder la telemetría. Al entrar en el cono de sombra (umbra), los paneles no generan energía y la batería asume el control.'
+              : 'Radio signals attenuate with distance squared (Friis equation). For Lunar or deep-space missions, 34m/70m DSN dishes are required to maintain telemetry. Inside the shadow cone (umbra), solar panels stop generating and batteries take over.'}
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -104,10 +104,12 @@ export function computeTankExtraMassKg(
 
 export interface LevelStarsSummary {
   stars: number;
+  missionOk: boolean;
   marginOk: boolean;
   zeroConflicts: boolean;
   budgetOk: boolean;
   effectiveMassKg: number;
+  minMarginPercent: number;
 }
 
 export function computeLevelStars(
@@ -119,22 +121,43 @@ export function computeLevelStars(
 ): LevelStarsSummary {
   const massFactor = activeEvent === 'MASS_PENALTY' ? 1.08 : 1.0;
   const effectiveMassKg = (metrics.wetMass_kg + tankExtraMassKg) * massFactor;
-  const minMargin = mode === 'JPL_ENGINEER' ? 40 : 35;
+  // Calibración pedagógica: CADET (estudiantes/niños) requiere 20% de margen (estándar AIAA S-120A)
+  // JPL ENGINEER requiere 30% de margen
+  const minMargin = mode === 'JPL_ENGINEER' ? 30 : 20;
   const stormPenalty = activeEvent === 'SOLAR_STORM' ? 10 : 0;
 
   const effectivePowerMargin = metrics.power.marginPercent - stormPenalty;
-  const marginOk =
-    effectiveMassKg <= metrics.launchCapacity_kg &&
-    metrics.dryMass.marginPercent >= minMargin &&
-    effectivePowerMargin >= minMargin;
 
-  const zeroConflicts = conflictsCount === 0;
+  // Estrella 1: Misión Viable y Cero Conflictos (Base estructural y de subsistemas)
+  const zeroConflicts =
+    conflictsCount === 0 &&
+    metrics.volume.isCompliant &&
+    effectiveMassKg <= metrics.launchCapacity_kg;
+
+  // Estrella 2: Margen de Seguridad Superior (>20% en masa y potencia eléctrica)
+  const marginOk =
+    metrics.dryMass.marginPercent >= minMargin &&
+    effectivePowerMargin >= minMargin &&
+    metrics.power.generatedAtDestination_W >= metrics.power.eclipseRequired_W;
+
+  // Estrella 3: Eficiencia Presupuestal (dentro del tope con reserva de contingencia)
   const budgetFloor =
     activeEvent === 'BUDGET_CUT' ? metrics.cost.budgetCapMillionsUSD * 0.15 : 0;
-  const budgetOk = metrics.cost.reserveMillionsUSD >= budgetFloor;
+  const budgetOk =
+    metrics.cost.reserveMillionsUSD >= budgetFloor &&
+    metrics.cost.totalMillionsUSD <= metrics.cost.budgetCapMillionsUSD;
 
-  const stars = Number(marginOk) + Number(zeroConflicts) + Number(budgetOk);
-  return { stars, marginOk, zeroConflicts, budgetOk, effectiveMassKg };
+  const missionOk = zeroConflicts && marginOk;
+  const stars = Number(zeroConflicts) + Number(marginOk) + Number(budgetOk);
+  return {
+    stars,
+    missionOk,
+    marginOk,
+    zeroConflicts,
+    budgetOk,
+    effectiveMassKg,
+    minMarginPercent: minMargin,
+  };
 }
 
 export function playRadioSquelch(enabled: boolean): void {

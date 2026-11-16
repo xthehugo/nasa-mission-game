@@ -659,16 +659,21 @@ export function CommanderHudBanner() {
         </div>
       )}
 
-      {/* Star Criteria (Clean mockup list) */}
+      {/* Star Criteria (Calibrado pedagógicamente para niños y estudiantes) */}
       <div>
         <button
           type="button"
           onClick={() => setStarsOpen((o) => !o)}
           className="flex w-full items-center justify-between gap-2 py-1 font-mono text-[11px] tracking-[0.14em] uppercase hover:text-white"
         >
-          <span className="text-slate-400">
-            {isEs ? 'PARA GANAR ESTRELLAS' : 'STAR CRITERIA'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[#FFC15E] font-bold">
+              {'★'.repeat(starInfo.stars)}{'☆'.repeat(3 - starInfo.stars)}
+            </span>
+            <span className="text-slate-400">
+              {isEs ? 'RETO 3 ESTRELLAS' : '3-STAR CHALLENGE'}
+            </span>
+          </div>
           <ChevronDown
             className={`h-3.5 w-3.5 text-[#5FF3FF] transition-transform duration-150 ${
               starsOpen ? 'rotate-180' : ''
@@ -676,15 +681,30 @@ export function CommanderHudBanner() {
           />
         </button>
         {starsOpen && (
-          <div className="mt-1 space-y-1 font-mono text-[12px] tracking-[0.1em] uppercase">
-            <div className={starInfo.marginOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
-              ▸ {isEs ? `MARGEN MAYOR A ${isCadet ? 35 : 40}%` : `MARGIN OVER ${isCadet ? 35 : 40}%`}
+          <div className="mt-1 space-y-1 font-mono text-[10px] tracking-[0.06em] uppercase">
+            <div className={`flex items-center justify-between ${starInfo.zeroConflicts ? 'text-[#5FF3FF]' : 'text-slate-400'}`}>
+              <span>
+                {starInfo.zeroConflicts ? '✓' : '○'} {isEs ? '★ 1: CERO CONFLICTOS & MASA GO' : '★ 1: ZERO CONFLICTS & MASS GO'}
+              </span>
+              <span className="text-[9px] opacity-80">
+                {starInfo.zeroConflicts ? (isEs ? 'LISTO' : 'READY') : (isEs ? 'PENDIENTE' : 'PENDING')}
+              </span>
             </div>
-            <div className={starInfo.zeroConflicts ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
-              ▸ {isEs ? 'CERO CONFLICTOS' : 'ZERO CONFLICTS'}
+            <div className={`flex items-center justify-between ${starInfo.marginOk ? 'text-[#5FF3FF]' : 'text-slate-400'}`}>
+              <span>
+                {starInfo.marginOk ? '✓' : '○'} {isEs ? `★★ 2: MARGEN SEGURO >${starInfo.minMarginPercent}%` : `★★ 2: SAFETY MARGIN >${starInfo.minMarginPercent}%`}
+              </span>
+              <span className="text-[9px] opacity-80">
+                {metrics.dryMass.marginPercent.toFixed(0)}% M / {metrics.power.marginPercent.toFixed(0)}% P
+              </span>
             </div>
-            <div className={starInfo.budgetOk ? 'text-[#5FF3FF]' : 'text-[#FFC15E]'}>
-              ▸ {isEs ? 'BAJO PRESUPUESTO' : 'UNDER BUDGET'}
+            <div className={`flex items-center justify-between ${starInfo.budgetOk ? 'text-[#5FF3FF]' : 'text-slate-400'}`}>
+              <span>
+                {starInfo.budgetOk ? '✓' : '○'} {isEs ? '★★★ 3: BAJO PRESUPUESTO NASA' : '★★★ 3: UNDER NASA BUDGET'}
+              </span>
+              <span className="text-[9px] opacity-80">
+                ${metrics.cost.totalMillionsUSD.toFixed(1)}M / ${metrics.cost.budgetCapMillionsUSD.toFixed(1)}M
+              </span>
             </div>
           </div>
         )}
