@@ -77,7 +77,7 @@ export function CommanderHudBanner() {
     ? LEVEL1_TUTORIAL_STEPS[level1TutorialStep]
     : null;
 
-  const phaseTourSteps = getPhaseInteractiveTour(phase);
+  const phaseTourSteps = getPhaseInteractiveTour(phase, activeCampaignLevelId);
   const safePhaseTourIdx = Math.max(0, Math.min(phaseTutorialStep, phaseTourSteps.length - 1));
   const activePhaseTourStep = phaseTourSteps[safePhaseTourIdx];
 

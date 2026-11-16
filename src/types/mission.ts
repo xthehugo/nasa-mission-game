@@ -165,6 +165,9 @@ export interface MissionSelection {
   adcsId: string;
   launchVehicleId: string;
   groundStationId: string;
+  chassisFormFactor?: '1.5U' | '2U' | '3U' | 'CUSTOM';
+  customAltitudeKm?: number;
+  customInclinationDeg?: number;
 }
 
 export interface ResourceBreakdown {

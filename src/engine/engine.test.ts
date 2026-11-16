@@ -391,6 +391,52 @@ const TEST_CASES: Array<{ name: string; run: () => string }> = [
       return `GEO Delta-V=3,673 m/s; GMAT(300s)=${(gmatTheoreticalFuelFraction * 100).toFixed(1)}%, Biprop(${biprop.isp_s}s)=${(engineFuelFraction * 100).toFixed(1)}%`;
     },
   },
+  {
+    name: '12. Action Reactivity: Chassis Form Factor Volume & Altitude Delta-V',
+    run: () => {
+      const baseSel = PRESET_MISSION_SELECTIONS['obj-earth-bionutrients'];
+
+      // 1. Test 1.5U chassis limits volume envelope to 1.5U
+      const sel15U: MissionSelection = { ...baseSel, chassisFormFactor: '1.5U' };
+      const phys15U = evaluateMissionPhysics(sel15U);
+      assertCondition(
+        phys15U.volume.maxFairing_U === 1.5,
+        `Expected max fairing 1.5U, got ${phys15U.volume.maxFairing_U}`,
+      );
+
+      // 2. Test 3U chassis allows 3.0U
+      const sel3U: MissionSelection = { ...baseSel, chassisFormFactor: '3U' };
+      const phys3U = evaluateMissionPhysics(sel3U);
+      assertCondition(
+        phys3U.volume.maxFairing_U === 3.0,
+        `Expected max fairing 3.0U, got ${phys3U.volume.maxFairing_U}`,
+      );
+
+      // 3. Test altitude drag penalty below 350 km
+      const sel280km: MissionSelection = {
+        ...baseSel,
+        destinationId: 'dest-leo',
+        customAltitudeKm: 280,
+      };
+      const phys280 = evaluateMissionPhysics(sel280km);
+      const sel400km: MissionSelection = {
+        ...baseSel,
+        destinationId: 'dest-leo',
+        customAltitudeKm: 400,
+      };
+      const phys400 = evaluateMissionPhysics(sel400km);
+      assertCondition(
+        phys280.deltaV_required_ms > 150,
+        `Expected drag penalty to increase Delta-V above baseline 150 m/s at 280 km, got ${phys280.deltaV_required_ms}`,
+      );
+      assertCondition(
+        phys400.deltaV_required_ms > 150,
+        `Expected higher orbital energy Delta-V at 400 km, got ${phys400.deltaV_required_ms}`,
+      );
+
+      return `1.5U cap=${phys15U.volume.maxFairing_U}U, 3U cap=${phys3U.volume.maxFairing_U}U, 280km drag Delta-V=${phys280.deltaV_required_ms} m/s`;
+    },
+  },
 ];
 
 export function runEngineTestSuite(): EngineTestReport {

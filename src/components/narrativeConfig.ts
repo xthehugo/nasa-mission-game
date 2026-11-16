@@ -450,7 +450,383 @@ export const PHASE_INTERACTIVE_TOURS: Record<CMLPhase, PhaseTourStep[]> = {
 
 export const LEVEL1_INTERACTIVE_TOUR = PHASE_INTERACTIVE_TOURS.CML_1;
 
-export function getPhaseInteractiveTour(phase: CMLPhase): PhaseTourStep[] {
+export const CONTRACT_PHASE_TOURS: Record<
+  string,
+  Partial<Record<CMLPhase, PhaseTourStep[]>>
+> = {
+  'contract-geo-gmat': {
+    CML_2: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'GEO 1/4 · DESTINATION', es: 'GEO 1/4 · DESTINO GEO' },
+        title: { en: 'Select Geostationary Orbit (GEO 35,786 km)', es: 'Selecciona Órbita Geoestacionaria (35,786 km)' },
+        instruction: {
+          en: 'Cadet {cadet}, this NASA contract requires Geostationary Orbit (GEO). Click "Órbita Geoestacionaria (GEO)" on the right! GMAT benchmark requires a Hohmann transfer from LEO with Delta-V = 3,673 m/s.',
+          es: 'Cadete {cadet}, para este contrato oficial de la NASA debes seleccionar "Órbita Geoestacionaria (GEO)" a la derecha. La referencia GMAT R2026a exige una transferencia Hohmann desde LEO con un Delta-V total de 3,673 m/s.',
+        },
+        astraTip: {
+          en: 'Hohmann transfer: TOI injection burn = 2,240 m/s + GOI circularization = 1,433 m/s.',
+          es: 'Transferencia Hohmann: encendido TOI de 2,240 m/s + inserción GOI de 1,433 m/s.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'LEFT_PANEL',
+        badge: { en: 'GEO 2/4 · 0° EQUATORIAL', es: 'GEO 2/4 · INCLINACIÓN 0°' },
+        title: { en: 'Altitude 35,786 km & 0° Equator', es: 'Altitud 35,786 km e Inclinación 0° Ecuatorial' },
+        instruction: {
+          en: 'On the left, ensure altitude is 35,786 km and click "0° ECU". A 0° equatorial inclination keeps the satellite stationary above the prime meridian.',
+          es: 'En el panel izquierdo, confirma que la altitud esté en 35,786 km y pulsa el botón "0° ECU". A 0° de inclinación ecuatorial el satélite queda fijo sobre un punto de la Tierra.',
+        },
+        astraTip: {
+          en: 'Any non-zero inclination creates a figure-8 ground track instead of stationary coverage.',
+          es: 'Cualquier inclinación distinta de 0° hace que el satélite trace un ocho en el cielo.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'GEO 3/4 · NASA GROUND DISH', es: 'GEO 3/4 · RED NEAR-EARTH 11M' },
+        title: { en: 'Select NASA Near-Earth 11m Dish', es: 'Selecciona la Red Near-Earth de la NASA (11 m)' },
+        instruction: {
+          en: 'Scroll down on the right and select the "Red Near-Earth de la NASA (11 m)". Its high-gain cryogenic feed maintains uninterrupted uplink at 35,786 km.',
+          es: 'Baja a la derecha y selecciona la "Red Near-Earth de la NASA (11 m)". Sus parabólicas de 11 metros garantizan contacto ininterrumpido a 35,786 km de distancia.',
+        },
+        astraTip: {
+          en: 'University 3m dishes have insufficient aperture for GEO telemetry downlink.',
+          es: 'Las antenas universitarias de 3m no tienen potencia para recibir datos desde GEO.',
+        },
+      },
+      {
+        step: 3,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'GEO 4/4 · ADVANCE TO CML 03', es: 'GEO 4/4 · AVANZAR AL NIVEL 03' },
+        title: { en: 'Hohmann Trajectory Ready', es: 'Trayectoria Hohmann Validada: Ir a Nivel 03' },
+        instruction: {
+          en: 'Look at the center holographic display: the spacecraft synchronizes with Earth’s rotation once every 23h 56m. Click "SIGUIENTE NIVEL · 03" to equip the bipropellant rocket engine!',
+          es: 'Observa en el centro la órbita GEO: la nave gira sincrónicamente cada 23h 56m con la Tierra. Pulsa "SIGUIENTE NIVEL · 03" para equipar el motor de combustión química.',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 03 below the orbit map to proceed to Trade Space.',
+          es: 'Pulsa el botón SIGUIENTE NIVEL 03 debajo del mapa de órbita.',
+        },
+      },
+    ],
+    CML_3: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'GEO 1/3 · BIPROPELLANT', es: 'GEO 1/3 · MOTOR BIPROPELENTE' },
+        title: { en: 'Equip Bipropellant Engine (Isp 300s)', es: 'Equipa el Motor Bipropelente (Isp 300s)' },
+        instruction: {
+          en: 'Go to the Propulsion tab on the left and equip the Bipropellant Engine on the right! GEO transfer demands 3,673 m/s of Delta-V; cold gas or monopropellant engines would exhaust fuel immediately.',
+          es: 'Ve a la pestaña Propulsión y equipa el Motor Bipropelente a la derecha. La transferencia GEO requiere 3,673 m/s de Delta-V: un motor monopropelente o iónico dejaría la masa en rojo.',
+        },
+        astraTip: {
+          en: 'Bipropellant combines hydrazine and NTO oxidizer for maximum thrust efficiency.',
+          es: 'El sistema bipropelente mezcla hidrazina y oxidante NTO para máximo empuje.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'GEO 2/3 · DEPLOYABLE EPS', es: 'GEO 2/3 · ALAS SOLARES EPS' },
+        title: { en: 'Deployable Solar Arrays for Equinox Eclipse', es: 'Alas Solares Desplegables para Eclipses' },
+        instruction: {
+          en: 'In EPS, equip deployable solar arrays. GEO satellites endure 72-minute eclipse shadows during equinoxes: you must produce enough power in daylight to keep batteries charged.',
+          es: 'En EPS, monta alas solares desplegables. En GEO los satélites atraviesan eclipses de hasta 72 minutos en los equinoccios: necesitas generar energía de sobra para recargar baterías.',
+        },
+        astraTip: {
+          en: 'Keep your EPS net margin above +35% to prevent freezing in shadow.',
+          es: 'Mantén el margen eléctrico sobre +35% para no congelar la nave en la sombra.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'GEO 3/3 · BLUEPRINT COMPLETE', es: 'GEO 3/3 · PLANO GEO COMPLETO' },
+        title: { en: 'Proceed to Level 04 Tank Design', es: 'Avanzar al Nivel 04 (Llenado de Tanques)' },
+        instruction: {
+          en: 'All 7 subsystems for the GEO sentinel are configured. Click "SIGUIENTE NIVEL · 04" below the blueprint to balance the fuel and oxidizer tanks in Point Design!',
+          es: 'Los 7 subsistemas del centinela GEO están listos. Pulsa "SIGUIENTE NIVEL · 04" debajo del plano para balancear los tanques de combustible y oxidante en Punto de Diseño.',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 04 to balance propellant mass.',
+          es: 'Pulsa SIGUIENTE NIVEL 04 para calcular los tanques.',
+        },
+      },
+    ],
+  },
+
+  'contract-moon-trailblazer': {
+    CML_2: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'MOON 1/4 · LUNAR POLAR', es: 'LUNA 1/4 · ÓRBITA LUNAR' },
+        title: { en: 'Select Lunar Polar Orbit (100 km)', es: 'Selecciona Órbita Polar Lunar (100 km)' },
+        instruction: {
+          en: 'Cadet {cadet}, click "Órbita Polar Lunar (100 km)" on the right. A 90° polar orbit passes directly over the permanently shadowed craters of the lunar south pole to hunt for water ice.',
+          es: 'Cadete {cadet}, haz clic en "Órbita Polar Lunar (100 km)" a la derecha. Una órbita polar a 90° sobrevuela los cráteres en sombra permanente del polo sur lunar en busca de hielo de agua.',
+        },
+        astraTip: {
+          en: 'Polar orbits allow the spacecraft to map the entire Moon as it slowly rotates.',
+          es: 'La órbita polar permite cartografiar toda la Luna a medida que gira bajo la nave.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'LEFT_PANEL',
+        badge: { en: 'MOON 2/4 · 100 KM PERIAPSIS', es: 'LUNA 2/4 · 100 KM POLAR' },
+        title: { en: 'Set 100 km Altitude & 90° Inclination', es: 'Ajusta 100 km de Altitud y 90° Polar' },
+        instruction: {
+          en: 'On the left slider, verify altitude is 100 km. Orbital speed is 1.63 km/s with an orbital period of 118 minutes.',
+          es: 'A la izquierda confirma que la altitud sea de 100 km y la inclinación de 90°. La velocidad de vuelo es de 1.63 km/s con periodo de 118 minutos.',
+        },
+        astraTip: {
+          en: 'Lunar mascons cause gravitational anomalies; 100 km is the safe science baseline.',
+          es: 'Las concentraciones de masa lunar (mascons) exigen no bajar de 100 km por seguridad.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'MOON 3/4 · DSN 34M DISH', es: 'LUNA 3/4 · ANTENA DSN 34M' },
+        title: { en: 'Select DSN 34-meter Dish', es: 'Selecciona la Antena DSN de 34 Metros' },
+        instruction: {
+          en: 'At 384,400 km from Earth, commercial stations cannot lock on. Select "Deep Space Network (DSN) - Antena 34 m" on the right to secure a > 6 dB link margin!',
+          es: 'A 384,400 km de la Tierra, las estaciones comerciales pierden la señal. Selecciona "Deep Space Network (DSN) - Antena 34 m" a la derecha para un enlace nítido superior a 6 dB.',
+        },
+        astraTip: {
+          en: 'DSN complexes in Madrid, Goldstone, and Canberra provide continuous coverage.',
+          es: 'Las antenas DSN en Madrid, Goldstone y Canberra aseguran comunicación sin cortes.',
+        },
+      },
+      {
+        step: 3,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'MOON 4/4 · ADVANCE TO CML 03', es: 'LUNA 4/4 · AVANZAR AL NIVEL 03' },
+        title: { en: 'Lunar Orbit Locked', es: 'Órbita Lunar Calibrada: Ir a Nivel 03' },
+        instruction: {
+          en: 'The polar orbit CAD projection is nominal. Click "SIGUIENTE NIVEL · 03" to equip the volatile spectrometer and cryocooler in the Trade Space!',
+          es: 'La proyección CAD lunar es nominal. Pulsa "SIGUIENTE NIVEL · 03" para equipar el espectrómetro de volátiles y el sistema criogénico en el Trade Space.',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 03 below the orbit display.',
+          es: 'Pulsa SIGUIENTE NIVEL 03 debajo del visor de órbita.',
+        },
+      },
+    ],
+  },
+
+  'contract-jupiter-clipper': {
+    CML_2: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'JUPITER 1/3 · DEEP SPACE', es: 'JÚPITER 1/3 · DESTINO JÚPITER' },
+        title: { en: 'Select Jupiter / Deep Space (5.20 AU)', es: 'Selecciona Júpiter / Espacio Profundo (5.20 AU)' },
+        instruction: {
+          en: 'Cadet {cadet}, click "Júpiter / Espacio Profundo (5.20 AU)" on the right. We are traveling 778 million km to Jupiter’s radiation belt to study Europa’s subsurface ocean.',
+          es: 'Cadete {cadet}, haz clic en "Júpiter / Espacio Profundo (5.20 AU)" a la derecha. Viajaremos 778 millones de km hacia los cinturones de radiación de Júpiter para explorar la luna Europa.',
+        },
+        astraTip: {
+          en: 'Solar irradiance at 5.20 AU drops to only 3.7% of Earth levels (50.3 W/m²).',
+          es: 'A 5.20 UA la radiación solar cae al 3.7% de la Tierra: solo 50.3 W/m².',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'JUPITER 2/3 · DSN 70M DISH', es: 'JÚPITER 2/3 · ANTENA DSN 70M' },
+        title: { en: 'Select DSN 70-meter Cryogenic Antenna', es: 'Selecciona Antena DSN Criogénica de 70 m' },
+        instruction: {
+          en: 'Select the "Deep Space Network (DSN) - Antena Criogénica 70 m" on the right. With a 45-minute signal transit time, only the 70m dish provides sufficient receiver sensitivity.',
+          es: 'Selecciona "Deep Space Network (DSN) - Antena Criogénica 70 m" a la derecha. Con un retardo de señal de 45 minutos, solo la antena de 70 metros capta la telemetría joviana.',
+        },
+        astraTip: {
+          en: 'Cryogenically cooled masers eliminate receiver thermal noise at extreme distances.',
+          es: 'Los amplificadores criogénicos eliminan el ruido térmico a distancias extremas.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'JUPITER 3/3 · ADVANCE TO CML 03', es: 'JÚPITER 3/3 · AVANZAR A SUBSISTEMAS' },
+        title: { en: 'Jupiter Trajectory Validated', es: 'Trayectoria a Júpiter Lista: Ir a Nivel 03' },
+        instruction: {
+          en: 'Look at the Jovian gravity well in the center hologram. Click "SIGUIENTE NIVEL · 03" to equip an RTG nuclear power unit and titanium radiation vault!',
+          es: 'Observa en el centro el pozo de gravedad de Júpiter y sus líneas magnéticas. Pulsa "SIGUIENTE NIVEL · 03" para equipar el generador nuclear RTG y el blindaje de radiación.',
+        },
+        astraTip: {
+          en: 'Solar panels fail at Jupiter: an RTG is mandatory in Level 03.',
+          es: 'Los paneles solares fallan en Júpiter: el generador RTG es obligatorio en el Nivel 03.',
+        },
+      },
+    ],
+    CML_3: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'JUPITER 1/3 · RTG NUCLEAR', es: 'JÚPITER 1/3 · GENERADOR RTG' },
+        title: { en: 'Equip Radioisotope Thermoelectric Generator (RTG)', es: 'Equipa el Generador Nuclear RTG en EPS' },
+        instruction: {
+          en: 'Go to EPS on the left and equip the RTG on the right! Solar panels would produce less than 15 watts in deep space. Plutonium decay generates 300+ watts continuously.',
+          es: 'Ve a la pestaña EPS y equipa el Generador Nuclear RTG a la derecha. Los paneles solares no pueden alimentar los instrumentos a 5.2 UA. El RTG produce más de 300 W ininterrumpidos.',
+        },
+        astraTip: {
+          en: 'RTGs do not suffer eclipse drops; power is completely steady 24/7.',
+          es: 'El generador RTG no sufre caídas de eclipse: la potencia es 100% estable siempre.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'JUPITER 2/3 · RADIATION VAULT', es: 'JÚPITER 2/3 · BÓVEDA DE TITANIO' },
+        title: { en: 'Equip Titanium Radiation Vault', es: 'Equipa la Bóveda Antirradiación de Titanio' },
+        instruction: {
+          en: 'Under Thermal/Structure, equip the Radiation Vault. High-energy electrons trapped in Jupiter’s magnetic field would destroy unshielded microchips within days.',
+          es: 'En Térmico/Estructura, monta la Bóveda de Titanio. Los electrones de los cinturones de Júpiter quemarían los chips de la computadora de a bordo en pocos días sin blindaje.',
+        },
+        astraTip: {
+          en: 'The radiation vault adds structural mass, which requires a heavy lift rocket.',
+          es: 'El blindaje añade masa estructural, requiriendo un lanzador Falcon 9.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'JUPITER 3/3 · ADVANCE TO CML 04', es: 'JÚPITER 3/3 · AVANZAR A TANQUES' },
+        title: { en: 'Deep Space Probe Configured', es: 'Sonda Joviana Lista: Ir a Nivel 04' },
+        instruction: {
+          en: 'Outstanding engineering! Your spacecraft can survive Jupiter’s harsh radiation. Click "SIGUIENTE NIVEL · 04" to calculate propellant for the Jovian orbit insertion (JOI) burn!',
+          es: '¡Excelente ingeniería aeroespacial! Tu nave sobrevivirá la radiación de Júpiter. Pulsa "SIGUIENTE NIVEL · 04" para calcular el combustible del frenado orbital en Júpiter (JOI).',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 04 to balance tanks.',
+          es: 'Pulsa SIGUIENTE NIVEL 04 para balancear tanques.',
+        },
+      },
+    ],
+  },
+
+  'contract-l2-jwst-fgs': {
+    CML_2: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'L2 1/3 · LAGRANGE POINT', es: 'L2 1/3 · PUNTO LAGRANGE L2' },
+        title: { en: 'Select Sun-Earth L2 (1.5M km)', es: 'Selecciona Sol-Tierra L2 (1.5M km)' },
+        instruction: {
+          en: 'Cadet {cadet}, click "Sol-Tierra L2 (1.5M km)" on the right! A halo orbit around L2 keeps the Sun and Earth aligned behind the spacecraft sunshield.',
+          es: 'Cadete {cadet}, haz clic en "Sol-Tierra L2 (1.5M km)" a la derecha. Una órbita halo en L2 mantiene al Sol y la Tierra alineados permanentemente detrás del parasol.',
+        },
+        astraTip: {
+          en: 'At L2 there are zero periodic Earth eclipse cycles, giving uninterrupted observation.',
+          es: 'En L2 no hay eclipses terrestres periódicos, permitiendo observaciones continuas.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'L2 2/3 · DSN 34M / LASER', es: 'L2 2/3 · ENLACE DSN 34M' },
+        title: { en: 'Select DSN 34-meter Station', es: 'Selecciona la Antena DSN 34m' },
+        instruction: {
+          en: 'Select the "Deep Space Network (DSN) - Antena 34 m" on the right to maintain contact at 1.5 million km.',
+          es: 'Selecciona "Deep Space Network (DSN) - Antena 34 m" a la derecha para enlazar a 1.5 millones de km.',
+        },
+        astraTip: {
+          en: 'Optical laser communications can downlink gigabits of deep field images daily.',
+          es: 'La comunicación óptica láser descarga gigabits de imágenes astronómicas al día.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'L2 3/3 · ADVANCE TO CML 03', es: 'L2 3/3 · AVANZAR AL NIVEL 03' },
+        title: { en: 'L2 Halo Orbit Ready', es: 'Órbita Halo L2 Lista: Ir a Nivel 03' },
+        instruction: {
+          en: 'The Lissajous halo CAD orbit is stable. Click "SIGUIENTE NIVEL · 03" to equip the FGS sensor and cryogenic sunshield!',
+          es: 'La órbita halo de Lissajous es estable. Pulsa "SIGUIENTE NIVEL · 03" para equipar el sensor óptico FGS y el parasol criogénico.',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 03 below the orbit display.',
+          es: 'Pulsa SIGUIENTE NIVEL 03 debajo del visor de órbita.',
+        },
+      },
+    ],
+  },
+
+  'contract-sso-tracers': {
+    CML_2: [
+      {
+        step: 0,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'SSO 1/4 · SUN-SYNC ORBIT', es: 'SSO 1/4 · ÓRBITA HELIOSINCRÓNICA' },
+        title: { en: 'Select LEO / Sun-Synchronous (SSO)', es: 'Selecciona Órbita Baja Terrestre (SSO 590 km)' },
+        instruction: {
+          en: 'Cadet {cadet}, select "Órbita Baja Terrestre (LEO - 500 km)" on the right. We will calibrate it to 590 km at 97.8° for the TRACERS magnetospheric reconnection mission!',
+          es: 'Cadete {cadet}, selecciona "Órbita Baja Terrestre (LEO - 500 km)" a la derecha. ¡La ajustaremos a 590 km y 97.8° para la misión magnética TRACERS!',
+        },
+        astraTip: {
+          en: 'Sun-synchronous orbits cross the equator at the exact same local solar time each day.',
+          es: 'Las órbitas heliosincrónicas cruzan el ecuador a la misma hora solar cada día.',
+        },
+      },
+      {
+        step: 1,
+        targetZone: 'LEFT_PANEL',
+        badge: { en: 'SSO 2/4 · 97.8° INCLINATION', es: 'SSO 2/4 · INCLINACIÓN 98° SSO' },
+        title: { en: 'Set 590 km Altitude & 98° SSO Button', es: 'Ajusta 590 km y Pulsa el Botón "98° SSO"' },
+        instruction: {
+          en: 'On the left slider, move altitude to ~590 km and click the "98° SSO" preset button. The retrograde 97.8° inclination uses Earth’s oblateness to rotate the orbit 1° per day.',
+          es: 'A la izquierda ajusta la altitud a ~590 km y pulsa el botón preestablecido "98° SSO". La inclinación retrógrada compensa el achatamiento terrestre haciendo girar la órbita con el Sol.',
+        },
+        astraTip: {
+          en: 'Earth’s J2 gravitational term naturally precesses the orbital plane.',
+          es: 'El efecto gravitatorio J2 hace que la órbita gire sola con las estaciones del año.',
+        },
+      },
+      {
+        step: 2,
+        targetZone: 'RIGHT_PANEL',
+        badge: { en: 'SSO 3/4 · POLAR GROUND CONTACT', es: 'SSO 3/4 · RED NEAR-EARTH 11M' },
+        title: { en: 'Select NASA Near-Earth 11m Dish', es: 'Selecciona la Red Near-Earth (11 m)' },
+        instruction: {
+          en: 'Select the Near-Earth 11m network on the right. Polar passes provide downlink opportunities every 96 minutes over arctic stations.',
+          es: 'Selecciona la red Near-Earth de 11m a la derecha. Los pases polares sobre estaciones en el ártico ofrecen descarga de telemetría cada 96 minutos.',
+        },
+        astraTip: {
+          en: 'Polar orbits offer high-latitude ground station contacts on almost every pass.',
+          es: 'Las órbitas polares sobrevuelan antenas polares casi en cada vuelta.',
+        },
+      },
+      {
+        step: 3,
+        targetZone: 'HOLOGRAM',
+        badge: { en: 'SSO 4/4 · ADVANCE TO CML 03', es: 'SSO 4/4 · AVANZAR A SUBSISTEMAS' },
+        title: { en: 'SSO Orbit Ready: Proceed to Level 03', es: 'Órbita SSO Calibrada: Ir a Nivel 03' },
+        instruction: {
+          en: 'The polar cusp pass is nominal in the central display. Click "SIGUIENTE NIVEL · 03" to equip the magnetometer boom in Trade Space!',
+          es: 'El paso por las cúspides polares es nominal en el centro. Pulsa "SIGUIENTE NIVEL · 03" para equipar el mástil del magnetómetro en el Trade Space.',
+        },
+        astraTip: {
+          en: 'Click NEXT LEVEL 03 below the orbit display.',
+          es: 'Pulsa SIGUIENTE NIVEL 03 debajo del visor de órbita.',
+        },
+      },
+    ],
+  },
+};
+
+export function getPhaseInteractiveTour(
+  phase: CMLPhase,
+  contractId?: string,
+): PhaseTourStep[] {
+  if (contractId && CONTRACT_PHASE_TOURS[contractId]?.[phase]) {
+    return CONTRACT_PHASE_TOURS[contractId]![phase]!;
+  }
   return PHASE_INTERACTIVE_TOURS[phase] || PHASE_INTERACTIVE_TOURS.CML_1;
 }
 

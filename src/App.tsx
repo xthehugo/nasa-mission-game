@@ -225,7 +225,7 @@ export function App() {
 
   return (
     <div
-      className="flex min-h-[100dvh] flex-col justify-between bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25 lg:h-[100dvh] lg:overflow-hidden"
+      className="flex h-[100dvh] flex-col justify-between overflow-hidden bg-[#04080F] text-slate-100 antialiased selection:bg-[#5FF3FF]/25"
       style={{
         fontFamily: "'Space Grotesk', system-ui, sans-serif",
         backgroundImage:
@@ -234,16 +234,16 @@ export function App() {
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;500&display=swap'); .font-mono { font-family: 'JetBrains Mono', monospace; }`}</style>
 
-      <div className="sticky top-0 z-40 bg-[#04080F]/95 backdrop-blur-md shrink-0 border-b border-[#5FF3FF]/20">
+      <div className="shrink-0 border-b border-[#5FF3FF]/20 bg-[#04080F]/95 backdrop-blur-md">
         <TopBar />
       </div>
 
-      {/* 3-Zone Holographic Stage (Center Hologram first on mobile, 100dvh no-scroll on desktop) */}
-      <main className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-start gap-3 px-3 py-2.5 sm:px-5 lg:min-h-0 lg:grid-cols-12 lg:items-stretch lg:overflow-hidden">
+      {/* 3-Zone Holographic Stage (Strict 100dvh aerospace cockpit: independent smooth scroll for side panels, centered fixed hologram) */}
+      <main className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 min-h-0 grid-cols-1 items-start gap-3 px-3 py-2 sm:px-5 md:grid-cols-12 md:items-stretch overflow-hidden">
         {/* LEFT ZONE: Live Fine Telemetry + Primary Level Controls */}
         <section
           data-astra-zone="LEFT_PANEL"
-          className={`order-2 space-y-2.5 transition-all lg:order-1 lg:col-span-3 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${
+          className={`order-2 space-y-2.5 transition-all md:order-1 md:col-span-3 md:h-full md:min-h-0 md:overflow-y-auto md:pr-1.5 ${
             !leftZoneAllowed
               ? 'opacity-40 pointer-events-none select-none'
               : robotHoverZone === 'LEFT_PANEL'
@@ -303,13 +303,13 @@ export function App() {
         {/* CENTER ZONE: Hero Hologram Stage */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 flex flex-col h-full min-h-0 transition-all z-20 lg:order-2 lg:col-span-6 ${
+          className={`order-1 flex flex-col h-full min-h-0 justify-between transition-all z-20 md:order-2 md:col-span-6 overflow-y-auto md:overflow-hidden ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
           }`}
         >
-          <div className="sticky top-14 z-20 flex w-full flex-col items-center justify-between py-1 lg:h-full lg:min-h-0">
+          <div className="flex h-full min-h-0 w-full flex-col items-center justify-between py-1">
             <div className="mb-1.5 w-full shrink-0 border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1 text-center font-mono text-[9.5px] tracking-[0.06em] text-[#5FF3FF]">
               <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
               <span className="text-slate-200">
@@ -325,7 +325,7 @@ export function App() {
                   animate={{ opacity: 1 }}
                   exit={reducedMotion ? undefined : { opacity: 0 }}
                   transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
-                  className="w-full"
+                  className="flex h-full w-full items-center justify-center"
                 >
                   {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
                     <HoloSpacecraftWireframe />
@@ -333,7 +333,7 @@ export function App() {
                   {phase === 'CML_2' && <HoloOrbitStage />}
                   {phase === 'CML_4' && <HoloPointTankStage />}
                   {phase === 'SIMULATION' && (
-                    <div className="min-h-[420px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
+                    <div className="h-full min-h-[360px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
                       <MissionStage
                         key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
                         destination={findDestinationById(selection.destinationId)}
@@ -350,22 +350,69 @@ export function App() {
             </div>
 
             {nextPhase && (() => {
-            const cml1TourPending = isL1Tut && phase === 'CML_1' && level1TutorialStep < 5;
-            const cml1PhysicsIssue =
-              phase === 'CML_1' &&
-              (!metrics.volume.isCompliant ||
-                metrics.wetMass_kg > metrics.launchCapacity_kg ||
-                metrics.power.generatedAtDestination_W < metrics.power.eclipseRequired_W);
-            const nextLocked = cml1TourPending || cml1PhysicsIssue;
-            const lockHint = cml1TourPending
-              ? isEs
+            const isTutPending = isL1Tut && phase === 'CML_1' && level1TutorialStep < 5;
+            let physicsIssue = false;
+            let lockHint = '';
+
+            if (phase === 'CML_1') {
+              if (!metrics.volume.isCompliant) {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'El volumen excede el chasis o la cofia'
+                  : 'Volume exceeds chassis or rocket fairing';
+              } else if (metrics.wetMass_kg > metrics.launchCapacity_kg) {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Masa húmeda excede la capacidad del cohete'
+                  : 'Wet mass exceeds rocket lift capacity';
+              } else if (metrics.power.generatedAtDestination_W < metrics.power.eclipseRequired_W) {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Potencia insuficiente para el eclipse'
+                  : 'Insufficient power for eclipse phase';
+              }
+            } else if (phase === 'CML_2') {
+              if (activeCampaignLevelId === 'contract-geo-gmat' && selection.destinationId !== 'dest-geo') {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Contrato GEO: Elige Órbita Geoestacionaria (GEO)'
+                  : 'GEO Contract: Select Geostationary Orbit (GEO)';
+              } else if (activeCampaignLevelId === 'contract-moon-trailblazer' && selection.destinationId !== 'dest-moon') {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Contrato Lunar: Elige Órbita Polar Lunar'
+                  : 'Lunar Contract: Select Lunar Polar Orbit';
+              } else if (activeCampaignLevelId === 'contract-jupiter-clipper' && selection.destinationId !== 'dest-jupiter') {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Contrato Clipper: Elige Júpiter / Espacio Profundo'
+                  : 'Clipper Contract: Select Jupiter / Deep Space';
+              } else if (activeCampaignLevelId === 'contract-l2-jwst-fgs' && selection.destinationId !== 'dest-l2') {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Contrato JWST: Elige Sol-Tierra L2'
+                  : 'JWST Contract: Select Sun-Earth L2';
+              } else if (activeCampaignLevelId === 'contract-sso-tracers' && selection.destinationId !== 'dest-sso') {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Contrato TRACERS: Elige Órbita Heliosincrónica (SSO)'
+                  : 'TRACERS Contract: Select Sun-Synchronous Orbit (SSO)';
+              }
+            } else if (phase === 'CML_3' || phase === 'CML_4') {
+              if (!metrics.volume.isCompliant || metrics.wetMass_kg > metrics.launchCapacity_kg) {
+                physicsIssue = true;
+                lockHint = isEs
+                  ? 'Masa o volumen excedidos: ajusta piezas o lanzador'
+                  : 'Mass or volume exceeded: adjust parts or launcher';
+              }
+            }
+
+            const nextLocked = isTutPending || physicsIssue;
+            if (isTutPending && !lockHint) {
+              lockHint = isEs
                 ? 'Completa Chasis, Energía y Misión (o salta el tour) para avanzar'
-                : 'Complete Chassis, Power & Mission (or skip tour) to continue'
-              : cml1PhysicsIssue
-                ? isEs
-                  ? 'Casi listo: revisa el volumen en cofia, la masa o la energía EPS'
-                  : 'Almost there: check fairing volume, mass, or EPS power'
-                : '';
+                : 'Complete Chassis, Power & Mission (or skip tour) to continue';
+            }
 
             return (
               <div className="mt-2 flex shrink-0 flex-col items-center gap-1">
@@ -424,7 +471,7 @@ export function App() {
         {/* RIGHT ZONE: Commander Vega Transmission + Step Decisions */}
         <section
           data-astra-zone="RIGHT_PANEL"
-          className={`order-3 space-y-2.5 transition-all lg:col-span-3 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${
+          className={`order-3 space-y-2.5 transition-all md:col-span-3 md:h-full md:min-h-0 md:overflow-y-auto md:pr-1.5 ${
             robotHoverZone === 'RIGHT_PANEL'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_26px_rgba(95,243,255,0.28)]'
               : ''
@@ -445,7 +492,7 @@ export function App() {
       {/* Bottom 6-Level Progress Indicator */}
       <footer
         data-astra-zone="FOOTER_LEVELS"
-        className={`sticky bottom-0 z-30 shrink-0 border-t border-[#5FF3FF]/15 bg-[#04080F]/95 backdrop-blur-md px-4 py-2.5 transition-all sm:px-7 ${
+        className={`shrink-0 border-t border-[#5FF3FF]/15 bg-[#04080F]/95 backdrop-blur-md px-4 py-2 transition-all sm:px-7 ${
           tutGating
             ? 'opacity-40 pointer-events-none select-none'
             : robotHoverZone === 'FOOTER_LEVELS'

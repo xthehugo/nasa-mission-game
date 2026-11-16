@@ -419,7 +419,7 @@ export function HoloSpacecraftWireframe() {
         }}
         onPointerUp={() => setDragState(null)}
         onPointerLeave={() => setDragState(null)}
-        className={`h-[300px] max-h-[54dvh] w-full max-w-[660px] select-none sm:h-[370px] lg:h-[420px] ${
+        className={`h-[220px] max-h-[38vh] w-full max-w-[620px] select-none sm:h-[280px] lg:h-[330px] lg:max-h-[46vh] ${
           dragState ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >

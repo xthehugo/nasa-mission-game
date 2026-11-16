@@ -159,7 +159,7 @@ export function HoloPointTankStage() {
         }}
         onPointerUp={() => setDragState(null)}
         onPointerLeave={() => setDragState(null)}
-        className={`h-[295px] w-full max-w-[540px] select-none sm:h-[340px] ${
+        className={`h-[210px] max-h-[36vh] w-full max-w-[520px] select-none sm:h-[260px] lg:h-[300px] lg:max-h-[44vh] ${
           dragState ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >

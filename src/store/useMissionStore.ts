@@ -101,6 +101,40 @@ export const useMissionStore = create<MissionStoreState>()(
         INITIAL_SCORES.compositeGlobalScore,
       ),
 
+      setCubesatFormFactor: (cubesatFormFactor) => {
+        const nextSelection = { ...get().selection, chassisFormFactor: cubesatFormFactor };
+        const nextMetrics = evaluateMissionPhysics(nextSelection);
+        const nextScores = computeMissionScores(nextSelection, nextMetrics);
+        const nextConflicts = computeConcurrentConflicts(nextSelection, nextMetrics);
+        set((s) => ({
+          cubesatFormFactor,
+          selection: nextSelection,
+          metrics: nextMetrics,
+          scores: nextScores,
+          concurrentConflicts: nextConflicts,
+          tutorialStepIndex: s.phase === 'CML_1' ? 1 : s.tutorialStepIndex,
+        }));
+      },
+
+      setOrbitParams: (orbitAltitudeKm, orbitInclinationDeg) => {
+        const nextSelection = {
+          ...get().selection,
+          customAltitudeKm: orbitAltitudeKm,
+          customInclinationDeg: orbitInclinationDeg,
+        };
+        const nextMetrics = evaluateMissionPhysics(nextSelection);
+        const nextScores = computeMissionScores(nextSelection, nextMetrics);
+        const nextConflicts = computeConcurrentConflicts(nextSelection, nextMetrics);
+        set({
+          orbitAltitudeKm,
+          orbitInclinationDeg,
+          selection: nextSelection,
+          metrics: nextMetrics,
+          scores: nextScores,
+          concurrentConflicts: nextConflicts,
+        });
+      },
+
       resolvedCrises: {},
       simulationResult: null,
 

@@ -319,7 +319,7 @@ export function HoloOrbitStage() {
 
   return (
     <div className="flex w-full flex-col items-center">
-      <svg viewBox="0 0 500 320" className="h-[295px] w-full max-w-[560px] sm:h-[345px]">
+      <svg viewBox="0 0 500 320" className="h-[210px] max-h-[36vh] w-full max-w-[540px] select-none sm:h-[260px] lg:h-[300px] lg:max-h-[44vh]">
         <defs>
           <filter id="orbitGlow">
             <feGaussianBlur stdDeviation="1.8" result="blur" />

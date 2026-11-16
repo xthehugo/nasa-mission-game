@@ -41,7 +41,7 @@ function roundTo(value: number, decimals = 1): number {
 function resolveSelectedSubsystems(
   selection: MissionSelection,
 ): SubsystemOption[] {
-  const pickedPayloads = selection.payloadIds
+  const pickedPayloads = (selection.payloadIds ?? [])
     .map((id) => findSubsystemById(id))
     .filter((item): item is SubsystemOption => item !== undefined);
 
@@ -217,17 +217,49 @@ export function evaluateMissionPhysics(
   const adcs = findSubsystemById(selection.adcsId);
   const launchVehicle = findSubsystemById(selection.launchVehicleId);
 
-  // 1. Dry Mass CBE + MGA + Predicted (kg)
-  const dryMassCBE = subsystems.reduce((sum, s) => sum + s.massCBE_kg, 0);
+  // 1. Dry Mass CBE + MGA + Predicted (kg) + Selected Chassis Structure Mass
+  const chassisMassMap: Record<string, number> = {
+    '1.5U': 0.45,
+    '2U': 0.65,
+    '3U': 0.95,
+    'CUSTOM': 3.2,
+  };
+  const chassisMass = selection.chassisFormFactor
+    ? (chassisMassMap[selection.chassisFormFactor] ?? 0.95)
+    : 0.95;
+
+  const dryMassCBE = subsystems.reduce((sum, s) => sum + s.massCBE_kg, 0) + chassisMass;
   const dryMassMGA = subsystems.reduce(
     (sum, s) => sum + s.massCBE_kg * s.mgaContingencyFactor,
     0,
-  );
+  ) + chassisMass * 0.15;
   const dryMassPredicted = dryMassCBE + dryMassMGA;
 
   // 2. Tsiolkovsky Rocket Equation: wet mass & propellant mass
   const isp = Math.max(propulsion?.isp_s ?? 68, 1);
-  const deltaVReq = destination.requiredDeltaV_ms;
+  let deltaVReq = destination.requiredDeltaV_ms;
+
+  // Reactivity: Custom altitude and inclination effects on Delta-V and orbital dynamics
+  if (selection.destinationId === 'dest-leo' && selection.customAltitudeKm) {
+    const alt = selection.customAltitudeKm;
+    // Vis-viva circular orbit Delta-V relative to 250 km baseline: ~1.2 m/s per 10 km
+    const altDiff = alt - 250;
+    deltaVReq += Math.round(altDiff * 0.12);
+    // Thermospheric atmospheric drag penalty below 350 km (requires periodic station-keeping burns)
+    if (alt < 350) {
+      const dragFactor = (350 - alt) / 100;
+      deltaVReq += Math.round(dragFactor * 80);
+    }
+  } else if (selection.destinationId === 'dest-geo' && selection.customAltitudeKm) {
+    // GEO Hohmann transfer from LEO 250 km to apogee: 3,673 m/s baseline validated by GMAT R2026a
+    const alt = selection.customAltitudeKm;
+    if (alt >= 35000) {
+      deltaVReq = 3673;
+    } else {
+      deltaVReq = Math.round(150 + (alt / 35786) * 3523);
+    }
+  }
+
   const massRatio = Math.exp(
     deltaVReq / (isp * NASA_PHYSICS_CONSTANTS.STANDARD_GRAVITY_MS2),
   );
@@ -385,9 +417,18 @@ export function evaluateMissionPhysics(
     telecomStatus = 'YELLOW';
   }
 
-  // 5. Volume & Fairing Check
+  // 5. Volume, Chassis & Fairing Check
   const usedVolumeU = subsystems.reduce((sum, s) => sum + s.volume_U, 0);
-  const maxFairingU = launchVehicle?.fairingVolume_U ?? 24;
+  const rocketFairingU = launchVehicle?.fairingVolume_U ?? 24;
+  const chassisEnvelopeU =
+    selection.chassisFormFactor === '1.5U'
+      ? 1.5
+      : selection.chassisFormFactor === '2U'
+        ? 2.0
+        : selection.chassisFormFactor === '3U'
+          ? 3.0
+          : rocketFairingU;
+  const maxFairingU = Math.min(rocketFairingU, chassisEnvelopeU);
   const volumeCompliant = usedVolumeU <= maxFairingU;
 
   // 6. Cost & Budget Check ($M USD)
@@ -539,8 +580,14 @@ export function evaluateMissionPhysics(
       status: worstStatus([volumeCompliant ? 'GREEN' : 'RED', costStatus]),
       feedback: !volumeCompliant
         ? {
-            en: `Spacecraft volume (${roundTo(usedVolumeU, 1)}U) exceeds ${maxFairingU}U rocket fairing.`,
-            es: `El volumen (${roundTo(usedVolumeU, 1)}U) excede la cofia de ${maxFairingU}U del cohete.`,
+            en:
+              selection.chassisFormFactor && selection.chassisFormFactor !== 'CUSTOM'
+                ? `Spacecraft instruments (${roundTo(usedVolumeU, 1)}U) exceed selected ${selection.chassisFormFactor} chassis.`
+                : `Spacecraft volume (${roundTo(usedVolumeU, 1)}U) exceeds ${maxFairingU}U rocket fairing.`,
+            es:
+              selection.chassisFormFactor && selection.chassisFormFactor !== 'CUSTOM'
+                ? `Los instrumentos (${roundTo(usedVolumeU, 1)}U) no caben en el chasis ${selection.chassisFormFactor} elegido.`
+                : `El volumen (${roundTo(usedVolumeU, 1)}U) excede la cofia de ${maxFairingU}U del cohete.`,
           }
         : costStatus === 'RED'
           ? {
