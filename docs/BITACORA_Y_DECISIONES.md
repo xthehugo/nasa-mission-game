@@ -7,10 +7,14 @@ Registro histórico del desarrollo de **ORBITAL FORGE** y decisiones arquitectó
 ## ADR-001: Arquitectura Modular por Contrato Único y Progresión CML 1–5
 
 - **Estado:** Aceptado (2026-11-14)
-- **Decisores:** Equipo de 3 (**Persona 1:** Engine & Docs, **Persona 2:** UI & State, **Persona 3:** Visuals & GMAT/Pitch)
+- **Decisores:** Equipo de 4:
+  - **Hugo Andree Ccolque Huachaca** (Systems Architecture, Flight Dynamics & Docs)
+  - **Jhonny Alberto Castillon Torres** (Educational UX, Audio Synthesis & State)
+  - **Marcos Josfat Vilcahuaman Esteban** (Aerospace Visuals, Trajectories & GMAT)
+  - **Jeancarlos Antony Rondón Romero** (UI/UX Product Design & Prototyping)
 
 ### Contexto y Problema
-Un equipo de 3 desarrolladores dispone de menos de 48 horas en el **NASA Space Apps Challenge 2026** para construir un juego interactivo de diseño y simulación de misiones espaciales sin conflictos de merge en Git, manteniendo rigor científico verificable (*Validez*) y una interfaz educativa intuitiva (*Pertinencia* e *Impacto*).
+Un equipo multidisciplinario de 4 desarrolladores y diseñadores dispone de menos de 48 horas en el **NASA Space Apps Challenge 2026** para construir un juego interactivo de diseño y simulación de misiones espaciales sin conflictos de merge en Git, manteniendo rigor científico verificable (*Validez*) y una interfaz educativa intuitiva (*Pertinencia* e *Impacto*).
 
 ### Decisión
 1. **Arquitectura Frontend-First modular por carpetas** regida por un único contrato estricto de tipos (`src/types/mission.ts`) en `main` que separa:

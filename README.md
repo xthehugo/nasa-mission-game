@@ -290,9 +290,10 @@ Para un análisis detallado de cada componente técnico, consulta los documentos
 
 # 👥 Team & Acknowledgments
 
-* **Systems Architecture & Physics Engine:** Hugo (`feat/engine`)
-* **Educational UX, Audio & Frontend Engineering:** Jhonny (`Jhonny---UI-/-Estado`)
-* **Aerospace Visualization, Storytelling & GMAT Verification:** Marcos (`feat/visuals`)
+* **Hugo Andree Ccolque Huachaca** ([@xthehugo](https://github.com/xthehugo)) — Systems Architecture, Flight Dynamics Engine & GMAT Verification (`feat/engine`)
+* **Jhonny Alberto Castillon Torres** ([@Jhonnytw02](https://github.com/Jhonnytw02)) — Educational UX, Web Audio Holo-Engine & State Orchestration (`Jhonny---UI-/-Estado`)
+* **Marcos Josfat Vilcahuaman Esteban** ([@Mkius](https://github.com/Mkius)) — Aerospace Visualization, Trajectories & Interactive Storytelling (`feat/visuals`)
+* **Jeancarlos Antony Rondón Romero** — UI/UX Product Design, Interactive Prototyping & Design Systems
 
 **Open Data Sources:**  
 * NASA Science Mission Directorate (SMD) & SmallSat Institute  

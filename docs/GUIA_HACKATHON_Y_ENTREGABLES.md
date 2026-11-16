@@ -70,7 +70,7 @@ Consolidado de reglas oficiales de **NASA Space Apps Challenge 2026 — Universi
 | **3** | **How the Game Works (CML 1–5 + Live Crises)** | Diagrama visual de las 5 fases CML + Modo Cadete / Ingeniero JPL + 3 crisis interactivas de vuelo. |
 | **4** | **Scientific Validity & NASA GMAT Cross-Check** | Ecuaciones reales (Tsiolkovsky, $1/R^2$, dB Link Budget), semáforo MCR `>= 35%` y **capturas de NASA GMAT R2026a (`Ex_HohmannTransfer`: `TOI + GOI = 3,673 m/s`, 12 iteraciones DC, 11/11 tests)**. |
 | **5** | **Live Demo Showcase** | Captura / GIF / demo rápida armando una misión fallida vs. corrigiéndola hasta `GREEN` y comparándola con la misión real de NASA/CSA. |
-| **6** | **Team Diversity & Parallel Architecture** | Explicación visual de los 3 perfiles del equipo (Física/Sistemas, UX Educativa/Estado, Visualización/GMAT/Storytelling) y arquitectura modular. |
+| **6** | **Team Diversity & Parallel Architecture** | Explicación visual de los 4 perfiles del equipo (Hugo Andree Ccolque Huachaca en Arquitectura y Física, Jhonny Alberto Castillon Torres en UX Educativa y Audio, Marcos Josfat Vilcahuaman Esteban en Visualización Orbital y GMAT, y Jeancarlos Antony Rondón Romero en Prototipado UI/UX y Diseño) y arquitectura modular paralela. |
 | **7** | **Impact, Future Roadmap & Open Data Citations** | Uso inmediato en aulas STEM + citas abiertas oficiales (NASA JPL CML, SmallSat Institute, CubeSat 101, GMAT R2026a, Mission-Viz, CSA). |
 
 ---
