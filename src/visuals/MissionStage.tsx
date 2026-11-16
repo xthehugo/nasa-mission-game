@@ -524,8 +524,8 @@ export default function MissionStage({
     <div
       style={{
         position: 'relative',
-        minHeight: embedded ? 480 : '100vh',
-        overflow: 'hidden',
+        minHeight: embedded ? 'auto' : '100vh',
+        overflow: 'visible',
         background: embedded
           ? 'radial-gradient(ellipse at 50% 45%, rgba(95,243,255,0.08) 0%, #04080F 72%)'
           : 'radial-gradient(ellipse at 50% 0%, #0b1a3a 0%, #020617 70%)',
@@ -557,7 +557,7 @@ export default function MissionStage({
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: embedded ? 480 : '100vh',
+          minHeight: embedded ? 'auto' : '100vh',
           padding: embedded ? 12 : 16,
           gap: embedded ? 10 : 14,
         }}

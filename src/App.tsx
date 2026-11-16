@@ -291,13 +291,13 @@ export function App() {
         {/* CENTER ZONE: Hero Hologram Stage */}
         <section
           data-astra-zone="HOLOGRAM"
-          className={`order-1 flex flex-col h-full min-h-0 justify-between transition-all z-20 md:order-2 md:col-span-6 overflow-y-auto md:overflow-hidden ${
+          className={`order-1 flex flex-col h-full min-h-0 justify-between transition-all z-20 md:order-2 md:col-span-6 overflow-y-auto ${
             robotHoverZone === 'HOLOGRAM'
               ? 'ring-2 ring-[#5FF3FF] bg-[#5FF3FF]/10 p-2 shadow-[0_0_28px_rgba(95,243,255,0.3)]'
               : ''
           }`}
         >
-          <div className="flex h-full min-h-0 w-full flex-col items-center justify-between py-1">
+          <div className="flex min-h-full w-full flex-col items-center justify-between py-1">
             <div className="mb-1.5 w-full shrink-0 border border-[#5FF3FF]/25 bg-[#04080F]/80 px-3 py-1 text-center font-mono text-[9.5px] tracking-[0.06em] text-[#5FF3FF]">
               <span className="mr-2 font-bold text-[#FFC15E]">{beat.beatCode}</span>
               <span className="text-slate-200">
@@ -305,7 +305,7 @@ export function App() {
               </span>
             </div>
 
-            <div className="flex w-full flex-1 min-h-0 items-center justify-center">
+            <div className="flex w-full flex-1 items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={phase}
@@ -313,7 +313,7 @@ export function App() {
                   animate={{ opacity: 1 }}
                   exit={reducedMotion ? undefined : { opacity: 0 }}
                   transition={{ duration: reducedMotion ? 0 : HOLO_ANIMATION_PRESETS.stageFadeSec }}
-                  className="flex h-full w-full items-center justify-center"
+                  className="flex min-h-full w-full items-center justify-center"
                 >
                   {(phase === 'CML_1' || phase === 'CML_3' || phase === 'CML_5') && (
                     <HoloSpacecraftWireframe />
@@ -321,7 +321,7 @@ export function App() {
                   {phase === 'CML_2' && <HoloOrbitStage />}
                   {phase === 'CML_4' && <HoloPointTankStage />}
                   {phase === 'SIMULATION' && (
-                    <div className="h-full min-h-[360px] w-full overflow-hidden border border-[#5FF3FF]/40 bg-[#04080F]">
+                    <div className="w-full min-h-[460px] overflow-visible border border-[#5FF3FF]/40 bg-[#04080F] rounded">
                       <MissionStage
                         key={`${selection.objectiveId}-${selection.destinationId}-${selection.launchVehicleId}-${selection.propulsionId}-${selection.epsId}-${selection.telecomId}-${selection.payloadIds.join(',')}`}
                         destination={findDestinationById(selection.destinationId)}
