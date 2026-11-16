@@ -207,7 +207,6 @@ let activeSpeechEstimatedDurationSec = 0;
 let activeSpeechEnded = false;
 let activeSpeechFailed = false;
 let speechWatchdogTimer: number | null = null;
-const blobAudioCache = new Map<string, string>();
 
 let activeBgmAudio: HTMLAudioElement | null = null;
 let currentBgmTrack: string | null = null;
@@ -563,72 +562,13 @@ function fallbackBrowserSpeech(
   }
 }
 
-function findVegaFallbackUrl(cleanText: string, lang: 'en' | 'es'): string | null {
-  const s = cleanText.toLowerCase();
-
-  // CML 2: Orbit & Ground Stations
-  if (
-    /órbita|orbit|altitud|altitude|inclinaci|inclination|terrena|ground dish|near-earth|dsn 34|70m|cml\s*2|nivel\s*0?2|módulo\s*0?2/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml2_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // CML 3: Trade Space & Subsystems
-  if (
-    /trade space|subsistema|subsystem|módulo|hardware|equipar|equip|sinergia|synergy|cml\s*3|nivel\s*0?3|módulo\s*0?3/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml3_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // CML 4: Point Design & Hydrazine Tanks
-  if (
-    /tanque|tank|propelente|propellant|hidracina|hydrazine|sincronizar bd|commit|sillas|cml\s*4|nivel\s*0?4|módulo\s*0?4/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml4_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // CML 5: V&V / MCR Verification Gate
-  if (
-    /v&v|mcr|verificaci|verification|galería de cristal|glass gallery|huella|fingerprint|despegar|clearance|cml\s*5|nivel\s*0?5|módulo\s*0?5/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml5_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // SIMULATION: Flight simulation & Crisis
-  if (
-    /crisis|omega|simulaci|lanzamiento|launch|motores humeando|engines smoking|cml\s*6|nivel\s*0?6|fase e/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_sim_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // CML 1: Blueprint & Chassis
-  if (
-    /chasis|chassis|signos vitales|vital signs|servilleta|napkin|solar|alas|cml\s*1|nivel\s*0?1/i.test(
-      s,
-    )
-  ) {
-    const entry = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml1_cadet_${lang}`);
-    if (entry) return `/audio/voices/${entry.filename}`;
-  }
-
-  // High-priority fallback to Commander Vega's CML 1 canonical audio
-  const fallback = PREBAKED_VOICE_MANIFEST.find((e) => e.id === `hud_cml1_cadet_${lang}`);
-  return fallback ? `/audio/voices/${fallback.filename}` : null;
+function normalizeCompare(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/["“”'’`]/g, '')
+    .replace(/[¡!¿?.,;:—–\-()]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function findPrebakedVoiceUrl(
@@ -657,35 +597,32 @@ function findPrebakedVoiceUrl(
     // ignore storage errors
   }
 
-  const exactMatch = PREBAKED_VOICE_MANIFEST.find(
-    (entry) =>
-      entry.lang === lang &&
-      entry.speaker === speaker &&
-      (entry.canonicalText === cleanText || entry.canonicalText === canonical),
-  );
+  const normClean = normalizeCompare(cleanText);
+  const normCanonical = normalizeCompare(canonical);
+
+  // 1. Exact canonical or cleaned text match in PREBAKED_VOICE_MANIFEST
+  const exactMatch = PREBAKED_VOICE_MANIFEST.find((entry) => {
+    if (entry.lang !== lang) return false;
+    if (entry.canonicalText === cleanText || entry.canonicalText === canonical) return true;
+    const normEntry = normalizeCompare(entry.canonicalText);
+    return normEntry === normClean || normEntry === normCanonical;
+  });
+
   if (exactMatch) {
-    return `/audio/voices/${exactMatch.filename}`;
+    return `/audio/${lang}/${exactMatch.filename}`;
   }
 
-  // Prefix/structural match if custom mission/callsign was substituted mid-sentence
-  const prefix = canonical.slice(0, 28);
-  if (prefix.length >= 18) {
+  // 2. Prefix match (first 32 normalized characters)
+  const prefix = normCanonical.slice(0, 32);
+  if (prefix.length >= 20) {
     const prefixMatch = PREBAKED_VOICE_MANIFEST.find(
       (entry) =>
         entry.lang === lang &&
         entry.speaker === speaker &&
-        entry.canonicalText.slice(0, 28) === prefix,
+        normalizeCompare(entry.canonicalText).startsWith(prefix),
     );
     if (prefixMatch) {
-      return `/audio/voices/${prefixMatch.filename}`;
-    }
-  }
-
-  // For Commander Vega, ALWAYS use pre-generated ElevenLabs audio instead of browser synthesis
-  if (speaker === 'VEGA') {
-    const vegaFallback = findVegaFallbackUrl(canonical, lang);
-    if (vegaFallback) {
-      return vegaFallback;
+      return `/audio/${lang}/${prefixMatch.filename}`;
     }
   }
 
@@ -737,22 +674,6 @@ export function speakCharacterLine(
       cb();
     }
   };
-
-  const isLevel1 = !forceBrowserSpeech && isLevel1TutorialActive();
-
-  // RULE: Missions 2 to 6 MUST use browser speechSynthesis with exact on-screen text.
-  // NO pre-recorded audios, NO /api/tts, NO Vega fallback MP3s.
-  if (!isLevel1) {
-    fallbackBrowserSpeech(
-      cleanText,
-      lang,
-      speaker,
-      sessionId,
-      triggerEnded,
-      onBoundaryCharIndex,
-    );
-    return;
-  }
 
   const attachAndPlayAudio = (src: string) => {
     if (sessionId !== activeSpeechSessionId) return;
@@ -823,64 +744,22 @@ export function speakCharacterLine(
       });
   };
 
-  // 1. Static pre-generated ElevenLabs MP3 in /audio/voices/
-  const staticMp3Url = findPrebakedVoiceUrl(cleanText, lang, speaker);
-  if (staticMp3Url) {
-    attachAndPlayAudio(staticMp3Url);
-    return;
-  }
-
-  // 2. Check in-memory session blob cache
-  const cacheKey = `${speaker}|${lang}|${cleanText}`;
-  const cachedBlobUrl = blobAudioCache.get(cacheKey);
-  if (cachedBlobUrl) {
-    attachAndPlayAudio(cachedBlobUrl);
-    return;
-  }
-
-  // 3. Dynamic synthesis from local /api/tts server with fallback
-  const abortCtrl = new AbortController();
-  activeSpeechAbort = abortCtrl;
-
-  void (async () => {
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanText, lang, speaker }),
-        signal: abortCtrl.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`TTS HTTP ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      if (abortCtrl.signal.aborted || sessionId !== activeSpeechSessionId) return;
-
-      const blobUrl = URL.createObjectURL(blob);
-      blobAudioCache.set(cacheKey, blobUrl);
-      attachAndPlayAudio(blobUrl);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      if (abortCtrl.signal.aborted || sessionId !== activeSpeechSessionId) return;
-
-      if (speaker === 'VEGA') {
-        const fallbackUrl = findVegaFallbackUrl(cleanText, lang);
-        if (fallbackUrl) {
-          attachAndPlayAudio(fallbackUrl);
-          return;
-        }
-      }
-
-      fallbackBrowserSpeech(
-        cleanText,
-        lang,
-        speaker,
-        sessionId,
-        triggerEnded,
-        onBoundaryCharIndex,
-      );
+  // 1. Try pre-generated Edge-TTS neural voice in /audio/{lang}/ first (covers all missions 1-6)
+  if (!forceBrowserSpeech) {
+    const staticMp3Url = findPrebakedVoiceUrl(cleanText, lang, speaker);
+    if (staticMp3Url) {
+      attachAndPlayAudio(staticMp3Url);
+      return;
     }
-  })();
+  }
+
+  // 2. Seamless fallback to browser speech synthesis if un-cached
+  fallbackBrowserSpeech(
+    cleanText,
+    lang,
+    speaker,
+    sessionId,
+    triggerEnded,
+    onBoundaryCharIndex,
+  );
 }
