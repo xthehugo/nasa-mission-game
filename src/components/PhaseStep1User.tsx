@@ -187,8 +187,8 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
   const chassisCompleted = isL1Tut && level1TutorialStep > 2;
   const epsCompleted = isL1Tut && level1TutorialStep > 3;
   const epsLockedHint = isL1Tut && level1TutorialStep < 3;
-  const chassisDimmed = isL1Tut && phase === 'CML_1' && level1TutorialStep !== 2;
-  const epsDimmed = isL1Tut && phase === 'CML_1' && level1TutorialStep !== 3;
+  const chassisDimmed = false;
+  const epsDimmed = false;
 
   if (zone === 'LEFT') {
     const isChassisOpen = openLeftSection === 'CHASSIS';

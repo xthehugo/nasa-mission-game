@@ -149,23 +149,12 @@ export function App() {
     activeCampaignLevelId === 'contract-leo-bionutrients' &&
     level1TutorialStep < LEVEL1_TOTAL_STEPS;
   const tutStep = isL1Tut ? LEVEL1_TUTORIAL_STEPS[level1TutorialStep] : null;
-  const tutGating = Boolean(isL1Tut && tutStep && !tutStep.isFinalExam);
-  const leftZoneAllowed =
-    !tutGating ||
-    tutStep?.activeZone === 'RESOURCES' ||
-    tutStep?.activeZone === 'CHASSIS' ||
-    tutStep?.activeZone === 'EPS' ||
-    tutStep?.activeZone === 'LEFT_PANEL';
-  const resourcesDimmed = tutGating && tutStep?.activeZone !== 'RESOURCES';
-  const leftPhaseDimmed =
-    tutGating &&
-    tutStep?.activeZone !== 'CHASSIS' &&
-    tutStep?.activeZone !== 'EPS' &&
-    tutStep?.activeZone !== 'LEFT_PANEL';
-  const rightStepDimmed =
-    tutGating &&
-    tutStep?.activeZone !== 'MISSION' &&
-    tutStep?.activeZone !== 'RIGHT_PANEL';
+  // Option A Unlocked Flow: Keep educational highlights, but never freeze UI with pointer-events-none
+  const tutGating = false;
+  const leftZoneAllowed = true;
+  const resourcesDimmed = false;
+  const leftPhaseDimmed = false;
+  const rightStepDimmed = false;
 
   const goToLevel = (target: CMLPhase) => {
     playHoloTone('STEP', soundEnabled);
@@ -350,7 +339,7 @@ export function App() {
             </div>
 
             {nextPhase && (() => {
-            const isTutPending = isL1Tut && phase === 'CML_1' && level1TutorialStep < 5;
+            const isTutPending = false;
             let physicsIssue = false;
             let lockHint = '';
 
