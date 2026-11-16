@@ -1,4 +1,5 @@
 import type { RandomEventType } from '../store';
+import { useMissionStore } from '../store';
 import type { ExperienceMode, PhysicsMetrics } from '../types/mission';
 import { PREBAKED_VOICE_MANIFEST } from './voiceManifest';
 
@@ -385,6 +386,21 @@ export function stopCharacterVoice(): void {
   }
 }
 
+export function isLevel1TutorialActive(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const state = useMissionStore.getState();
+    const cinematicId = state.activeCinematicId;
+    if (cinematicId) {
+      return cinematicId === 'ACT1_PROLOGUE' || cinematicId === 'MISSION_CINEMATIC_LEO';
+    }
+    const levelId = state.activeCampaignLevelId;
+    return !levelId || levelId === 'contract-leo-bionutrients';
+  } catch {
+    return true;
+  }
+}
+
 function fallbackBrowserSpeech(
   cleanText: string,
   lang: 'en' | 'es',
@@ -397,7 +413,7 @@ function fallbackBrowserSpeech(
   clearSpeechWatchdog();
   activePlaybackSource = 'speech';
   activeSpeechStartMs = performance.now();
-  activeSpeechEstimatedDurationSec = Math.max(4, cleanText.length / 13);
+  activeSpeechEstimatedDurationSec = Math.max(2, cleanText.length / 13);
   activeSpeechEnded = false;
 
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -411,49 +427,55 @@ function fallbackBrowserSpeech(
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = lang === 'es' ? 'es-ES' : 'en-US';
-    utter.volume = 0.85;
+    utter.volume = 0.9;
 
-    const voices = window.speechSynthesis.getVoices();
+    let voices: SpeechSynthesisVoice[] = [];
+    try {
+      voices = window.speechSynthesis.getVoices();
+    } catch {
+      voices = [];
+    }
     const langPrefix = lang === 'es' ? 'es' : 'en';
     const matchingVoices = voices.filter((v) =>
-      v.lang.toLowerCase().startsWith(langPrefix),
+      v.lang.toLowerCase().replace('_', '-').startsWith(langPrefix),
     );
 
     if (matchingVoices.length > 0) {
       if (speaker === 'VEGA') {
-        const nonFemale = matchingVoices.filter(
+        const maleVoices = matchingVoices.filter(
           (v) =>
-            !/helena|sabina|laura|paulina|monica|elvira|zira|aria|samantha|victoria|female|mujer|hazel|susan|hilda|paloma|carmen|marta|conchita/i.test(
+            /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male|hombre|enrique|mateo|geraldo|alvaro|manuel|julio|rodrigo|alberto/i.test(
+              v.name,
+            ) &&
+            !/helena|sabina|laura|paulina|monica|elvira|zira|aria|samantha|victoria|female|mujer|paloma|carmen|marta|conchita/i.test(
               v.name,
             ),
         );
-        const maleMatch = (nonFemale.length > 0 ? nonFemale : matchingVoices).find((v) =>
-          /pablo|jorge|raul|diego|carlos|miguel|david|mark|daniel|guy|male|hombre|enrique|mateo|geraldo|alvaro|manuel|julio|rodrigo|alberto/i.test(
+        utter.voice = maleVoices[0] ?? matchingVoices[0];
+      } else if (speaker === 'ROSTOVA' || speaker === 'SYSTEM') {
+        const femaleVoices = matchingVoices.filter((v) =>
+          /helena|laura|sabina|paulina|monica|elvira|zira|aria|samantha|victoria|female|mujer|paloma|carmen|marta|conchita/i.test(
             v.name,
           ),
         );
-        utter.voice = maleMatch ?? (nonFemale.length > 0 ? nonFemale[0] : matchingVoices[0]);
-      } else if (speaker === 'ROSTOVA') {
-        const femaleMatch = matchingVoices.find((v) =>
-          /helena|laura|sabina|paulina|monica|elvira|zira|aria|samantha|victoria|female/i.test(
-            v.name,
-          ),
-        );
-        utter.voice = femaleMatch ?? matchingVoices[matchingVoices.length - 1];
+        utter.voice = femaleVoices[0] ?? matchingVoices[matchingVoices.length - 1];
       } else {
         utter.voice = matchingVoices[0];
       }
+    } else if (voices.length > 0) {
+      utter.voice = voices.find((v) => v.default) ?? voices[0];
     }
 
+    // Rate strictly between 0.95 and 1.0 with natural punctuation pauses
     if (speaker === 'VEGA') {
-      utter.pitch = 0.78;
+      utter.pitch = 0.88;
       utter.rate = 0.96;
     } else if (speaker === 'ROSTOVA') {
-      utter.pitch = 1.08;
-      utter.rate = 1.02;
+      utter.pitch = 1.04;
+      utter.rate = 0.98;
     } else {
-      utter.pitch = 0.96;
-      utter.rate = 1.02;
+      utter.pitch = 0.98;
+      utter.rate = 0.98;
     }
 
     const finishSpeech = (failed: boolean) => {
@@ -479,7 +501,7 @@ function fallbackBrowserSpeech(
     // Watchdog so speechSynthesis browser hangs never freeze the dialogue state
     speechWatchdogTimer = window.setTimeout(
       () => finishSpeech(false),
-      Math.round((activeSpeechEstimatedDurationSec + 6) * 1000),
+      Math.round((activeSpeechEstimatedDurationSec + 4) * 1000),
     );
 
     if (window.speechSynthesis.paused) {
@@ -636,6 +658,7 @@ export function speakCharacterLine(
   enabled: boolean,
   onEnded?: () => void,
   onBoundaryCharIndex?: (charIndex: number) => void,
+  forceBrowserSpeech?: boolean,
 ): void {
   if (!enabled || typeof window === 'undefined') {
     onEnded?.();
@@ -651,7 +674,6 @@ export function speakCharacterLine(
     .replace(/^["“”']+|["“”']+$/g, '')
     .replace(/ΔV/g, 'delta V')
     .replace(/1\/R²/g, lang === 'es' ? 'uno sobre R al cuadrado' : 'one over R squared')
-    .replace(/CML\s*(\d)/g, lang === 'es' ? 'nivel CML $1' : 'CML level $1')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -670,6 +692,22 @@ export function speakCharacterLine(
       cb();
     }
   };
+
+  const isLevel1 = !forceBrowserSpeech && isLevel1TutorialActive();
+
+  // RULE: Missions 2 to 6 MUST use browser speechSynthesis with exact on-screen text.
+  // NO pre-recorded audios, NO /api/tts, NO Vega fallback MP3s.
+  if (!isLevel1) {
+    fallbackBrowserSpeech(
+      cleanText,
+      lang,
+      speaker,
+      sessionId,
+      triggerEnded,
+      onBoundaryCharIndex,
+    );
+    return;
+  }
 
   const attachAndPlayAudio = (src: string) => {
     if (sessionId !== activeSpeechSessionId) return;
