@@ -200,9 +200,9 @@ const css = `
   75% { transform: scaleX(1.08) scaleY(1.02); }
 }
 @keyframes shockwavePulse {
-  0% { transform: scale(0.92) translateY(0); opacity: 0.45; }
-  50% { transform: scale(1.14) translateY(-3px); opacity: 0.9; }
-  100% { transform: scale(1.28) translateY(-6px); opacity: 0; }
+  0% { transform: translateX(-50%) scale(0.92) translateY(0); opacity: 0.45; }
+  50% { transform: translateX(-50%) scale(1.14) translateY(-3px); opacity: 0.9; }
+  100% { transform: translateX(-50%) scale(1.28) translateY(-6px); opacity: 0; }
 }
 @keyframes sparkShower {
   0% { transform: translateY(0) scale(1); opacity: 1; }
@@ -868,11 +868,11 @@ export default function MissionStage({
                   <div
                     style={{
                       position: 'absolute',
-                      top: '16%',
+                      top: '10.5%',
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      width: 240,
-                      height: 120,
+                      width: 220,
+                      height: 110,
                       pointerEvents: 'none',
                       zIndex: 3,
                       animation: 'shockwavePulse 0.12s ease-in-out infinite',
@@ -904,12 +904,12 @@ export default function MissionStage({
                   </div>
                 )}
 
-                {/* Pluma de Escape Multi-capa y Diamantes Mach */}
+                {/* Pluma de Escape Multi-capa y Diamantes Mach (Calibrada a la tobera sin desbordamiento) */}
                 {stage === 'LAUNCH_ASCENT' && (
                   <div
                     style={{
                       position: 'absolute',
-                      top: '91%',
+                      top: '84.5%',
                       left: '50%',
                       transform: 'translateX(-50%)',
                       display: 'flex',
@@ -924,15 +924,15 @@ export default function MissionStage({
                       style={{
                         position: 'absolute',
                         top: 0,
-                        width: 32,
-                        height: 98,
+                        width: 28,
+                        height: 52,
                         borderRadius: '0 0 50% 50%',
                         background:
                           'radial-gradient(ellipse at 50% 20%, #fef08a 0%, #f97316 45%, #ef4444 80%, transparent 100%)',
                         transformOrigin: 'top center',
                         animation: 'plumeTurbulence 0.14s ease-in-out infinite alternate',
-                        filter: 'blur(2px)',
-                        boxShadow: '0 0 24px rgba(249, 115, 22, 0.7)',
+                        filter: 'blur(1.8px)',
+                        boxShadow: '0 0 16px rgba(249, 115, 22, 0.6)',
                       }}
                     />
 
@@ -941,8 +941,8 @@ export default function MissionStage({
                       style={{
                         position: 'absolute',
                         top: 0,
-                        width: 14,
-                        height: 72,
+                        width: 12,
+                        height: 40,
                         borderRadius: '0 0 45% 45%',
                         background:
                           'linear-gradient(180deg, #ffffff 0%, #67e8f9 35%, #0284c7 75%, transparent 100%)',
@@ -953,19 +953,19 @@ export default function MissionStage({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'space-around',
-                        padding: '6px 0',
+                        padding: '4px 0',
                       }}
                     >
                       {/* Diamantes de choque Mach */}
-                      {[0, 1, 2].map((idx) => (
+                      {[0, 1].map((idx) => (
                         <div
                           key={idx}
                           style={{
-                            width: 6 - idx * 1.2,
-                            height: 6 - idx * 1.2,
+                            width: 5 - idx * 1.2,
+                            height: 5 - idx * 1.2,
                             background: '#ffffff',
                             transform: 'rotate(45deg)',
-                            boxShadow: '0 0 8px #5FF3FF',
+                            boxShadow: '0 0 6px #5FF3FF',
                             opacity: 0.9 - idx * 0.15,
                           }}
                         />
@@ -976,18 +976,18 @@ export default function MissionStage({
                     <div
                       style={{
                         position: 'absolute',
-                        top: 40,
-                        width: 30,
-                        height: 60,
+                        top: 22,
+                        width: 24,
+                        height: 28,
                         pointerEvents: 'none',
                       }}
                     >
                       {[
-                        { left: 6, delay: '0s', dur: '0.35s', bg: '#fbbf24', size: 3 },
-                        { left: 14, delay: '0.12s', dur: '0.4s', bg: '#f97316', size: 2.5 },
-                        { left: 22, delay: '0.07s', dur: '0.32s', bg: '#ef4444', size: 3 },
-                        { left: 10, delay: '0.18s', dur: '0.38s', bg: '#fde047', size: 2 },
-                        { left: 18, delay: '0.24s', dur: '0.42s', bg: '#fb923c', size: 2.8 },
+                        { left: 4, delay: '0s', dur: '0.28s', bg: '#fbbf24', size: 2.2 },
+                        { left: 10, delay: '0.1s', dur: '0.32s', bg: '#f97316', size: 2 },
+                        { left: 16, delay: '0.05s', dur: '0.26s', bg: '#ef4444', size: 2.2 },
+                        { left: 8, delay: '0.15s', dur: '0.3s', bg: '#fde047', size: 1.8 },
+                        { left: 14, delay: '0.2s', dur: '0.34s', bg: '#fb923c', size: 2 },
                       ].map((sp, idx) => (
                         <div
                           key={idx}

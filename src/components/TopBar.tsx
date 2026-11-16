@@ -82,7 +82,7 @@ export function TopBar() {
       data-astra-zone="TOP_BAR"
       className="sticky top-0 z-50 border-b border-[#5FF3FF]/15 bg-[#04080F]/95 px-4 py-2.5 backdrop-blur-md sm:px-7"
     >
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3">
+      <div className="relative mx-auto flex max-w-[1600px] items-center justify-between gap-3">
         {/* Left: Minimal Level Header (matches reference mockup) */}
         <div className="flex min-w-0 items-center gap-4">
           <div className="min-w-0">
@@ -93,23 +93,27 @@ export function TopBar() {
               {meta.title[language]}
             </h1>
           </div>
+        </div>
 
+        {/* Center: Centered Campaign Carousel Selector Button (Decoupled from left module title) */}
+        <div className="hidden sm:flex absolute left-1/2 -translate-x-1/2 items-center z-10 pointer-events-auto">
           <button
             type="button"
             onClick={() => {
               setCampaignModalOpen(true);
               playHoloTone('STEP', soundEnabled);
             }}
-            className="hidden sm:flex items-center gap-2 rounded-sm border border-[#5FF3FF]/25 bg-[#071324]/70 px-2.5 py-1 font-mono text-[11px] text-slate-300 hover:border-[#5FF3FF]/70 hover:text-white transition cursor-pointer"
+            className="flex items-center gap-2 rounded-sm border border-[#5FF3FF]/30 bg-[#071324]/85 px-3 py-1 font-mono text-[11px] text-slate-300 hover:border-[#5FF3FF] hover:text-white hover:bg-[#071324] shadow-[0_0_12px_rgba(95,243,255,0.15)] transition cursor-pointer"
             title={
               isEs
-                ? `${activeContract.code}: ${activeContract.title.es} (LEO = Órbita Baja Terrestre · Clic para cambiar campaña)`
-                : `${activeContract.code}: ${activeContract.title.en} (LEO = Low Earth Orbit · Click to switch campaign)`
+                ? `${activeContract.code}: ${activeContract.title.es} (Clic para abrir carrusel de campañas)`
+                : `${activeContract.code}: ${activeContract.title.en} (Click to open campaign carousel)`
             }
           >
             <Compass className="h-3.5 w-3.5 text-[#5FF3FF]" />
             <span className="text-[#FFC15E] font-semibold">{activeContract.code}</span>
-            <span className="max-w-[160px] truncate text-slate-300">{activeContract.title[language]}</span>
+            <span className="hidden xl:inline text-slate-500">·</span>
+            <span className="hidden xl:inline max-w-[180px] truncate text-slate-300 font-medium">{activeContract.title[language]}</span>
           </button>
         </div>
 
