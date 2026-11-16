@@ -37,7 +37,7 @@ graph TD
 | **Hugo Andree Ccolque Huachaca** | Systems & Orbital Physics Engineer | `feat/engine` | `src/engine/`, `docs/` | `catalog.ts`, `physics.ts`, `simulation.ts`, `engine.test.ts` (12/12 tests), documentación técnica y merges a `main`. |
 | **Jhonny Alberto Castillon Torres** | Educational UX & Mission Control Architect | `Jhonny---UI-/-Estado` | `src/components/`, `src/store/`, `src/App.tsx` | Store Zustand (`EN/ES`, `CADET/JPL_ENGINEER`), HUD Split-Screen, flujo CML 1–5, dilemas de crisis y audio synthesis. |
 | **Marcos Josfat Vilcahuaman Esteban** | Aerospace Visualization & Storytelling Lead | `feat/visuals` | `src/visuals/` | `OrbitalMapVisualizer.tsx`, `SpacecraftBlueprint.tsx`, slides / video demo y validación NASA GMAT R2026a. |
-| **Jeancarlos Antony Rondón Romero** | UI/UX Product Design & Prototyping Specialist | `feat/ui-design` | `design/`, `mockups/` | Prototipado interactivo UI/UX, arquitectura visual de cabina, wireframes aeroespaciales y especificaciones de componentes. |
+| **Jeancarlos Antony Rondón Romero** ([@SiriusCode25](https://github.com/SiriusCode25)) | UI/UX Product Design & Prototyping Specialist | `feat/ui-design` | `design/`, `mockups/` | Prototipado interactivo UI/UX, arquitectura visual de cabina, wireframes aeroespaciales y especificaciones de componentes. |
 
 > **Regla de oro de Git:** Nadie edita fuera de su carpeta ni modifica `src/types/mission.ts` unilateralmente. Todo cambio en el contrato se coordina y publica primero en `main`.
 
