@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { Pause, Play, RotateCcw } from 'lucide-react';
+import { Info, Pause, Play, RotateCcw } from 'lucide-react';
 import { useMissionStore } from '../store';
 import { playHoloTone } from '../components/holoAudio';
 import type { Language, OrbitalDestination, PhysicsMetrics, VolumeMetrics } from '../types/mission';
@@ -322,6 +322,7 @@ export default function MissionStage({
     setSimSpeed,
     setPhaseTutorialStep,
     soundEnabled,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const [elapsedMs, setElapsedMs] = useState<number>(0);
@@ -581,11 +582,22 @@ export default function MissionStage({
             {!embedded && (
               <div style={{ fontSize: 12, letterSpacing: 4, color: '#64748b' }}>ORBITAL FORGE</div>
             )}
-            <div
-              className={embedded ? 'font-mono tracking-[0.12em] uppercase' : undefined}
-              style={{ fontSize: embedded ? 14 : 21, fontWeight: 700, color: titleColor }}
-            >
-              {t.phases[stage]}
+            <div className="flex items-center gap-2">
+              <div
+                className={embedded ? 'font-mono tracking-[0.12em] uppercase' : undefined}
+                style={{ fontSize: embedded ? 14 : 21, fontWeight: 700, color: titleColor }}
+              >
+                {t.phases[stage]}
+              </div>
+              <button
+                type="button"
+                onClick={() => openSubmoduleGuide('LAUNCH_PHYSICS')}
+                className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/15 px-2 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/30 transition cursor-pointer"
+                title={lang === 'es' ? 'Ver física de lanzamiento y Max-Q' : 'View launch physics and Max-Q'}
+              >
+                <Info className="h-2.5 w-2.5" />
+                <span>{lang === 'es' ? 'FÍSICA DE VUELO' : 'FLIGHT PHYSICS'}</span>
+              </button>
             </div>
             {stage === 'ORBIT_INSERTION' && (
               <div className={embedded ? 'font-mono text-[11px]' : undefined} style={{ fontSize: embedded ? 11 : 12, color: '#5FF3FF' }}>

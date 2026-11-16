@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import {
   findGroundStationById,
   findObjectiveById,
@@ -43,6 +44,7 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     setPhaseTutorialStep,
     setTutorialFeedback,
     appendDecisionLog,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -90,9 +92,20 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] tracking-[0.18em] text-[#5FF3FF] uppercase">
-            {isEs ? 'CARGA DE TANQUES Y SWaP' : 'TANK LOADING & SWaP'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] tracking-[0.18em] text-[#5FF3FF] uppercase">
+              {isEs ? 'CARGA DE TANQUES Y SWaP' : 'TANK LOADING & SWaP'}
+            </span>
+            <button
+              type="button"
+              onClick={() => openSubmoduleGuide('TANKS')}
+              className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition"
+              title={isEs ? 'Abrir física de tanques y ecuación Tsiolkovsky' : 'Open tanks physics and Tsiolkovsky equation'}
+            >
+              <Info className="h-3 w-3" />
+              <span>{isEs ? 'INFO FÍSICA' : 'PHYSICS INFO'}</span>
+            </button>
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -162,17 +175,22 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
           ))}
         </div>
 
-        {/* Tarjeta Didáctica: Por Qué Tanques y Baterías */}
-        <div className="border border-[#5FF3FF]/30 bg-[#040812]/80 p-2.5 font-mono text-[9.5px] leading-relaxed rounded">
-          <div className="flex items-center justify-between text-[#5FF3FF] font-bold uppercase tracking-wider">
-            <span>{isEs ? '⛽ FÍSICA DE TANQUES & BATERÍAS' : '⛽ TANK & BATTERY PHYSICS'}</span>
-            <span className="text-[#FFC15E]">CML 04</span>
-          </div>
-          <p className="mt-1 text-slate-300">
+        {/* Tarjeta Compacta: Por Qué Tanques y Baterías */}
+        <div className="border border-[#5FF3FF]/30 bg-[#040812]/80 p-2 font-mono text-[9.5px] leading-relaxed rounded flex items-center justify-between gap-2">
+          <div className="truncate text-slate-300">
+            <span className="text-[#5FF3FF] font-bold mr-1">⛽ {isEs ? 'FÍSICA:' : 'PHYSICS:'}</span>
             {isEs
-              ? '¿Por qué varían los tanques? El cohete solo te coloca en órbita; el satélite necesita propelente propio (ΔV) para orientar sus antenas hacia la Tierra y no desorbitar. Las baterías EPS son vitales: durante los 35 min de eclipse en la sombra de la Tierra (umbra), los paneles solares dan 0W y la batería mantiene con vida los sistemas térmicos a -120°C.'
-              : 'Why do tanks vary? The launch vehicle only places you into orbit; your satellite needs onboard propellant (ΔV) for attitude control and station keeping. EPS batteries are vital: during 35 min orbital eclipse in Earth shadow (umbra), solar panels yield 0W and batteries keep thermal heaters alive at -120°C.'}
-          </p>
+              ? 'ΔV para corrección orbital y batería EPS durante los 35 min de eclipse en umbra.'
+              : 'ΔV for orbit station keeping and EPS battery during 35 min shadow eclipse.'}
+          </div>
+          <button
+            type="button"
+            onClick={() => openSubmoduleGuide('TANKS')}
+            className="shrink-0 flex items-center gap-1 rounded border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-1.5 py-0.5 text-[8.5px] text-[#FFC15E] hover:bg-[#FFC15E]/20 transition"
+          >
+            <Info className="h-2.5 w-2.5" />
+            <span>{isEs ? 'VER DETALLES' : 'VIEW DETAILS'}</span>
+          </button>
         </div>
       </div>
     );
@@ -186,9 +204,20 @@ export function PointDesignStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
       {/* Sillas Concurrentes de JPL Team X */}
       <div className="border border-[#5FF3FF]/25 bg-[#04080F] p-2.5">
         <div className="mb-1.5 flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] uppercase">
-          <span className="text-[#5FF3FF]">
-            {isEs ? 'SILLAS CONCURRENTES · JPL TEAM X' : 'JPL TEAM X CONCURRENT CHAIRS'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[#5FF3FF]">
+              {isEs ? 'SILLAS CONCURRENTES · JPL TEAM X' : 'JPL TEAM X CONCURRENT CHAIRS'}
+            </span>
+            <button
+              type="button"
+              onClick={() => openSubmoduleGuide('CONCURRENT_TEAM')}
+              className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition"
+              title={isEs ? 'Ver metodología de ingeniería concurrente JPL' : 'View JPL concurrent engineering methodology'}
+            >
+              <Info className="h-2.5 w-2.5" />
+              <span>{isEs ? 'MÉTODO TEAM X' : 'TEAM X METHOD'}</span>
+            </button>
+          </div>
           {lastChair && (
             <span className="text-[#FFC15E] font-bold">
               {isEs ? 'FIRMADO:' : 'SIGNED:'} {lastChair.code}

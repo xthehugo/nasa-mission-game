@@ -5,6 +5,7 @@ import {
   evaluateMissionPhysics,
   runMissionSimulation,
 } from '../engine';
+import { syncAudioSettings } from '../components/holoAudio';
 import type { SimulationResult } from '../types/mission';
 import {
   computeConcurrentConflicts,
@@ -194,17 +195,17 @@ export const useMissionStore = create<MissionStoreState>()(
         );
         const opt = dilemma?.options.find((o) => o.id === optionId);
         const advanceTutorialExam =
-          activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep === 8;
+          activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep === 9;
 
         set({
           resolvedCrises: nextCrises,
           simulationResult: nextSim,
           ...(advanceTutorialExam
             ? {
-                level1TutorialStep: 9,
+                level1TutorialStep: 10,
                 tutorialFeedback: {
-                  en: 'Crisis solved! Final step (no halo): finish the flight and open your Certificate.',
-                  es: '¡Crisis resuelta! Examen final (sin halo): completa el vuelo y abre tu Certificado.',
+                  en: 'Crisis solved! Claim your 3 stars and open your official NASA Certificate.',
+                  es: '¡Crisis resuelta con margen positivo! Reclama tus 3 estrellas y abre tu Certificado NASA.',
                 },
               }
             : {}),
@@ -286,6 +287,11 @@ export const useMissionStore = create<MissionStoreState>()(
         dataBufferPercent: state.dataBufferPercent,
         reducedMotion: state.reducedMotion,
         soundEnabled: state.soundEnabled,
+        voiceEnabled: state.voiceEnabled,
+        musicEnabled: state.musicEnabled,
+        voiceVolume: state.voiceVolume,
+        musicVolume: state.musicVolume,
+        sfxVolume: state.sfxVolume,
         activeRandomEvent: state.activeRandomEvent,
         selection: state.selection,
         testing: state.testing,
@@ -322,7 +328,26 @@ export const useMissionStore = create<MissionStoreState>()(
             state.resolvedCrises,
           );
         }
+        syncAudioSettings({
+          soundEnabled: state.soundEnabled,
+          voiceEnabled: state.voiceEnabled,
+          musicEnabled: state.musicEnabled,
+          voiceVolume: state.voiceVolume,
+          musicVolume: state.musicVolume,
+          sfxVolume: state.sfxVolume,
+        });
       },
     },
   ),
 );
+
+useMissionStore.subscribe((state) => {
+  syncAudioSettings({
+    soundEnabled: state.soundEnabled,
+    voiceEnabled: state.voiceEnabled,
+    musicEnabled: state.musicEnabled,
+    voiceVolume: state.voiceVolume,
+    musicVolume: state.musicVolume,
+    sfxVolume: state.sfxVolume,
+  });
+});

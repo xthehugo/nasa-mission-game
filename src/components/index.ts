@@ -30,6 +30,7 @@ export {
   AstraFloatingCompanion,
   RobotSvgIcon,
 } from './RobotAssistantGuide';
+export { SettingsModal } from './SettingsModal';
 export { StoryCinematicModal } from './StoryCinematicModal';
 export { SubsystemHoloGraphic } from './SubsystemHoloGraphic';
 export { SubsystemHoverPreview } from './SubsystemHoverPreview';

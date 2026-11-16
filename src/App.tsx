@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, ArrowLeft, Check, Lock } from 'lucide-react';
+import { SubmoduleInfoModal } from './components/SubmoduleInfoModal';
+import { SettingsModal } from './components/SettingsModal';
 import {
   LEVEL1_TOTAL_STEPS,
   LEVEL1_TUTORIAL_STEPS,
@@ -68,12 +70,16 @@ export function App() {
     activeCinematicId,
     activeRandomEvent,
     isCertificateOpen,
+    activeSubmoduleGuideId,
+    isSettingsModalOpen,
+    setSettingsModalOpen,
     setPhase,
     setSubsystem,
     setGroundStation,
     togglePayload,
     setLevel1TutorialStep,
     launchSimulation,
+    closeSubmoduleGuide,
   } = useMissionStore();
 
   const handleQuickFixFailure = (mode: FailureMode) => {
@@ -539,6 +545,15 @@ export function App() {
       <PostMissionCertificateModal />
       <TelemetryModalDrawer />
       <NarrativePitchModal />
+      <SubmoduleInfoModal
+        guideId={activeSubmoduleGuideId}
+        isOpen={activeSubmoduleGuideId !== null}
+        onClose={closeSubmoduleGuide}
+      />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+      />
     </div>
   );
 }

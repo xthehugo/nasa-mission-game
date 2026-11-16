@@ -1,4 +1,5 @@
 import type { StateCreator } from 'zustand';
+import type { SubmoduleGuideId } from '../components/submoduleGuideConfig';
 import type {
   CMLPhase,
   ExperienceMode,
@@ -81,6 +82,7 @@ export interface UISlice {
   isTelemetryOpen: boolean;
   isCampaignModalOpen: boolean;
   isAIStudioModalOpen: boolean;
+  activeSubmoduleGuideId: SubmoduleGuideId | null;
 
   commanderName: string;
   cadetName: string;
@@ -116,6 +118,12 @@ export interface UISlice {
   laserScanActive: boolean;
   reducedMotion: boolean;
   soundEnabled: boolean;
+  voiceEnabled: boolean;
+  musicEnabled: boolean;
+  voiceVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  isSettingsModalOpen: boolean;
   activeRandomEvent: RandomEventType;
   simIsPlaying: boolean;
   simSpeed: 0.5 | 1 | 2 | 4;
@@ -134,6 +142,16 @@ export interface UISlice {
   setTelemetryOpen: (open: boolean) => void;
   setCampaignModalOpen: (open: boolean) => void;
   setAIStudioModalOpen: (open: boolean) => void;
+  setSettingsModalOpen: (open: boolean) => void;
+  setVoiceEnabled: (enabled: boolean) => void;
+  setMusicEnabled: (enabled: boolean) => void;
+  setVoiceVolume: (volume: number) => void;
+  setMusicVolume: (volume: number) => void;
+  setSfxVolume: (volume: number) => void;
+  toggleVoice: () => void;
+  toggleMusic: () => void;
+  openSubmoduleGuide: (id: SubmoduleGuideId) => void;
+  closeSubmoduleGuide: () => void;
   addXP: (amount: number) => void;
   setActiveCampaignLevelId: (contractId: string) => void;
   recordContractResult: (contractId: string, stars: number, grade?: string) => void;
@@ -249,6 +267,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   isTelemetryOpen: false,
   isCampaignModalOpen: false,
   isAIStudioModalOpen: false,
+  activeSubmoduleGuideId: null,
 
   commanderName: 'Orion',
   cadetName: 'Orion',
@@ -284,6 +303,12 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   laserScanActive: true,
   reducedMotion: false,
   soundEnabled: true,
+  voiceEnabled: true,
+  musicEnabled: true,
+  voiceVolume: 80,
+  musicVolume: 50,
+  sfxVolume: 70,
+  isSettingsModalOpen: false,
   activeRandomEvent: 'NONE',
   simIsPlaying: true,
   simSpeed: 1,
@@ -350,6 +375,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   setTelemetryOpen: (isTelemetryOpen) => set({ isTelemetryOpen }),
   setCampaignModalOpen: (isCampaignModalOpen) => set({ isCampaignModalOpen }),
   setAIStudioModalOpen: (isAIStudioModalOpen) => set({ isAIStudioModalOpen }),
+  openSubmoduleGuide: (activeSubmoduleGuideId) => set({ activeSubmoduleGuideId }),
+  closeSubmoduleGuide: () => set({ activeSubmoduleGuideId: null }),
   addXP: (amount) => set((s) => ({ playerXP: Math.max(0, s.playerXP + amount) })),
   setActiveCampaignLevelId: (activeCampaignLevelId) => set({ activeCampaignLevelId }),
   recordContractResult: (contractId, stars, grade) =>
@@ -555,6 +582,17 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   toggleLaserScan: () => set((s) => ({ laserScanActive: !s.laserScanActive })),
   toggleReducedMotion: () => set((s) => ({ reducedMotion: !s.reducedMotion })),
   toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
+  setSettingsModalOpen: (isSettingsModalOpen) => set({ isSettingsModalOpen }),
+  setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
+  setMusicEnabled: (musicEnabled) => set({ musicEnabled }),
+  setVoiceVolume: (voiceVolume) =>
+    set({ voiceVolume: Math.max(0, Math.min(100, voiceVolume)) }),
+  setMusicVolume: (musicVolume) =>
+    set({ musicVolume: Math.max(0, Math.min(100, musicVolume)) }),
+  setSfxVolume: (sfxVolume) =>
+    set({ sfxVolume: Math.max(0, Math.min(100, sfxVolume)) }),
+  toggleVoice: () => set((s) => ({ voiceEnabled: !s.voiceEnabled })),
+  toggleMusic: () => set((s) => ({ musicEnabled: !s.musicEnabled })),
   triggerRandomEvent: () =>
     set((s) => {
       const idx = EVENT_CYCLE.indexOf(s.activeRandomEvent);
