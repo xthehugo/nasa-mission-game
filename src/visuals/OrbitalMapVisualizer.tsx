@@ -18,6 +18,7 @@ export default function OrbitalMapVisualizer({
   destination,
   lang = 'en',
   className = 'max-w-md',
+  progress,
 }: Props) {
   const [t, setT] = useState(0);
 
@@ -25,8 +26,14 @@ export default function OrbitalMapVisualizer({
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      setT((p) => p + (now - last) / 1000);
-      last = now;
+      const elapsed = (now - last) / 1000;
+      if (elapsed >= 0.028) {
+        const dt = Math.min(0.06, Math.max(0, elapsed));
+        last = now;
+        if (!document.hidden) {
+          setT((p) => (p + dt) % 10000);
+        }
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -87,6 +94,9 @@ export default function OrbitalMapVisualizer({
     </g>
   );
 
+  // Dynamic time + mission flight progress integration
+  const flightPhase = typeof progress === 'number' ? progress * Math.PI * 2 : 0;
+
   // Content generation based on destination / campaign
   let orbitalGraphics;
   let hudVelocity = '7.67 km/s';
@@ -96,7 +106,7 @@ export default function OrbitalMapVisualizer({
 
   if (isLeo) {
     const rOrbit = 82;
-    const a = t * 0.9;
+    const a = t * 0.9 + flightPhase;
     const sx = CX + rOrbit * Math.cos(a);
     const sy = CY + rOrbit * Math.sin(a);
     const shipAngle = (a * 180) / Math.PI + 90;

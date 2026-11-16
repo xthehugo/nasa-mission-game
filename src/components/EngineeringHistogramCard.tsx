@@ -44,18 +44,18 @@ export default function EngineeringHistogramCard({
   // Simulated fleet histogram distribution bins for Poly Bridge comparison
   // (Shows bell curve of simulated player/NASA designs)
   const budgetBins = [
-    { label: '<$10M', height: 28 },
-    { label: '$10-15M', height: 65 },
-    { label: '$15-20M', height: 95 },
-    { label: '$20-25M', height: 78 },
-    { label: '>$25M', height: 35 },
+    { label: '<10M', height: 28 },
+    { label: '10-15', height: 65 },
+    { label: '15-20', height: 95 },
+    { label: '20-25', height: 78 },
+    { label: '>25M', height: 35 },
   ];
 
   const marginBins = [
     { label: '<15%', height: 32 },
-    { label: '15-25%', height: 58 },
-    { label: '25-35%', height: 90 },
-    { label: '35-50%', height: 72 },
+    { label: '15-25', height: 58 },
+    { label: '25-35', height: 90 },
+    { label: '35-50', height: 72 },
     { label: '>50%', height: 40 },
   ];
 
@@ -118,15 +118,15 @@ export default function EngineeringHistogramCard({
               : 'border-slate-800 bg-[#040814]/70 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="font-bold flex items-center gap-1 text-[#FFC15E]">
-              <Star className={`h-3.5 w-3.5 ${missionStarEarned ? 'fill-[#FFC15E]' : ''}`} />
-              <span>{isEs ? '★ 1: MISIÓN CUMPLIDA' : '★ 1: MISSION SUCCESS'}</span>
+          <div className="flex items-center justify-between gap-1">
+            <span className="font-bold flex items-center gap-1.5 text-[#FFC15E] min-w-0">
+              <Star className={`h-3.5 w-3.5 shrink-0 ${missionStarEarned ? 'fill-[#FFC15E]' : ''}`} />
+              <span className="truncate">{isEs ? '1 · MISIÓN CUMPLIDA' : '1 · MISSION SUCCESS'}</span>
             </span>
             {missionStarEarned ? (
-              <Check className="h-3.5 w-3.5 text-[#5FF3FF]" />
+              <Check className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
             ) : (
-              <X className="h-3.5 w-3.5 text-slate-500" />
+              <X className="h-3.5 w-3.5 shrink-0 text-slate-500" />
             )}
           </div>
           <p className="mt-1 text-[9px] text-slate-300">
@@ -147,15 +147,15 @@ export default function EngineeringHistogramCard({
               : 'border-slate-800 bg-[#040814]/70 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="font-bold flex items-center gap-1 text-[#FFC15E]">
-              <Star className={`h-3.5 w-3.5 ${budgetStarEarned ? 'fill-[#FFC15E]' : ''}`} />
-              <span>{isEs ? '★★ 2: CAMPEÓN DE COSTES' : '★★ 2: BUDGET CHAMPION'}</span>
+          <div className="flex items-center justify-between gap-1">
+            <span className="font-bold flex items-center gap-1.5 text-[#FFC15E] min-w-0">
+              <Star className={`h-3.5 w-3.5 shrink-0 ${budgetStarEarned ? 'fill-[#FFC15E]' : ''}`} />
+              <span className="truncate">{isEs ? '2 · CAMPEÓN DE COSTES' : '2 · BUDGET CHAMPION'}</span>
             </span>
             {budgetStarEarned ? (
-              <Check className="h-3.5 w-3.5 text-[#5FF3FF]" />
+              <Check className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
             ) : (
-              <X className="h-3.5 w-3.5 text-slate-500" />
+              <X className="h-3.5 w-3.5 shrink-0 text-slate-500" />
             )}
           </div>
           <p className="mt-1 text-[9px] text-slate-300">
@@ -176,15 +176,15 @@ export default function EngineeringHistogramCard({
               : 'border-slate-800 bg-[#040814]/70 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="font-bold flex items-center gap-1 text-[#FFC15E]">
-              <Star className={`h-3.5 w-3.5 ${marginStarEarned ? 'fill-[#FFC15E]' : ''}`} />
-              <span>{isEs ? '★★★ 3: MAESTRÍA NASA' : '★★★ 3: NASA MASTERY'}</span>
+          <div className="flex items-center justify-between gap-1">
+            <span className="font-bold flex items-center gap-1.5 text-[#FFC15E] min-w-0">
+              <Star className={`h-3.5 w-3.5 shrink-0 ${marginStarEarned ? 'fill-[#FFC15E]' : ''}`} />
+              <span className="truncate">{isEs ? '3 · MAESTRÍA NASA' : '3 · NASA MASTERY'}</span>
             </span>
             {marginStarEarned ? (
-              <Check className="h-3.5 w-3.5 text-[#5FF3FF]" />
+              <Check className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
             ) : (
-              <X className="h-3.5 w-3.5 text-slate-500" />
+              <X className="h-3.5 w-3.5 shrink-0 text-slate-500" />
             )}
           </div>
           <p className="mt-1 text-[9px] text-slate-300">
@@ -202,18 +202,18 @@ export default function EngineeringHistogramCard({
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-slate-800">
         {/* Histogram 1: Budget Distribution */}
         <div className="border border-slate-800 bg-[#040813] p-3 rounded">
-          <div className="flex items-center justify-between text-[10px]">
-            <div className="flex items-center gap-1.5 text-slate-300 font-bold">
-              <DollarSign className="h-3.5 w-3.5 text-[#FFC15E]" />
-              <span>{isEs ? 'DISTRIBUCIÓN DE COSTE ($M)' : 'BUDGET DISTRIBUTION ($M)'}</span>
+          <div className="flex items-center justify-between gap-2 text-[10px]">
+            <div className="flex items-center gap-1.5 text-slate-300 font-bold min-w-0">
+              <DollarSign className="h-3.5 w-3.5 shrink-0 text-[#FFC15E]" />
+              <span className="truncate">{isEs ? 'DISTRIBUCIÓN COSTE' : 'BUDGET SPREAD'}</span>
             </div>
-            <span className="text-[#5FF3FF] font-bold text-[9.5px]">
+            <span className="text-[#5FF3FF] font-bold text-[10px] shrink-0 font-mono">
               ${spentCost.toFixed(1)}M
             </span>
           </div>
 
           {/* Histogram Bar Chart */}
-          <div className="mt-3 flex items-end justify-between h-20 gap-1.5 px-2 border-b border-slate-700 pb-1">
+          <div className="mt-4 flex items-end justify-between h-20 gap-1.5 px-2 border-b border-slate-700 pb-1">
             {budgetBins.map((bin, i) => {
               const isPlayer = playerBudgetBin === i;
               const isBenchmark = benchmarkBudgetBin === i;
@@ -222,7 +222,7 @@ export default function EngineeringHistogramCard({
                 <div key={bin.label} className="relative flex-1 flex flex-col items-center h-full justify-end">
                   {/* Player Pin */}
                   {isPlayer && (
-                    <div className="absolute -top-3 flex flex-col items-center z-10 animate-bounce">
+                    <div className="absolute -top-3.5 flex flex-col items-center z-10 animate-bounce">
                       <span className="text-[7.5px] font-black text-[#5FF3FF] bg-[#02050B] border border-[#5FF3FF] px-1 rounded-sm whitespace-nowrap">
                         {isEs ? 'TÚ' : 'YOU'}
                       </span>
@@ -231,7 +231,7 @@ export default function EngineeringHistogramCard({
 
                   {/* Benchmark Pin */}
                   {isBenchmark && !isPlayer && (
-                    <div className="absolute -top-3 flex flex-col items-center z-10">
+                    <div className="absolute -top-3.5 flex flex-col items-center z-10">
                       <span className="text-[7px] font-bold text-[#FFC15E] bg-[#02050B] border border-[#FFC15E] px-0.5 rounded-sm whitespace-nowrap">
                         JPL
                       </span>
@@ -256,30 +256,38 @@ export default function EngineeringHistogramCard({
             })}
           </div>
 
-          <div className="mt-2 flex items-center justify-between text-[8.5px] text-slate-400">
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#5FF3FF]" /> {isEs ? 'Tu nave:' : 'Your craft:'} ${spentCost.toFixed(1)}M
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#FFC15E]" /> {benchmark.missionName}: ${benchmark.actualCost_MillionsUSD}M
-            </span>
+          <div className="mt-2.5 flex flex-col gap-1 border-t border-slate-800/80 pt-2 text-[8.5px] text-slate-400 font-mono">
+            <div className="flex items-center justify-between gap-1">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5FF3FF]" />
+                <span className="truncate">{isEs ? 'Tu nave:' : 'Your craft:'}</span>
+              </span>
+              <strong className="text-white shrink-0 font-bold">${spentCost.toFixed(1)}M</strong>
+            </div>
+            <div className="flex items-center justify-between gap-1">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#FFC15E]" />
+                <span className="truncate" title={benchmark.missionName}>{benchmark.missionName}:</span>
+              </span>
+              <strong className="text-white shrink-0 font-bold">${benchmark.actualCost_MillionsUSD}M</strong>
+            </div>
           </div>
         </div>
 
         {/* Histogram 2: Safety Margin Distribution */}
         <div className="border border-slate-800 bg-[#040813] p-3 rounded">
-          <div className="flex items-center justify-between text-[10px]">
-            <div className="flex items-center gap-1.5 text-slate-300 font-bold">
-              <Shield className="h-3.5 w-3.5 text-[#5FF3FF]" />
-              <span>{isEs ? 'MARGEN DE SEGURIDAD (%)' : 'SAFETY MARGIN (%)'}</span>
+          <div className="flex items-center justify-between gap-2 text-[10px]">
+            <div className="flex items-center gap-1.5 text-slate-300 font-bold min-w-0">
+              <Shield className="h-3.5 w-3.5 shrink-0 text-[#5FF3FF]" />
+              <span className="truncate">{isEs ? 'MARGEN SEGURIDAD' : 'SAFETY MARGIN'}</span>
             </div>
-            <span className="text-[#FFC15E] font-bold text-[9.5px]">
+            <span className="text-[#FFC15E] font-bold text-[10px] shrink-0 font-mono">
               {minMargin.toFixed(1)}%
             </span>
           </div>
 
           {/* Histogram Bar Chart */}
-          <div className="mt-3 flex items-end justify-between h-20 gap-1.5 px-2 border-b border-slate-700 pb-1">
+          <div className="mt-4 flex items-end justify-between h-20 gap-1.5 px-2 border-b border-slate-700 pb-1">
             {marginBins.map((bin, i) => {
               const isPlayer = playerMarginBin === i;
               const isStandard = i === 2; // 25-35% standard
@@ -288,7 +296,7 @@ export default function EngineeringHistogramCard({
                 <div key={bin.label} className="relative flex-1 flex flex-col items-center h-full justify-end">
                   {/* Player Pin */}
                   {isPlayer && (
-                    <div className="absolute -top-3 flex flex-col items-center z-10 animate-bounce">
+                    <div className="absolute -top-3.5 flex flex-col items-center z-10 animate-bounce">
                       <span className="text-[7.5px] font-black text-[#5FF3FF] bg-[#02050B] border border-[#5FF3FF] px-1 rounded-sm whitespace-nowrap">
                         {isEs ? 'TÚ' : 'YOU'}
                       </span>
@@ -297,7 +305,7 @@ export default function EngineeringHistogramCard({
 
                   {/* NASA-STD-5001B standard marker */}
                   {isStandard && !isPlayer && (
-                    <div className="absolute -top-3 flex flex-col items-center z-10">
+                    <div className="absolute -top-3.5 flex flex-col items-center z-10">
                       <span className="text-[7px] font-bold text-amber-400 bg-[#02050B] border border-amber-400 px-0.5 rounded-sm whitespace-nowrap">
                         NASA
                       </span>
@@ -322,13 +330,21 @@ export default function EngineeringHistogramCard({
             })}
           </div>
 
-          <div className="mt-2 flex items-center justify-between text-[8.5px] text-slate-400">
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#5FF3FF]" /> {isEs ? 'Tu margen:' : 'Your margin:'} {minMargin.toFixed(1)}%
-            </span>
-            <span className="flex items-center gap-1 text-amber-400">
-              <BarChart3 className="h-2.5 w-2.5" /> NASA-STD-5001B (≥35%)
-            </span>
+          <div className="mt-2.5 flex flex-col gap-1 border-t border-slate-800/80 pt-2 text-[8.5px] text-slate-400 font-mono">
+            <div className="flex items-center justify-between gap-1">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5FF3FF]" />
+                <span className="truncate">{isEs ? 'Tu margen:' : 'Your margin:'}</span>
+              </span>
+              <strong className="text-white shrink-0 font-bold">{minMargin.toFixed(1)}%</strong>
+            </div>
+            <div className="flex items-center justify-between gap-1 text-amber-400">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <BarChart3 className="h-2.5 w-2.5 shrink-0 text-amber-400" />
+                <span className="truncate">NASA-STD-5001B:</span>
+              </span>
+              <strong className="text-amber-300 shrink-0 font-bold">≥35%</strong>
+            </div>
           </div>
         </div>
       </div>
