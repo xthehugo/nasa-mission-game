@@ -28,22 +28,20 @@ export function SubmoduleInfoModal({
 }: SubmoduleInfoModalProps) {
   const { language, experienceMode, soundEnabled, reducedMotion } = useMissionStore();
 
-  const [activeTab, setActiveTab] = useState<'STUDENT' | 'ENGINEER'>(
-    experienceMode === 'JPL_ENGINEER' ? 'ENGINEER' : 'STUDENT'
-  );
+  const [tabOverride, setTabOverride] = useState<'STUDENT' | 'ENGINEER' | null>(null);
+  const activeTab = tabOverride ?? (experienceMode === 'JPL_ENGINEER' ? 'ENGINEER' : 'STUDENT');
 
-  // Sync default tab when opening modal
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(experienceMode === 'JPL_ENGINEER' ? 'ENGINEER' : 'STUDENT');
-    }
-  }, [isOpen, experienceMode]);
+  const handleClose = () => {
+    setTabOverride(null);
+    onClose();
+  };
 
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        setTabOverride(null);
         onClose();
       }
     };
@@ -64,7 +62,7 @@ export function SubmoduleInfoModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
+            if (e.target === e.currentTarget) handleClose();
           }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#02050B]/90 p-3 sm:p-5 backdrop-blur-md font-mono"
         >
@@ -95,7 +93,7 @@ export function SubmoduleInfoModal({
                 type="button"
                 onClick={() => {
                   playHoloTone('STEP', soundEnabled);
-                  onClose();
+                  handleClose();
                 }}
                 className="flex items-center gap-1 rounded border border-[#5FF3FF]/30 bg-[#071324] px-2.5 py-1 text-xs text-slate-300 hover:border-[#FF4D6D] hover:bg-[#FF4D6D]/15 hover:text-[#FF4D6D] transition cursor-pointer"
                 title={isEs ? 'Cerrar ventana (ESC)' : 'Close modal (ESC)'}
@@ -117,7 +115,7 @@ export function SubmoduleInfoModal({
                   type="button"
                   onClick={() => {
                     playHoloTone('STEP', soundEnabled);
-                    setActiveTab('STUDENT');
+                    setTabOverride('STUDENT');
                   }}
                   className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono font-bold tracking-wider rounded transition cursor-pointer ${
                     activeTab === 'STUDENT'
@@ -133,7 +131,7 @@ export function SubmoduleInfoModal({
                   type="button"
                   onClick={() => {
                     playHoloTone('STEP', soundEnabled);
-                    setActiveTab('ENGINEER');
+                    setTabOverride('ENGINEER');
                   }}
                   className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono font-bold tracking-wider rounded transition cursor-pointer ${
                     activeTab === 'ENGINEER'
@@ -295,7 +293,7 @@ export function SubmoduleInfoModal({
                 type="button"
                 onClick={() => {
                   playHoloTone('STAR', soundEnabled);
-                  onClose();
+                  handleClose();
                 }}
                 className="w-full sm:w-auto border border-[#5FF3FF] bg-[#5FF3FF]/20 px-5 py-2 font-mono text-xs font-bold tracking-[0.14em] text-[#5FF3FF] uppercase hover:bg-[#5FF3FF]/30 transition rounded shadow-[0_0_14px_rgba(95,243,255,0.2)] cursor-pointer"
               >

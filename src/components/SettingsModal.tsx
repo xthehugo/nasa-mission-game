@@ -64,13 +64,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     0,
   );
 
-  const [callsignDraft, setCallsignDraft] = useState(
-    isStudent ? cadetName : engineerName,
-  );
+  const currentCallsign = isStudent ? cadetName : engineerName;
+  const [lastSyncKey, setLastSyncKey] = useState({ isStudent, cadetName, engineerName, isOpen });
+  const [callsignDraft, setCallsignDraft] = useState(currentCallsign);
 
-  useEffect(() => {
-    setCallsignDraft(isStudent ? cadetName : engineerName);
-  }, [cadetName, engineerName, isStudent, isOpen]);
+  if (
+    lastSyncKey.isStudent !== isStudent ||
+    lastSyncKey.cadetName !== cadetName ||
+    lastSyncKey.engineerName !== engineerName ||
+    lastSyncKey.isOpen !== isOpen
+  ) {
+    setLastSyncKey({ isStudent, cadetName, engineerName, isOpen });
+    setCallsignDraft(currentCallsign);
+  }
 
   useEffect(() => {
     if (!isOpen) return;

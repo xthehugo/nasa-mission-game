@@ -199,8 +199,8 @@ export const SUBMODULE_GUIDES: Record<SubmoduleGuideId, SubmoduleGuideData> = {
         es: 'El Contrato de Vuelo es tu Manual de Reglas',
       },
       analogyText: {
-        en: 'Before building anything, NASA agrees on a clear mission contract. For BioNutrients-2, our job is to deliver fresh yeast vitamins to future Moon/Mars astronauts. The contract sets strict limits: maximum \$20M budget, must carry the bio-incubator, and must operate at 400 km in the space station orbit.',
-        es: 'Antes de construir una sola pieza, la NASA y los científicos firman un contrato. Para BioNutrients-2, la meta es cultivar vitaminas con levaduras para astronautas de Artemis. El contrato impone reglas estrictas: tope de \$20M de presupuesto, llevar obligatoriamente la bio-incubadora y volar a 400 km.',
+        en: 'Before building anything, NASA agrees on a clear mission contract. For BioNutrients-2, our job is to deliver fresh yeast vitamins to future Moon/Mars astronauts. The contract sets strict limits: maximum $20M budget, must carry the bio-incubator, and must operate at 400 km in the space station orbit.',
+        es: 'Antes de construir una sola pieza, la NASA y los científicos firman un contrato. Para BioNutrients-2, la meta es cultivar vitaminas con levaduras para astronautas de Artemis. El contrato impone reglas estrictas: tope de $20M de presupuesto, llevar obligatoriamente la bio-incubadora y volar a 400 km.',
       },
       causeAndEffect: [
         {
@@ -343,8 +343,8 @@ export const SUBMODULE_GUIDES: Record<SubmoduleGuideId, SubmoduleGuideData> = {
         {
           action: { en: 'Near-Earth Network (LEO)', es: 'Red Near-Earth (LEO)' },
           consequence: {
-            en: 'Low cost (\$0.2M/mo), fast downloads when passing overhead, perfect for BioNutrients-2.',
-            es: 'Bajo costo (\$0.2M/mes), descargas rápidas al pasar por encima, ideal para LEO.',
+            en: 'Low cost ($0.2M/mo), fast downloads when passing overhead, perfect for BioNutrients-2.',
+            es: 'Bajo costo ($0.2M/mes), descargas rápidas al pasar por encima, ideal para LEO.',
           },
         },
         {
@@ -401,8 +401,8 @@ export const SUBMODULE_GUIDES: Record<SubmoduleGuideId, SubmoduleGuideData> = {
         es: '¡En la Ciencia Espacial Nada Es Gratis!',
       },
       analogyText: {
-        en: 'Everything in space is connected. If you equip a super-powerful camera, it consumes more electricity (watts), which demands bigger solar wings, which adds heavy mass (kg), which requires a bigger rocket launcher and costs more money (\$M). Aerospace engineering is the art of finding the sweet spot where all 7 systems stay green!',
-        es: 'En el espacio todo está conectado. Si equipas una cámara científica potente, consume más vatios de electricidad, lo que exige alas solares más grandes, lo que añade peso (kg), lo que obliga a contratar un cohete más grande y más caro (\$M). La ingeniería aeroespacial consiste en balancear estos 7 sistemas.',
+        en: 'Everything in space is connected. If you equip a super-powerful camera, it consumes more electricity (watts), which demands bigger solar wings, which adds heavy mass (kg), which requires a bigger rocket launcher and costs more money ($M). Aerospace engineering is the art of finding the sweet spot where all 7 systems stay green!',
+        es: 'En el espacio todo está conectado. Si equipas una cámara científica potente, consume más vatios de electricidad, lo que exige alas solares más grandes, lo que añade peso (kg), lo que obliga a contratar un cohete más grande y más caro ($M). La ingeniería aeroespacial consiste en balancear estos 7 sistemas.',
       },
       causeAndEffect: [
         {
