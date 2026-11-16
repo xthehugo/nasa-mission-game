@@ -278,7 +278,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
                         e.stopPropagation();
                         if (opt.category === 'PAYLOAD') togglePayload(opt.id);
                         else setSubsystem(opt.category, opt.id);
-                        playHoloTone('STAR', soundEnabled);
+                        playHoloTone('SUCCESS', soundEnabled);
                         appendDecisionLog({
                           phase: 'CML_3',
                           label: {

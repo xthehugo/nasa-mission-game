@@ -361,7 +361,7 @@ export function CommanderHudBanner() {
       {/* Level 01 Interactive 10-Step Flight Academy Tutorial */}
       {isLevel1GuidedTour && activeTourStep && (
         <div
-          className={`pointer-events-auto relative z-30 border-l-2 bg-[#061224]/95 px-3 py-2.5 ${
+          className={`pointer-events-auto relative z-10 border-l-2 bg-[#061224]/95 px-3 py-2.5 ${
             idleHint
               ? 'border-[#FFC15E] ring-2 ring-[#FFC15E]/60 shadow-[0_0_22px_rgba(255,193,94,0.28)]'
               : 'border-[#5FF3FF] bg-[#FFC15E]/8'
@@ -614,7 +614,7 @@ export function CommanderHudBanner() {
 
       {/* Interactive Guided Tour across all other modules (CML 02-06 or replay) */}
       {!isLevel1GuidedTour && isGuideTourActive && activePhaseTourStep && (
-        <div className="pointer-events-auto relative z-30 border-l-2 border-[#5FF3FF] bg-[#061224]/95 px-3 py-2.5">
+        <div className="pointer-events-auto relative z-10 border-l-2 border-[#5FF3FF] bg-[#061224]/95 px-3 py-2.5">
           <div className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold tracking-[0.12em] text-[#5FF3FF] uppercase">
             <div className="flex items-center gap-1.5">
               <span className="text-[#FFC15E]">{activePhaseTourStep.badge[language]}</span>

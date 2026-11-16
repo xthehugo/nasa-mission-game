@@ -2165,6 +2165,7 @@ export function formatCommanderBeat(
 ): string {
   return template
     .replaceAll('{commander}', commanderName)
+    .replaceAll('{callsign}', commanderName)
     .replaceAll('{mission}', missionCustomName);
 }
 
@@ -2181,5 +2182,6 @@ export function formatStoryText(
     .replaceAll('{cadet}', cadetName)
     .replaceAll('{engineer}', engineerName)
     .replaceAll('{commander}', activeCommander)
+    .replaceAll('{callsign}', activeCommander)
     .replaceAll('{mission}', missionCustomName);
 }

@@ -522,10 +522,12 @@ export default function MissionStage({
 
   return (
     <div
+      className={embedded ? 'h-full w-full' : undefined}
       style={{
         position: 'relative',
-        minHeight: embedded ? 'auto' : '100vh',
-        overflow: 'visible',
+        height: embedded ? '100%' : undefined,
+        minHeight: embedded ? '100%' : '100vh',
+        overflow: 'hidden',
         background: embedded
           ? 'radial-gradient(ellipse at 50% 45%, rgba(95,243,255,0.08) 0%, #04080F 72%)'
           : 'radial-gradient(ellipse at 50% 0%, #0b1a3a 0%, #020617 70%)',
@@ -534,36 +536,47 @@ export default function MissionStage({
     >
       <style>{css}</style>
 
-      {layers.map((l, k) => (
-        <div
-          key={k}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: l.size,
-            height: l.size,
-            borderRadius: '50%',
-            boxShadow: l.shadow,
-            opacity: embedded ? l.op * 0.65 : l.op,
-            animation: `starScroll ${l.dur}s linear infinite`,
-          }}
-        />
-      ))}
+      {/* Dynamic Starfield pinned in background during vertical scroll */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        {layers.map((l, k) => (
+          <div
+            key={k}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: l.size,
+              height: l.size,
+              borderRadius: '50%',
+              boxShadow: l.shadow,
+              opacity: embedded ? l.op * 0.65 : l.op,
+              animation: `starScroll ${l.dur}s linear infinite`,
+            }}
+          />
+        ))}
+      </div>
 
       <div
+        className={embedded ? 'h-full w-full overflow-y-auto overflow-x-hidden telemetry-scrollbar' : undefined}
         style={{
           position: 'relative',
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: embedded ? 'auto' : '100vh',
+          height: embedded ? '100%' : undefined,
+          minHeight: embedded ? '100%' : '100vh',
           padding: embedded ? 12 : 16,
           gap: embedded ? 10 : 14,
         }}
       >
-        {/* Barra superior */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        {/* Barra superior con controles adhesivos (sticky) */}
+        <div
+          className={
+            embedded
+              ? 'sticky top-0 z-20 -mx-3 -mt-3 mb-1 flex flex-wrap items-center justify-between gap-2 border-b border-[#5FF3FF]/20 bg-[#04080F]/95 px-3 py-2 backdrop-blur-md'
+              : 'flex flex-wrap items-center justify-between gap-2'
+          }
+        >
           <div>
             {!embedded && (
               <div style={{ fontSize: 12, letterSpacing: 4, color: '#64748b' }}>ORBITAL FORGE</div>
@@ -1071,7 +1084,7 @@ export default function MissionStage({
 
         {/* Barra inferior de tarjetas numéricas */}
         {embedded && stage !== 'IDLE' && (
-          <div className="grid grid-cols-2 gap-1.5 border-t border-[#5FF3FF]/20 pt-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-1.5 border-t border-[#5FF3FF]/20 pt-2 pb-3 sm:grid-cols-4">
             {cards.map(([label, value]) => (
               <div
                 key={label}

@@ -10,7 +10,9 @@ export type HoloToneKind =
   | 'FILL'
   | 'IGNITION'
   | 'SONIC_BOOM'
-  | 'STRESS_CREAK';
+  | 'STRESS_CREAK'
+  | 'SUCCESS'
+  | 'ECLIPSE';
 
 const TONE_SPEC: Record<
   HoloToneKind,
@@ -23,6 +25,8 @@ const TONE_SPEC: Record<
   IGNITION: { freq: 75, endFreq: 42, dur: 0.45, gain: 0.06 },
   SONIC_BOOM: { freq: 115, endFreq: 28, dur: 0.38, gain: 0.075 },
   STRESS_CREAK: { freq: 310, endFreq: 230, dur: 0.22, gain: 0.04 },
+  SUCCESS: { freq: 523, endFreq: 1046, dur: 0.2, gain: 0.045 },
+  ECLIPSE: { freq: 320, endFreq: 160, dur: 0.22, gain: 0.035 },
 };
 
 let sharedAudioCtx: AudioContext | null = null;
@@ -73,7 +77,7 @@ export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
     osc.type =
       kind === 'ALARM' || kind === 'STRESS_CREAK'
         ? 'sawtooth'
-        : kind === 'IGNITION' || kind === 'SONIC_BOOM'
+        : kind === 'IGNITION' || kind === 'SONIC_BOOM' || kind === 'SUCCESS'
           ? 'triangle'
           : 'sine';
     osc.frequency.setValueAtTime(spec.freq, ctx.currentTime);
