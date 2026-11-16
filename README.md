@@ -5,12 +5,14 @@
 **NASA Space Apps Challenge 2026 — *The Next Frontier / Science Mission Design***
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Production-00E5FF?style=for-the-badge&logo=vercel)](https://nasa-mission-game.vercel.app)
+[![Pitch Deck](https://img.shields.io/badge/Pitch%20Deck-Google%20Slides-EA4335?style=for-the-badge&logo=googleslides&logoColor=white)](https://docs.google.com/presentation/d/1ejXNJ8t49zhaHaehOjhdB-dRM18XtCkie2YK6UbFXkQ/edit?slide=id.p7#slide=id.p7)
 [![Tests Passing](https://img.shields.io/badge/Tests-12%2F12%20Passing-00E676?style=for-the-badge&logo=vitest)](https://github.com/xthehugo/nasa-mission-game)
 [![NASA GMAT](https://img.shields.io/badge/NASA%20GMAT-R2026a%20Validated-FFC107?style=for-the-badge&logo=nasa)](https://software.nasa.gov/software/GSC-19468-1)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%20Zero%20Any-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![License MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](./LICENSE)
 
 **🌐 Live Application:** [https://nasa-mission-game.vercel.app](https://nasa-mission-game.vercel.app) *(Zero login required · Instant access)*  
+**📊 Official Pitch Deck:** [Google Slides (7 Slides)](https://docs.google.com/presentation/d/1ejXNJ8t49zhaHaehOjhdB-dRM18XtCkie2YK6UbFXkQ/edit?slide=id.p7#slide=id.p7)  
 **📁 Official Repository:** [https://github.com/xthehugo/nasa-mission-game](https://github.com/xthehugo/nasa-mission-game)  
 **🗣️ Supported Languages:** English (`en`, Default) & Spanish (`es`)
 
@@ -180,6 +182,7 @@ src/
 
 * [x] **Zero NASA Trademark Infringement:** Uses original custom SVG vector branding (`ORBITAL FORGE`) with zero protected NASA Meatball/Worm logos or seals.
 * [x] **Global Evaluation Ready:** Defaults to **English (`en`)** upon first load, with instant one-click toggle to Spanish (`es`).
+* [x] **7-Slide Pitch Deck Included:** Official presentation formatted for judges: [Google Slides Presentation](https://docs.google.com/presentation/d/1ejXNJ8t49zhaHaehOjhdB-dRM18XtCkie2YK6UbFXkQ/edit?slide=id.p7#slide=id.p7).
 * [x] **Super Intelligence (AI) Disclosure:** Formally discloses generative AI assistance for software scaffolding and asset styling, while all scientific equations and orbital mechanics are deterministic human-verified aerospace standards.
 * [x] **Open Data Citations:** Integrates 18 verified datasets and standards from NASA JPL, NASA Ames, NASA GSFC, and the Canadian Space Agency (CSA).
 * [x] **100% Public Access:** Live production deployment on Vercel with zero passwords, login gates, or paywalls.
@@ -241,6 +244,7 @@ El jugador formula misiones científicas en LEO, GEO, Luna, Marte, el Punto $L_2
 * **5 Dilemas de Crisis en Vuelo:** Tormentas solares CME, eclipses térmicos profundos, atenuación por lluvia en DSN, atascamiento de antenas y desaturación RCS.
 * **Gemini Space Master (Google AI Studio):** Auditoría de telemetría en tiempo real y generación procedural con Gemini 2.5 Flash.
 * **Audio Neural Dual & Diplomas en PDF:** Voces Edge-TTS sincronizadas y generación de Diplomas de Honor NASA vectoriales en PDF listos para imprimir.
+* **Presentación Oficial (7 Diapositivas para el Jurado):** [Ver en Google Slides](https://docs.google.com/presentation/d/1ejXNJ8t49zhaHaehOjhdB-dRM18XtCkie2YK6UbFXkQ/edit?slide=id.p7#slide=id.p7)
 
 ---
 

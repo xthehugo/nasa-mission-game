@@ -59,7 +59,9 @@ Consolidado de reglas oficiales de **NASA Space Apps Challenge 2026 — Universi
 
 ---
 
-## 4. Estructura Recomendada de las 7 Diapositivas (Persona 3)
+## 4. Presentación Oficial y Estructura de las 7 Diapositivas (Persona 3)
+
+🔗 **Presentación en Google Slides (7 Diapositivas):** [Ver Diapositivas Oficiales](https://docs.google.com/presentation/d/1ejXNJ8t49zhaHaehOjhdB-dRM18XtCkie2YK6UbFXkQ/edit?slide=id.p7#slide=id.p7)
 
 | Slide | Título Sugerido (EN) | Contenido Clave Visual |
 | :---: | :--- | :--- |
