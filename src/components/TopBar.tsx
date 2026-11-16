@@ -90,7 +90,7 @@ export function TopBar() {
   return (
     <header
       data-astra-zone="TOP_BAR"
-      className="sticky top-0 z-30 border-b border-[#5FF3FF]/15 bg-[#04080F]/95 px-4 py-2.5 backdrop-blur-md sm:px-7"
+      className="sticky top-0 z-50 border-b border-[#5FF3FF]/15 bg-[#04080F]/95 px-4 py-2.5 backdrop-blur-md sm:px-7"
     >
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3">
         {/* Left: Minimal Level Header (matches reference mockup) */}
@@ -183,6 +183,7 @@ export function TopBar() {
             <HelpCircle className="h-4 w-4" />
           </button>
 
+        <div className="relative">
           {/* Compact Settings & Account Popover Trigger */}
           <button
             type="button"
@@ -203,99 +204,107 @@ export function TopBar() {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-10 z-50 w-72 border border-[#5FF3FF]/45 bg-[#040B14]/98 p-3 shadow-[0_14px_38px_rgba(0,0,0,0.88)] backdrop-blur-md">
-              {/* Profile & XP */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  reopenOnboarding();
-                  playHoloTone('STEP', soundEnabled);
-                }}
-                className="flex w-full items-center justify-between gap-2 border-b border-[#5FF3FF]/15 pb-2.5 text-left hover:bg-[#5FF3FF]/5 p-1.5 transition"
-              >
-                <div className="flex items-center gap-2">
-                  {isStudent ? (
-                    <GraduationCap className="h-4 w-4 text-[#5FF3FF]" />
-                  ) : (
-                    <Wrench className="h-4 w-4 text-[#FFC15E]" />
-                  )}
-                  <div>
-                    <div className="font-mono text-[10px] font-bold text-[#FFC15E] uppercase">
-                      {isStudent ? (isEs ? 'ESTUDIANTE' : 'STUDENT') : (isEs ? 'ING. JPL' : 'JPL ENG.')} · {activeCallsign}
-                    </div>
-                    <div className="font-mono text-[11px] text-slate-300">
-                      {playerRank.badge} · {playerXP} XP
+            <>
+              {/* Fullscreen Backdrop to dismiss on outside click and prevent background bleed-through */}
+              <div
+                className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-[2px]"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-10 z-[100] w-72 border-2 border-[#5FF3FF] bg-[#030814] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95)]">
+                {/* Profile & XP */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    reopenOnboarding();
+                    playHoloTone('STEP', soundEnabled);
+                  }}
+                  className="flex w-full items-center justify-between gap-2 border-b border-[#5FF3FF]/15 pb-2.5 text-left hover:bg-[#5FF3FF]/5 p-1.5 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    {isStudent ? (
+                      <GraduationCap className="h-4 w-4 text-[#5FF3FF]" />
+                    ) : (
+                      <Wrench className="h-4 w-4 text-[#FFC15E]" />
+                    )}
+                    <div>
+                      <div className="font-mono text-[10px] font-bold text-[#FFC15E] uppercase">
+                        {isStudent ? (isEs ? 'ESTUDIANTE' : 'STUDENT') : (isEs ? 'ING. JPL' : 'JPL ENG.')} · {activeCallsign}
+                      </div>
+                      <div className="font-mono text-[11px] text-slate-300">
+                        {playerRank.badge} · {playerXP} XP
+                      </div>
                     </div>
                   </div>
-                </div>
-                <span className="font-mono text-[10px] text-[#5FF3FF] underline">
-                  {isEs ? 'Cambiar' : 'Edit'}
-                </span>
-              </button>
-
-              <div className="mt-2 space-y-1.5 font-mono text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setCampaignModalOpen(true);
-                    playHoloTone('STEP', soundEnabled);
-                  }}
-                  className="flex w-full items-center justify-between rounded border border-[#5FF3FF]/20 px-2.5 py-1.5 text-slate-200 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
-                >
-                  <span className="flex items-center gap-2">
-                    <Compass className="h-3.5 w-3.5 text-[#5FF3FF]" />
-                    <span>{isEs ? 'Contratos NASA' : 'NASA Contracts'}</span>
+                  <span className="font-mono text-[10px] text-[#5FF3FF] underline">
+                    {isEs ? 'Cambiar' : 'Edit'}
                   </span>
-                  <span className="text-[10px] text-[#FFC15E]">{activeContract.code}</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setAIStudioModalOpen(true);
-                    playHoloTone('STEP', soundEnabled);
-                  }}
-                  className="flex w-full items-center justify-between rounded border border-[#FFC15E]/35 bg-[#FFC15E]/10 px-2.5 py-1.5 text-[#FFC15E] hover:bg-[#FFC15E]/20"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>GEMINI AI</span>
-                  </span>
-                  <span className="text-[10px]">{isEs ? 'Auditoría' : 'Audit'}</span>
-                </button>
-
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                <div className="mt-2 space-y-1.5 font-mono text-xs">
                   <button
                     type="button"
                     onClick={() => {
-                      const nextEnabled = !soundEnabled;
-                      toggleSound();
-                      playHoloTone('STEP', nextEnabled);
-                    }}
-                    className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] text-slate-200 hover:border-[#5FF3FF]"
-                  >
-                    {soundEnabled ? <Volume2 className="h-3.5 w-3.5 text-[#5FF3FF]" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
-                    <span>{soundEnabled ? (isEs ? 'Voz ON' : 'Voice ON') : (isEs ? 'Voz OFF' : 'Voice OFF')}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
+                      setMenuOpen(false);
+                      setCampaignModalOpen(true);
                       playHoloTone('STEP', soundEnabled);
-                      setLanguage(isEs ? 'en' : 'es');
                     }}
-                    className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] font-bold text-[#5FF3FF] hover:border-[#5FF3FF]"
+                    className="flex w-full items-center justify-between rounded border border-[#5FF3FF]/20 px-2.5 py-1.5 text-slate-200 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
                   >
-                    <Languages className="h-3.5 w-3.5" />
-                    <span>{isEs ? 'Idioma: ES' : 'Lang: EN'}</span>
+                    <span className="flex items-center gap-2">
+                      <Compass className="h-3.5 w-3.5 text-[#5FF3FF]" />
+                      <span>{isEs ? 'Contratos NASA' : 'NASA Contracts'}</span>
+                    </span>
+                    <span className="text-[10px] text-[#FFC15E]">{activeContract.code}</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setAIStudioModalOpen(true);
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="flex w-full items-center justify-between rounded border border-[#FFC15E]/35 bg-[#FFC15E]/10 px-2.5 py-1.5 text-[#FFC15E] hover:bg-[#FFC15E]/20"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>GEMINI AI</span>
+                    </span>
+                    <span className="text-[10px]">{isEs ? 'Auditoría' : 'Audit'}</span>
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextEnabled = !soundEnabled;
+                        toggleSound();
+                        playHoloTone('STEP', nextEnabled);
+                      }}
+                      className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] text-slate-200 hover:border-[#5FF3FF]"
+                    >
+                      {soundEnabled ? <Volume2 className="h-3.5 w-3.5 text-[#5FF3FF]" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
+                      <span>{soundEnabled ? (isEs ? 'Voz ON' : 'Voice ON') : (isEs ? 'Voz OFF' : 'Voice OFF')}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playHoloTone('STEP', soundEnabled);
+                        setLanguage(isEs ? 'en' : 'es');
+                      }}
+                      className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] font-bold text-[#5FF3FF] hover:border-[#5FF3FF]"
+                    >
+                      <Languages className="h-3.5 w-3.5" />
+                      <span>{isEs ? 'Idioma: ES' : 'Lang: EN'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
+        </div>
         </div>
       </div>
     </header>

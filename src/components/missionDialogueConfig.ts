@@ -227,12 +227,12 @@ export const CAMPAIGN_MISSION_CONTENT: MissionContentMap = {
         },
         hints: [
           {
-            en: 'TRACERS measures magnetic reconnection: explosive energy transfer between solar wind and Earth’s shield.',
-            es: 'TRACERS mide reconexión magnética: transferencia explosiva de energía entre el viento solar y el escudo terrestre.',
+            en: 'Two satellites flying in tandem like cyclists drafting in formation: they measure how solar wind penetrates the polar cusp.',
+            es: 'Dos satélites volando en fila india como ciclistas: miden cómo el viento solar entra por la cúspide polar antes de afectar a la Tierra.',
           },
           {
-            en: 'Both satellites must deploy from a single rideshare dispenser without exceeding mass limits.',
-            es: 'Ambos satélites deben desplegarse de un único dispensador sin exceder el peso permitido.',
+            en: 'TRACERS measures magnetic reconnection: explosive energy transfer between solar wind and Earth’s shield.',
+            es: 'TRACERS mide reconexión magnética: transferencia explosiva de energía entre el viento solar y el escudo terrestre.',
           },
         ],
       },
@@ -437,6 +437,10 @@ export const CAMPAIGN_MISSION_CONTENT: MissionContentMap = {
         },
         hints: [
           {
+            en: 'The fastest highway to GEO: two timed burns where the second burn at apogee circularizes the orbit at 35,786 km.',
+            es: 'La autopista más rápida al ecuador: dos encendidos cronometrados donde el segundo encendido en el punto más alto circulariza la nave.',
+          },
+          {
             en: 'Hohmann transfer physics: standard GTO transfer requires ~1,500 to ~1,800 m/s for circularization and plane change.',
             es: 'Física de transferencia de Hohmann: circularizar desde GTO y corregir el plano exige entre 1,500 y 1,800 m/s de ΔV.',
           },
@@ -582,6 +586,10 @@ export const CAMPAIGN_MISSION_CONTENT: MissionContentMap = {
           es: 'Configura un orbitador lunar con espectrómetros infrarrojos y detectores refrigerados.',
         },
         hints: [
+          {
+            en: 'A cosmic detective with an infrared flashlight: flies over -240°C craters where sunlight never enters, finding water for future astronauts.',
+            es: 'Un detective con linterna infrarroja: sobrevuela cráteres a -240°C donde jamás ha entrado el Sol, buscando agua para futuros astronautas.',
+          },
           {
             en: 'Permanently Shadowed Regions (PSRs) at the lunar south pole haven’t seen sunlight in billions of years and preserve water-ice.',
             es: 'Los cráteres polares en sombra permanente no han visto el Sol en miles de millones de años y guardan hielo intacto.',
@@ -757,6 +765,10 @@ export const CAMPAIGN_MISSION_CONTENT: MissionContentMap = {
         },
         hints: [
           {
+            en: 'A tennis-court-sized umbrella: blocks the heat of the Sun, Earth, and Moon at 1.5M km to freeze the optics to -233°C.',
+            es: 'Una sombrilla del tamaño de una cancha de tenis: bloquea el calor del Sol, la Tierra y la Luna a 1.5M km para enfriar los espejos a -233°C.',
+          },
+          {
             en: 'At L2, Sun, Earth, and Moon stay on the same side behind the observatory, so the telescope stays in deep freeze.',
             es: 'En L2, el Sol, la Tierra y la Luna quedan siempre detrás del parasol, manteniendo el telescopio ultra frío.',
           },
@@ -930,6 +942,10 @@ export const CAMPAIGN_MISSION_CONTENT: MissionContentMap = {
           es: 'Elige Nave de Espacio Profundo, núcleo nuclear RTG y bóveda de titanio anti-radiación.',
         },
         hints: [
+          {
+            en: 'The ultimate cosmic bunker: at 778M km, solar light is minimal. An RTG nuclear core and titanium vault protect against radiation to probe Europa’s hidden ocean.',
+            es: 'El búnker espacial definitivo: a 778M km la luz solar es mínima. El núcleo RTG y la bóveda de titanio resisten la radiación para sondear el océano oculto de Europa.',
+          },
           {
             en: 'Inverse-Square Law (1/R²): at 5.2 AU, solar flux is only (1/5.2)² ≈ 3.7% of Earth’s. RTG nuclear decay is essential.',
             es: 'Ley 1/R²: a 5.2 AU la luz solar es solo (1/5.2)² ≈ 3.7% de la terrestre. La energía nuclear RTG es indispensable.',

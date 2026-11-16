@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -19,7 +19,7 @@ import {
   getNextCampaignLevel,
 } from '../engine';
 import { useMissionStore } from '../store';
-import { playHoloTone } from './holoAudio';
+import { playBgmTrack, playHoloTone } from './holoAudio';
 import { CONTRACT_TO_CINEMATIC } from './narrativeConfig';
 import EngineeringHistogramCard from './EngineeringHistogramCard';
 
@@ -59,6 +59,13 @@ export function PostMissionCertificateModal() {
   const activeLevel = getCampaignLevelById(activeCampaignLevelId);
   const nextLevel = getNextCampaignLevel(activeLevel.id);
   const levelProgress = campaignProgress[activeLevel.id];
+
+  useEffect(() => {
+    if (show && soundEnabled) {
+      playHoloTone('SUCCESS', true);
+      playBgmTrack('VICTORY_FANFARE', true);
+    }
+  }, [show, soundEnabled]);
 
   const handleGoToNextMission = () => {
     if (!nextLevel) return;
