@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { jsPDF } from 'jspdf';
 import {
   Award,
   Check,
@@ -201,21 +202,305 @@ export function PostMissionCertificateModal() {
   };
 
   const handleDownloadCertificate = () => {
-    const summaryText = buildReportText();
-    if (!summaryText) return;
-
+    if (!simulationResult) return;
     try {
-      const blob = new Blob([summaryText], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `ORBITAL-FORGE-${missionCustomName.replace(/\s+/g, '-')}-Certificate.txt`;
-      link.click();
-      URL.revokeObjectURL(url);
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = 297;
+      const pageHeight = 210;
+
+      // 1. Deep Space Midnight Blue Background
+      doc.setFillColor(3, 8, 20);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      // 2. Subtle Star Constellation Dots
+      doc.setFillColor(255, 255, 255);
+      const stars = [
+        [25, 25, 0.4], [50, 45, 0.3], [85, 20, 0.5], [120, 35, 0.3],
+        [220, 25, 0.4], [270, 30, 0.6], [260, 60, 0.4], [40, 170, 0.5],
+        [75, 190, 0.3], [240, 185, 0.5], [265, 160, 0.4], [150, 195, 0.3],
+        [18, 110, 0.4], [280, 115, 0.4], [140, 15, 0.6]
+      ];
+      stars.forEach(([sx, sy, sr]) => {
+        doc.circle(sx, sy, sr, 'F');
+      });
+
+      // 3. Official Double Outer Borders in NASA Gold & Cyan
+      doc.setDrawColor(255, 193, 94); // #FFC15E
+      doc.setLineWidth(1.4);
+      doc.rect(8, 8, pageWidth - 16, pageHeight - 16, 'S');
+
+      doc.setDrawColor(95, 243, 255); // #5FF3FF
+      doc.setLineWidth(0.5);
+      doc.rect(11, 11, pageWidth - 22, pageHeight - 22, 'S');
+
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(0.25);
+      doc.rect(13, 13, pageWidth - 26, pageHeight - 26, 'S');
+
+      // Corner Tech Ornaments
+      const cornerSize = 7;
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(1.2);
+      doc.line(8, 8 + cornerSize, 8 + cornerSize, 8);
+      doc.line(pageWidth - 8 - cornerSize, 8, pageWidth - 8, 8 + cornerSize);
+      doc.line(8, pageHeight - 8 - cornerSize, 8 + cornerSize, pageHeight - 8);
+      doc.line(pageWidth - 8 - cornerSize, pageHeight - 8, pageWidth - 8, pageHeight - 8 - cornerSize);
+
+      // 4. Header: NASA Official Title
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('NATIONAL AERONAUTICS AND SPACE ADMINISTRATION', pageWidth / 2, 23, { align: 'center' });
+
+      doc.setTextColor(148, 163, 184); // slate-400
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(
+        isEs
+          ? 'DIVISIÓN DE OPERACIONES DE VUELO Y EXPLORACIÓN CIENTÍFICA · PROYECTO ÍCARO'
+          : 'FLIGHT OPERATIONS & SCIENTIFIC EXPLORATION DIVISION · PROJECT ICARUS',
+        pageWidth / 2,
+        28,
+        { align: 'center' }
+      );
+
+      // Gold Divider Line with Center Diamond
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(0.6);
+      doc.line(45, 31, pageWidth - 45, 31);
+      doc.setFillColor(255, 193, 94);
+      doc.circle(pageWidth / 2, 31, 1.2, 'F');
+
+      // 5. Diploma Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.text(
+        isEs ? 'DIPLOMA DE HONOR Y CERTIFICACIÓN ORBITAL' : 'ORBITAL FLIGHT CERTIFICATE OF HONOR',
+        pageWidth / 2,
+        43,
+        { align: 'center' }
+      );
+
+      doc.setTextColor(95, 243, 255); // Cyan
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        isEs
+          ? 'Por el presente documento oficial se acredita formalmente que:'
+          : 'This official document hereby formally certifies that:',
+        pageWidth / 2,
+        50,
+        { align: 'center' }
+      );
+
+      // 6. Recipient Name
+      const rankTitle =
+        experienceMode === 'JPL_ENGINEER'
+          ? isEs
+            ? 'INGENIERO JEFE'
+            : 'CHIEF ENGINEER'
+          : isEs
+            ? 'CADETE DE VUELO'
+            : 'FLIGHT CADET';
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(24);
+      doc.text(`${rankTitle} ${commanderName.toUpperCase()}`, pageWidth / 2, 63, { align: 'center' });
+
+      doc.setDrawColor(95, 243, 255);
+      doc.setLineWidth(0.8);
+      const nameWidth = doc.getTextWidth(`${rankTitle} ${commanderName.toUpperCase()}`);
+      doc.line((pageWidth - nameWidth) / 2 - 5, 66, (pageWidth + nameWidth) / 2 + 5, 66);
+
+      // 7. Statement of Accomplishment
+      doc.setTextColor(226, 232, 240); // slate-200
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      const missionText = isEs
+        ? `Ha completado con éxito la misión ${activeLevel.code}: ${activeLevel.title.es}, diseñando y operando la nave espacial "${missionCustomName}" bajo rigurosas normas de seguridad y certificación aeroespacial de la NASA.`
+        : `Has successfully completed mission ${activeLevel.code}: ${activeLevel.title.en}, engineering and piloting the spacecraft "${missionCustomName}" in full compliance with NASA aerospace safety reserves and flight certification standards.`;
+
+      const splitMission = doc.splitTextToSize(missionText, 210);
+      doc.text(splitMission, pageWidth / 2, 75, { align: 'center' });
+
+      // 8. Three Achievement Badges
+      const badgeY = 92;
+      const badgeW = 74;
+      const badgeH = 34;
+
+      // Box 1: Propulsión y Tsiolkovsky (Delta-V)
+      doc.setFillColor(6, 18, 36);
+      doc.rect(26, badgeY, badgeW, badgeH, 'F');
+      doc.setDrawColor(95, 243, 255);
+      doc.setLineWidth(0.5);
+      doc.rect(26, badgeY, badgeW, badgeH, 'S');
+
+      doc.setTextColor(95, 243, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text(isEs ? 'PROPULSION & TSIOLKOVSKY' : 'PROPULSION & TSIOLKOVSKY', 26 + badgeW / 2, badgeY + 7, { align: 'center' });
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(13);
+      doc.text(`Delta-V: ${metrics.deltaV_available_ms.toFixed(0)} m/s`, 26 + badgeW / 2, badgeY + 16, { align: 'center' });
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(isEs ? 'Capacidad de empuje certificada' : 'Certified thrust capability', 26 + badgeW / 2, badgeY + 23, { align: 'center' });
+      doc.setTextColor(255, 193, 94);
+      doc.setFontSize(7.5);
+      doc.text(isEs ? '[OK] Margen seguro >= 20%' : '[OK] Safe reserve >= 20%', 26 + badgeW / 2, badgeY + 29, { align: 'center' });
+
+      // Box 2: SWaP-C & Ensayos Ambientales CSLI
+      doc.setFillColor(6, 18, 36);
+      doc.rect(111, badgeY, badgeW, badgeH, 'F');
+      doc.setDrawColor(95, 243, 255);
+      doc.setLineWidth(0.5);
+      doc.rect(111, badgeY, badgeW, badgeH, 'S');
+
+      doc.setTextColor(95, 243, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text(isEs ? 'CALIFICACION AMBIENTAL' : 'ENVIRONMENTAL QUALIFICATION', 111 + badgeW / 2, badgeY + 7, { align: 'center' });
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(13);
+      doc.text(isEs ? 'CSLI V&V APROBADO' : 'CSLI V&V APPROVED', 111 + badgeW / 2, badgeY + 16, { align: 'center' });
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(isEs ? `Masa: ${metrics.wetMass_kg.toFixed(1)} kg | Gen: ${metrics.power.generatedAtDestination_W.toFixed(0)} W` : `Mass: ${metrics.wetMass_kg.toFixed(1)} kg | Gen: ${metrics.power.generatedAtDestination_W.toFixed(0)} W`, 111 + badgeW / 2, badgeY + 23, { align: 'center' });
+      doc.setTextColor(255, 193, 94);
+      doc.setFontSize(7.5);
+      doc.text(isEs ? '[OK] Termovacio y Vibracion Passed' : '[OK] Thermal-Vac & Vibration Passed', 111 + badgeW / 2, badgeY + 29, { align: 'center' });
+
+      // Box 3: Puntuación Final & Estrellas
+      const earnedStars = levelProgress?.stars ?? 3;
+      const finalGlobalScore = scores.compositeGlobalScore;
+
+      doc.setFillColor(6, 18, 36);
+      doc.rect(196, badgeY, badgeW, badgeH, 'F');
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(0.8);
+      doc.rect(196, badgeY, badgeW, badgeH, 'S');
+
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text(isEs ? 'EVALUACION DE VUELO' : 'FLIGHT EVALUATION', 196 + badgeW / 2, badgeY + 7, { align: 'center' });
+      doc.setTextColor(255, 193, 94);
+      doc.setFontSize(12);
+      doc.text(
+        isEs
+          ? `${earnedStars} DE 3 ESTRELLAS`
+          : `${earnedStars} OF 3 STARS`,
+        196 + badgeW / 2,
+        badgeY + 16,
+        { align: 'center' }
+      );
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(`${isEs ? 'Puntaje de Mision' : 'Mission Score'}: ${finalGlobalScore}/100`, 196 + badgeW / 2, badgeY + 23, { align: 'center' });
+      doc.setTextColor(95, 243, 255);
+      doc.setFontSize(7.5);
+      doc.text(isEs ? `+${playerXP} XP Acumulados` : `+${playerXP} XP Earned`, 196 + badgeW / 2, badgeY + 29, { align: 'center' });
+
+      // 9. Signatures Block
+      const sigY = 148;
+
+      // Commander Frank Vega Signature
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(0.6);
+      doc.line(35, sigY + 15, 115, sigY + 15);
+
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bolditalic');
+      doc.setFontSize(14);
+      doc.text('Frank Vega', 75, sigY + 12, { align: 'center' });
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('COMANDANTE FRANK VEGA', 75, sigY + 20, { align: 'center' });
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(isEs ? 'Director de Operaciones de Vuelo · NASA' : 'Chief of Flight Operations · NASA', 75, sigY + 25, { align: 'center' });
+
+      // Official Golden NASA Seal in Center
+      const sealX = pageWidth / 2;
+      const sealY = sigY + 14;
+      doc.setFillColor(15, 23, 42);
+      doc.circle(sealX, sealY, 13, 'F');
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(1.2);
+      doc.circle(sealX, sealY, 13, 'S');
+      doc.setDrawColor(95, 243, 255);
+      doc.setLineWidth(0.4);
+      doc.circle(sealX, sealY, 11, 'S');
+
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.text('NASA', sealX, sealY - 4, { align: 'center' });
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6);
+      doc.text('ORBITAL', sealX, sealY, { align: 'center' });
+      doc.text('SEAL', sealX, sealY + 4, { align: 'center' });
+      doc.setTextColor(95, 243, 255);
+      doc.setFontSize(5.5);
+      doc.text('FLIGHT-OK', sealX, sealY + 8, { align: 'center' });
+
+      // Dir. Elena Rostova Signature
+      doc.setDrawColor(255, 193, 94);
+      doc.setLineWidth(0.6);
+      doc.line(pageWidth - 115, sigY + 15, pageWidth - 35, sigY + 15);
+
+      doc.setTextColor(255, 193, 94);
+      doc.setFont('helvetica', 'bolditalic');
+      doc.setFontSize(14);
+      doc.text('Elena Rostova', pageWidth - 75, sigY + 12, { align: 'center' });
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('DRA. ELENA ROSTOVA', pageWidth - 75, sigY + 20, { align: 'center' });
+      doc.setTextColor(148, 163, 184);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(isEs ? 'Directora de Sistemas & Cargas Útiles · JPL' : 'Director of Systems & Payloads · JPL', pageWidth - 75, sigY + 25, { align: 'center' });
+
+      // 10. Footer Security Code & Timestamp
+      const dateStr = new Date().toLocaleDateString(isEs ? 'es-ES' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      const verifyHash = `NASA-HQ-${activeLevel.code}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      doc.setTextColor(100, 116, 139); // slate-500
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text(
+        `${isEs ? 'Fecha de Expedición' : 'Issue Date'}: ${dateStr}  |  ${isEs ? 'Código de Verificación Oficial' : 'Official Verification Hash'}: ${verifyHash}`,
+        pageWidth / 2,
+        pageHeight - 13,
+        { align: 'center' }
+      );
+
+      // Save PDF directly to user's device
+      const pdfFileName = `NASA-Diploma-${missionCustomName.replace(/\s+/g, '-')}-${activeLevel.code}.pdf`;
+      doc.save(pdfFileName);
+
       playHoloTone('STAR', soundEnabled);
       setDownloaded(true);
     } catch (err) {
-      console.warn('Unable to download mission certificate file:', err);
+      console.error('Error generating NASA Diploma PDF:', err);
     }
   };
 
@@ -429,11 +714,11 @@ export function PostMissionCertificateModal() {
                   <span>
                     {downloaded
                       ? isEs
-                        ? 'Certificado Descargado'
-                        : 'Certificate Downloaded'
+                        ? 'Diploma Descargado (.pdf)'
+                        : 'Diploma Downloaded (.pdf)'
                       : isEs
-                        ? 'Descargar Certificado (.txt)'
-                        : 'Download Certificate (.txt)'}
+                        ? 'Descargar Diploma de Honor (.pdf)'
+                        : 'Download Honor Diploma (.pdf)'}
                   </span>
                 </button>
                 {nextLevel && (
