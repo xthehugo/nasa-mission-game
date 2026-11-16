@@ -54,6 +54,7 @@ export function CommanderHudBanner() {
     oxidizerFillPercent,
     reducedMotion,
     soundEnabled,
+    hasCompletedOnboarding,
     openCinematic,
     setPhase,
     setLevel1TutorialStep,
@@ -197,7 +198,7 @@ export function CommanderHudBanner() {
 
   // Speak Commander Vega / Director Rostova instruction when cutscene closes or tutorial step advances
   useEffect(() => {
-    if (activeCinematicId || !soundEnabled) {
+    if (!hasCompletedOnboarding || activeCinematicId || !soundEnabled) {
       stopCharacterVoice();
       return;
     }
@@ -226,7 +227,7 @@ export function CommanderHudBanner() {
       window.clearTimeout(safetyWatchdog);
       setIsSpeaking(false);
     };
-  }, [activeCinematicId, currentSpeechKey, isCadet, language, soundEnabled, vegaText]);
+  }, [activeCinematicId, currentSpeechKey, hasCompletedOnboarding, isCadet, language, soundEnabled, vegaText]);
 
   const chapterBadge =
     storyChapter === 'FREE_SANDBOX'

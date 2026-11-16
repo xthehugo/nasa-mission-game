@@ -1507,7 +1507,7 @@ export function StoryCinematicModal() {
           }
         },
       );
-    }, 120);
+    }, 35);
 
     const syncSubtitlesFromAudio = () => {
       if (cancelled) return;
@@ -1584,6 +1584,32 @@ export function StoryCinematicModal() {
           }
           setIsVoiceActive(false);
           return;
+        } else {
+          // Fallback pacing if audio stream is buffering or starting up
+          const elapsedSec = Math.max(0, (performance.now() - mutedStartMs) / 1000);
+          if (elapsedSec > 0.08) {
+            const progress = clamp((elapsedSec - 0.08) / estimatedDurationSec, 0, 1);
+            const charIdx = Math.min(
+              fullDialogue.length,
+              Math.floor(progress * fullDialogue.length),
+            );
+            voiceCharIndexRef.current = Math.max(voiceCharIndexRef.current, charIdx);
+
+            if (!reducedMotion && !forceLastCueRef.current && charIdx !== lastTyped) {
+              lastTyped = charIdx;
+              setTypedChars(charIdx);
+            }
+
+            if (progress >= 1) {
+              voiceCharIndexRef.current = fullDialogue.length;
+              if (lastTyped !== fullDialogue.length) {
+                lastTyped = fullDialogue.length;
+                setTypedChars(fullDialogue.length);
+              }
+              setIsVoiceActive(false);
+              return;
+            }
+          }
         }
       } else {
         const elapsedSec = Math.max(0, (performance.now() - mutedStartMs) / 1000);

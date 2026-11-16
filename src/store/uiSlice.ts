@@ -253,13 +253,13 @@ export function resolveTransitionCinematic(
 }
 
 export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
-  language: 'es',
+  language: 'en',
   experienceMode: 'CADET',
   phase: 'CML_1',
   maxUnlockedLevel: 1,
   teamMode: 'SOLO',
   activeTeamRole: 'MISSION_LEAD',
-  missionStatement: DEFAULT_MISSION_STATEMENT_ES,
+  missionStatement: DEFAULT_MISSION_STATEMENT_EN,
   cubesatFormFactor: '3U',
   activeSubsystemTab: 'PAYLOAD',
   rightPanelTab: 'ANALYTICS',

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GraduationCap,
@@ -100,6 +100,7 @@ function OnboardingContent() {
     experienceMode === 'JPL_ENGINEER' ? engineerName : cadetName
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const isTransitioningToCinematicRef = useRef(false);
 
   const isEs = language === 'es';
 
@@ -123,14 +124,35 @@ function OnboardingContent() {
     );
   };
 
+  // Auto-play Commander Frank Vega's Enlistment Directive when the recruitment station opens
   useEffect(() => {
+    let mounted = true;
+    const timer = window.setTimeout(() => {
+      if (!mounted) return;
+      setIsSpeaking(true);
+      speakCharacterLine(
+        vegaSpeech,
+        language,
+        'VEGA',
+        soundEnabled,
+        () => {
+          if (mounted) setIsSpeaking(false);
+        }
+      );
+    }, 350);
+
     return () => {
-      stopCharacterVoice();
+      mounted = false;
+      window.clearTimeout(timer);
+      if (!isTransitioningToCinematicRef.current) {
+        stopCharacterVoice();
+      }
     };
-  }, []);
+  }, [language, soundEnabled, vegaSpeech]);
 
   const handleClose = useCallback(() => {
     stopCharacterVoice();
+    isTransitioningToCinematicRef.current = true;
     playHoloTone('STEP', soundEnabled);
     const mode: ExperienceMode = selectedRole === 'STUDENT' ? 'CADET' : 'JPL_ENGINEER';
     const cleanCallsign = draftCallsign.trim() || (selectedRole === 'STUDENT' ? 'Orion' : 'Vanguard');
@@ -157,6 +179,7 @@ function OnboardingContent() {
     unlockAudioContext();
     playHoloTone('STAR', soundEnabled);
     stopCharacterVoice();
+    isTransitioningToCinematicRef.current = true;
     const mode: ExperienceMode = selectedRole === 'STUDENT' ? 'CADET' : 'JPL_ENGINEER';
     const cleanCallsign = draftCallsign.trim() || (selectedRole === 'STUDENT' ? 'Orion' : 'Vanguard');
     
