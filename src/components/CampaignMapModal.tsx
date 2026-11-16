@@ -220,12 +220,21 @@ export const CampaignMapModal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:justify-end">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-              {isEs ? 'ESTRELLAS NASA:' : 'NASA STARS:'}
-            </span>
-            <span className="font-bold text-[#FFC15E] text-xs">
-              ★ {totalStarsEarned} / 18
-            </span>
+            <div className="flex flex-col sm:items-end leading-tight">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                  {isEs ? 'ESTRELLAS CERTIFICADAS:' : 'CERTIFIED STARS:'}
+                </span>
+                <span className="font-bold text-[#FFC15E] text-xs">
+                  ★ {totalStarsEarned} / 18
+                </span>
+              </div>
+              <span className="text-[8.5px] text-slate-400">
+                {isEs
+                  ? '(Se certifican al completar el vuelo en CML 06)'
+                  : '(Awarded upon flight completion in CML 06)'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -342,22 +351,29 @@ export const CampaignMapModal: React.FC = () => {
                 </div>
 
                 {/* Stars earned for this contract */}
-                <div className="mt-4 flex items-center gap-1.5 text-base">
-                  {[1, 2, 3].map((starIdx) => (
-                    <span
-                      key={starIdx}
-                      className={
-                        starIdx <= progress.stars
-                          ? 'text-[#FFC15E] drop-shadow-[0_0_8px_#FFC15E]'
-                          : 'text-slate-700'
-                      }
-                    >
-                      ★
+                <div className="mt-4 flex flex-col items-center">
+                  <div className="flex items-center gap-1.5 text-base">
+                    {[1, 2, 3].map((starIdx) => (
+                      <span
+                        key={starIdx}
+                        className={
+                          starIdx <= progress.stars
+                            ? 'text-[#FFC15E] drop-shadow-[0_0_8px_#FFC15E]'
+                            : 'text-slate-700'
+                        }
+                      >
+                        ★
+                      </span>
+                    ))}
+                    <span className="ml-1 text-[10px] text-slate-300 font-bold">
+                      {progress.stars} / 3 {isEs ? 'Estrellas' : 'Stars'}
                     </span>
-                  ))}
-                  <span className="ml-1 text-[10px] text-slate-400">
-                    ({progress.stars} / 3 {isEs ? 'Estrellas' : 'Stars'})
-                  </span>
+                  </div>
+                  {progress.stars === 0 && (
+                    <span className="text-[8.5px] text-[#5FF3FF]/80 mt-1">
+                      {isEs ? 'ℹ️ Se obtienen al certificar el vuelo en Fase 06' : 'ℹ️ Awarded upon flight certification in Phase 06'}
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -65,8 +65,51 @@ export function unlockAudioContext(): void {
   }
 }
 
+let globalVoiceEnabled = true;
+let globalMusicEnabled = true;
+let globalSoundEnabled = true;
+let globalVoiceVolume = 80;
+let globalMusicVolume = 50;
+let globalSfxVolume = 70;
+
+export function syncAudioSettings(settings: {
+  soundEnabled?: boolean;
+  voiceEnabled?: boolean;
+  musicEnabled?: boolean;
+  voiceVolume?: number;
+  musicVolume?: number;
+  sfxVolume?: number;
+}): void {
+  if (settings.soundEnabled !== undefined) globalSoundEnabled = settings.soundEnabled;
+  if (settings.voiceEnabled !== undefined) {
+    globalVoiceEnabled = settings.voiceEnabled;
+    if (!settings.voiceEnabled) stopCharacterVoice();
+  }
+  if (settings.musicEnabled !== undefined) {
+    globalMusicEnabled = settings.musicEnabled;
+    if (!settings.musicEnabled) stopBgmTrack();
+  }
+  if (settings.voiceVolume !== undefined) {
+    globalVoiceVolume = settings.voiceVolume;
+    if (activeAudioElement) {
+      activeAudioElement.volume = Math.max(0, Math.min(1, globalVoiceVolume / 100));
+    }
+  }
+  if (settings.musicVolume !== undefined) {
+    globalMusicVolume = settings.musicVolume;
+    if (activeBgmAudio && currentBgmTrack && currentBgmTrack !== 'NONE') {
+      const spec = BGM_PATHS[currentBgmTrack as Exclude<BgmTrackKey, 'NONE'>];
+      if (spec) {
+        activeBgmAudio.volume = Math.max(0, Math.min(1, spec.volume * (globalMusicVolume / 100)));
+      }
+    }
+  }
+  if (settings.sfxVolume !== undefined) globalSfxVolume = settings.sfxVolume;
+}
+
 export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
-  if (!enabled || typeof window === 'undefined') return;
+  const isEnabled = enabled && globalSoundEnabled;
+  if (!isEnabled || typeof window === 'undefined') return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -83,7 +126,8 @@ export function playHoloTone(kind: HoloToneKind, enabled: boolean): void {
     osc.frequency.setValueAtTime(spec.freq, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(spec.endFreq, ctx.currentTime + spec.dur);
 
-    gainNode.gain.setValueAtTime(spec.gain, ctx.currentTime);
+    const actualGain = spec.gain * (globalSfxVolume / 100);
+    gainNode.gain.setValueAtTime(actualGain, ctx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + spec.dur);
 
     osc.connect(gainNode);
@@ -231,7 +275,8 @@ const BGM_PATHS: Record<Exclude<BgmTrackKey, 'NONE'>, { src: string; loop: boole
 
 export function playBgmTrack(track: BgmTrackKey, enabled: boolean): void {
   if (typeof window === 'undefined') return;
-  if (!enabled || track === 'NONE') {
+  const isEnabled = enabled && globalSoundEnabled && globalMusicEnabled;
+  if (!isEnabled || track === 'NONE') {
     stopBgmTrack();
     return;
   }
@@ -248,7 +293,7 @@ export function playBgmTrack(track: BgmTrackKey, enabled: boolean): void {
   try {
     const audio = new Audio(spec.src);
     audio.loop = spec.loop;
-    audio.volume = spec.volume;
+    audio.volume = Math.max(0, Math.min(1, spec.volume * (globalMusicVolume / 100)));
     if (spec.startSec && spec.startSec > 0) {
       audio.currentTime = spec.startSec;
     }
@@ -512,6 +557,7 @@ function fallbackBrowserSpeech(
     }
 
     // Rate strictly between 0.95 and 1.0 with natural punctuation pauses
+    utter.volume = Math.max(0, Math.min(1, globalVoiceVolume / 100));
     if (speaker === 'VEGA') {
       utter.pitch = 0.88;
       utter.rate = 0.96;
@@ -705,7 +751,8 @@ export function speakCharacterLine(
   onBoundaryCharIndex?: (charIndex: number) => void,
   forceBrowserSpeech?: boolean,
 ): void {
-  if (!enabled || typeof window === 'undefined') {
+  const isVoiceActive = enabled && globalSoundEnabled && globalVoiceEnabled;
+  if (!isVoiceActive || typeof window === 'undefined') {
     onEnded?.();
     return;
   }
@@ -757,7 +804,7 @@ export function speakCharacterLine(
   const attachAndPlayAudio = (src: string) => {
     if (sessionId !== activeSpeechSessionId) return;
     const audio = new Audio(src);
-    audio.volume = 0.85;
+    audio.volume = Math.max(0, Math.min(1, globalVoiceVolume / 100));
     activeAudioElement = audio;
     activePlaybackSource = 'audio';
     activeSpeechEnded = false;

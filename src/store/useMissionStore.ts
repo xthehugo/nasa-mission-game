@@ -5,6 +5,7 @@ import {
   evaluateMissionPhysics,
   runMissionSimulation,
 } from '../engine';
+import { syncAudioSettings } from '../components/holoAudio';
 import type { SimulationResult } from '../types/mission';
 import {
   computeConcurrentConflicts,
@@ -286,6 +287,11 @@ export const useMissionStore = create<MissionStoreState>()(
         dataBufferPercent: state.dataBufferPercent,
         reducedMotion: state.reducedMotion,
         soundEnabled: state.soundEnabled,
+        voiceEnabled: state.voiceEnabled,
+        musicEnabled: state.musicEnabled,
+        voiceVolume: state.voiceVolume,
+        musicVolume: state.musicVolume,
+        sfxVolume: state.sfxVolume,
         activeRandomEvent: state.activeRandomEvent,
         selection: state.selection,
         testing: state.testing,
@@ -322,7 +328,26 @@ export const useMissionStore = create<MissionStoreState>()(
             state.resolvedCrises,
           );
         }
+        syncAudioSettings({
+          soundEnabled: state.soundEnabled,
+          voiceEnabled: state.voiceEnabled,
+          musicEnabled: state.musicEnabled,
+          voiceVolume: state.voiceVolume,
+          musicVolume: state.musicVolume,
+          sfxVolume: state.sfxVolume,
+        });
       },
     },
   ),
 );
+
+useMissionStore.subscribe((state) => {
+  syncAudioSettings({
+    soundEnabled: state.soundEnabled,
+    voiceEnabled: state.voiceEnabled,
+    musicEnabled: state.musicEnabled,
+    voiceVolume: state.voiceVolume,
+    musicVolume: state.musicVolume,
+    sfxVolume: state.sfxVolume,
+  });
+});

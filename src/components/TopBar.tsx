@@ -1,17 +1,10 @@
-import { useState } from 'react';
 import {
   BarChart2,
   Compass,
-  GraduationCap,
   HelpCircle,
-  Languages,
   Settings,
-  Sparkles,
-  Volume2,
-  VolumeX,
-  Wrench,
 } from 'lucide-react';
-import { CAMPAIGN_CONTRACTS, getCampaignLevelById, getPlayerRank } from '../engine';
+import { CAMPAIGN_CONTRACTS, getCampaignLevelById } from '../engine';
 import { useMissionStore, type RandomEventType } from '../store';
 import type { CMLPhase } from '../types/mission';
 import { computeLevelStars, computeTankExtraMassKg, playHoloTone } from './holoAudio';
@@ -49,24 +42,18 @@ export function TopBar() {
     tankFillPercent,
     oxidizerFillPercent,
     soundEnabled,
-    playerXP,
     activeCampaignLevelId,
-    setLanguage,
-    reopenOnboarding,
+    campaignProgress,
     setTelemetryOpen,
     setCampaignModalOpen,
-    setAIStudioModalOpen,
+    setSettingsModalOpen,
     setLevel1TutorialStep,
     triggerRandomEvent,
-    toggleSound,
   } = useMissionStore();
-
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const isEs = language === 'es';
   const meta = LEVEL_META[phase];
   const activeCallsign = experienceMode === 'CADET' ? cadetName : engineerName;
-  const isStudent = experienceMode === 'CADET';
 
   const extraKg =
     phase === 'CML_4'
@@ -80,7 +67,10 @@ export function TopBar() {
     activeRandomEvent,
     extraKg,
   );
-  const playerRank = getPlayerRank(playerXP);
+  const totalStarsEarned = Object.values(campaignProgress).reduce(
+    (acc, c) => acc + (c.stars || 0),
+    0,
+  );
 
   // Active campaign level from config (fallback to objective match)
   const activeContract =
@@ -139,18 +129,43 @@ export function TopBar() {
             </button>
           )}
 
-          {/* Stars display matching mockup top-right */}
+          {/* Stars display: clarifies current design projection vs campaign stars */}
           <div
-            className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-[#FFC15E]"
-            title={isEs ? 'Estrellas MCR del nivel' : 'Level MCR Stars'}
+            className="flex items-center gap-2.5 font-mono text-xs"
+            title={
+              isEs
+                ? `Proyección de diseño actual: ${starInfo.stars} de 3 estrellas (se certifican al volar en Fase 06). Total campaña ganadas: ${totalStarsEarned}/18.`
+                : `Current design projection: ${starInfo.stars} of 3 stars (certified upon launch in Phase 06). Campaign stars earned: ${totalStarsEarned}/18.`
+            }
           >
-            <span className="hidden md:inline text-[11px] text-slate-400">
-              {isEs ? 'ESTRELLAS' : 'STARS'}
-            </span>
-            <span className="text-sm tracking-[0.22em]">
-              {'★'.repeat(starInfo.stars)}
-              {'☆'.repeat(3 - starInfo.stars)}
-            </span>
+            <div className="flex flex-col items-end leading-tight">
+              <span className="hidden md:inline text-[9px] text-slate-400 uppercase tracking-wider">
+                {isEs ? 'PROYECCIÓN DISEÑO' : 'DESIGN PROJECTION'}
+              </span>
+              <span className="text-sm tracking-[0.2em] text-[#FFC15E] font-bold">
+                {'★'.repeat(starInfo.stars)}
+                {'☆'.repeat(3 - starInfo.stars)}
+              </span>
+            </div>
+
+            <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+
+            <button
+              type="button"
+              onClick={() => {
+                setCampaignModalOpen(true);
+                playHoloTone('STEP', soundEnabled);
+              }}
+              className="hidden sm:flex flex-col items-start leading-tight hover:text-[#5FF3FF] transition cursor-pointer"
+              title={isEs ? 'Abrir carrusel de campañas (0 a 18 estrellas)' : 'Open campaign deck (0 of 18 stars)'}
+            >
+              <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                {isEs ? 'CAMPAÑA' : 'CAMPAIGN'}
+              </span>
+              <span className="text-xs font-bold text-[#5FF3FF] tracking-wider">
+                ★ {totalStarsEarned}/18
+              </span>
+            </button>
           </div>
 
           <div className="h-5 w-px bg-slate-800" />
@@ -162,7 +177,7 @@ export function TopBar() {
               setTelemetryOpen(true);
               playHoloTone('STEP', soundEnabled);
             }}
-            className="flex h-8 items-center gap-1.5 rounded border border-[#5FF3FF]/30 bg-[#060D1A] px-2.5 font-mono text-[11px] text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10 transition"
+            className="flex h-8 items-center gap-1.5 rounded border border-[#5FF3FF]/30 bg-[#060D1A] px-2.5 font-mono text-[11px] text-[#5FF3FF] hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/10 transition cursor-pointer"
             title={isEs ? 'Abrir Telemetría y Gráficas SWaP-C' : 'Open SWaP-C Telemetry & Charts'}
           >
             <BarChart2 className="h-3.5 w-3.5" />
@@ -176,135 +191,26 @@ export function TopBar() {
               playHoloTone('STEP', soundEnabled);
               setLevel1TutorialStep(0);
             }}
-            className="flex h-8 w-8 items-center justify-center rounded border border-[#5FF3FF]/30 bg-[#060D1A] text-slate-300 hover:border-[#FFC15E] hover:text-[#FFC15E] transition"
+            className="flex h-8 w-8 items-center justify-center rounded border border-[#5FF3FF]/30 bg-[#060D1A] text-slate-300 hover:border-[#FFC15E] hover:text-[#FFC15E] transition cursor-pointer"
             title={isEs ? 'Ayuda · Repetir guía paso a paso' : 'Help · Replay step-by-step guide'}
             aria-label={isEs ? 'Ayuda y tour' : 'Help and tour'}
           >
             <HelpCircle className="h-4 w-4" />
           </button>
 
-        <div className="relative">
-          {/* Compact Settings & Account Popover Trigger */}
+          {/* System Settings Modal Trigger Button */}
           <button
             type="button"
             onClick={() => {
               playHoloTone('STEP', soundEnabled);
-              setMenuOpen((o) => !o);
+              setSettingsModalOpen(true);
             }}
-            className={`flex h-8 items-center gap-1.5 rounded border px-2.5 font-mono text-[11px] transition ${
-              menuOpen
-                ? 'border-[#5FF3FF] bg-[#5FF3FF]/15 text-[#5FF3FF]'
-                : 'border-[#5FF3FF]/30 bg-[#060D1A] text-slate-200 hover:border-[#5FF3FF]'
-            }`}
-            title={isEs ? 'Cuenta, Ajustes y Herramientas' : 'Account, Settings & Tools'}
-            aria-expanded={menuOpen}
+            className="flex h-8 items-center gap-1.5 rounded border border-[#5FF3FF]/40 bg-[#060D1A] px-2.5 font-mono text-[11px] text-slate-200 hover:border-[#5FF3FF] hover:bg-[#5FF3FF]/15 transition cursor-pointer shadow-[0_0_12px_rgba(95,243,255,0.12)]"
+            title={isEs ? 'Abrir Ajustes de Audio, Perfil y Sistema' : 'Open Audio, Profile & System Settings'}
           >
-            <Settings className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline truncate max-w-[80px]">{activeCallsign}</span>
+            <Settings className="h-3.5 w-3.5 text-[#5FF3FF]" />
+            <span className="hidden sm:inline truncate max-w-[85px]">{activeCallsign}</span>
           </button>
-
-          {menuOpen && (
-            <>
-              {/* Fullscreen Backdrop to dismiss on outside click and prevent background bleed-through */}
-              <div
-                className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-[2px]"
-                onClick={() => setMenuOpen(false)}
-              />
-              <div className="absolute right-0 top-10 z-[100] w-72 border-2 border-[#5FF3FF] bg-[#030814] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95)]">
-                {/* Profile & XP */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    reopenOnboarding();
-                    playHoloTone('STEP', soundEnabled);
-                  }}
-                  className="flex w-full items-center justify-between gap-2 border-b border-[#5FF3FF]/15 pb-2.5 text-left hover:bg-[#5FF3FF]/5 p-1.5 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    {isStudent ? (
-                      <GraduationCap className="h-4 w-4 text-[#5FF3FF]" />
-                    ) : (
-                      <Wrench className="h-4 w-4 text-[#FFC15E]" />
-                    )}
-                    <div>
-                      <div className="font-mono text-[10px] font-bold text-[#FFC15E] uppercase">
-                        {isStudent ? (isEs ? 'ESTUDIANTE' : 'STUDENT') : (isEs ? 'ING. JPL' : 'JPL ENG.')} · {activeCallsign}
-                      </div>
-                      <div className="font-mono text-[11px] text-slate-300">
-                        {playerRank.badge} · {playerXP} XP
-                      </div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[10px] text-[#5FF3FF] underline">
-                    {isEs ? 'Cambiar' : 'Edit'}
-                  </span>
-                </button>
-
-                <div className="mt-2 space-y-1.5 font-mono text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setCampaignModalOpen(true);
-                      playHoloTone('STEP', soundEnabled);
-                    }}
-                    className="flex w-full items-center justify-between rounded border border-[#5FF3FF]/20 px-2.5 py-1.5 text-slate-200 hover:border-[#5FF3FF] hover:text-[#5FF3FF]"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Compass className="h-3.5 w-3.5 text-[#5FF3FF]" />
-                      <span>{isEs ? 'Contratos NASA' : 'NASA Contracts'}</span>
-                    </span>
-                    <span className="text-[10px] text-[#FFC15E]">{activeContract.code}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setAIStudioModalOpen(true);
-                      playHoloTone('STEP', soundEnabled);
-                    }}
-                    className="flex w-full items-center justify-between rounded border border-[#FFC15E]/35 bg-[#FFC15E]/10 px-2.5 py-1.5 text-[#FFC15E] hover:bg-[#FFC15E]/20"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>GEMINI AI</span>
-                    </span>
-                    <span className="text-[10px]">{isEs ? 'Auditoría' : 'Audit'}</span>
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-1.5 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextEnabled = !soundEnabled;
-                        toggleSound();
-                        playHoloTone('STEP', nextEnabled);
-                      }}
-                      className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] text-slate-200 hover:border-[#5FF3FF]"
-                    >
-                      {soundEnabled ? <Volume2 className="h-3.5 w-3.5 text-[#5FF3FF]" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
-                      <span>{soundEnabled ? (isEs ? 'Voz ON' : 'Voice ON') : (isEs ? 'Voz OFF' : 'Voice OFF')}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playHoloTone('STEP', soundEnabled);
-                        setLanguage(isEs ? 'en' : 'es');
-                      }}
-                      className="flex items-center justify-center gap-1.5 rounded border border-[#5FF3FF]/25 bg-[#060D1A] py-1.5 text-[11px] font-bold text-[#5FF3FF] hover:border-[#5FF3FF]"
-                    >
-                      <Languages className="h-3.5 w-3.5" />
-                      <span>{isEs ? 'Idioma: ES' : 'Lang: EN'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
         </div>
       </div>
     </header>

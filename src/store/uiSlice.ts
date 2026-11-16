@@ -118,6 +118,12 @@ export interface UISlice {
   laserScanActive: boolean;
   reducedMotion: boolean;
   soundEnabled: boolean;
+  voiceEnabled: boolean;
+  musicEnabled: boolean;
+  voiceVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  isSettingsModalOpen: boolean;
   activeRandomEvent: RandomEventType;
   simIsPlaying: boolean;
   simSpeed: 0.5 | 1 | 2 | 4;
@@ -136,6 +142,14 @@ export interface UISlice {
   setTelemetryOpen: (open: boolean) => void;
   setCampaignModalOpen: (open: boolean) => void;
   setAIStudioModalOpen: (open: boolean) => void;
+  setSettingsModalOpen: (open: boolean) => void;
+  setVoiceEnabled: (enabled: boolean) => void;
+  setMusicEnabled: (enabled: boolean) => void;
+  setVoiceVolume: (volume: number) => void;
+  setMusicVolume: (volume: number) => void;
+  setSfxVolume: (volume: number) => void;
+  toggleVoice: () => void;
+  toggleMusic: () => void;
   openSubmoduleGuide: (id: SubmoduleGuideId) => void;
   closeSubmoduleGuide: () => void;
   addXP: (amount: number) => void;
@@ -289,6 +303,12 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   laserScanActive: true,
   reducedMotion: false,
   soundEnabled: true,
+  voiceEnabled: true,
+  musicEnabled: true,
+  voiceVolume: 80,
+  musicVolume: 50,
+  sfxVolume: 70,
+  isSettingsModalOpen: false,
   activeRandomEvent: 'NONE',
   simIsPlaying: true,
   simSpeed: 1,
@@ -562,6 +582,17 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   toggleLaserScan: () => set((s) => ({ laserScanActive: !s.laserScanActive })),
   toggleReducedMotion: () => set((s) => ({ reducedMotion: !s.reducedMotion })),
   toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
+  setSettingsModalOpen: (isSettingsModalOpen) => set({ isSettingsModalOpen }),
+  setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
+  setMusicEnabled: (musicEnabled) => set({ musicEnabled }),
+  setVoiceVolume: (voiceVolume) =>
+    set({ voiceVolume: Math.max(0, Math.min(100, voiceVolume)) }),
+  setMusicVolume: (musicVolume) =>
+    set({ musicVolume: Math.max(0, Math.min(100, musicVolume)) }),
+  setSfxVolume: (sfxVolume) =>
+    set({ sfxVolume: Math.max(0, Math.min(100, sfxVolume)) }),
+  toggleVoice: () => set((s) => ({ voiceEnabled: !s.voiceEnabled })),
+  toggleMusic: () => set((s) => ({ musicEnabled: !s.musicEnabled })),
   triggerRandomEvent: () =>
     set((s) => {
       const idx = EVENT_CYCLE.indexOf(s.activeRandomEvent);
