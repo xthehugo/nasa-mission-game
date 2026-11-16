@@ -374,8 +374,9 @@ export function evaluateMissionPhysics(
   const freqHz = Math.max((telecom?.freqGHz ?? 0.437) * 1e9, 1e6);
   const distanceMeters = Math.max(destination.distanceFromEarthKm * 1000, 1000);
   const wavelength = SPEED_OF_LIGHT_MS / freqHz;
+  // Free Space Path Loss (FSPL) standard: positive dB = 20 * log10(4 * pi * d / lambda)
   const freeSpaceLossDB =
-    20 * Math.log10(wavelength / (4 * Math.PI * distanceMeters));
+    20 * Math.log10((4 * Math.PI * distanceMeters) / wavelength);
 
   const atmLossDB =
     (telecom?.freqGHz ?? 0.4) > 20
@@ -396,8 +397,9 @@ export function evaluateMissionPhysics(
   );
   const dataRateBps = Math.max(effectiveDataRateKbps * 1000, 1000);
 
+  // Link budget: received Eb/N0 = EIRP - FSPL + other gains/losses
   const receivedEbN0DB =
-    eirpDBW +
+    eirpDBW -
     freeSpaceLossDB +
     atmLossDB +
     pointingLossDB +

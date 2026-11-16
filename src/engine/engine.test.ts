@@ -133,6 +133,10 @@ const TEST_CASES: Array<{ name: string; run: () => string }> = [
           m.telecom.linkMargin_dB >= m.telecom.requiredMargin_dB,
           `${objId} link margin ${m.telecom.linkMargin_dB} < ${m.telecom.requiredMargin_dB}`,
         );
+        assertCondition(
+          m.telecom.freeSpaceLoss_dB > 100,
+          `${objId} FSPL must be positive path loss (>100 dB), got ${m.telecom.freeSpaceLoss_dB}`,
+        );
         assertCondition(m.volume.isCompliant, `${objId} volume exceeded fairing`);
         assertCondition(m.cost.status === 'GREEN', `${objId} cost not GREEN`);
         summaries.push(`${objId}:OK`);

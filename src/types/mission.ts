@@ -196,6 +196,7 @@ export interface PowerBreakdown extends ResourceBreakdown {
 
 export interface TelecomMetrics {
   eirp_dBW: number;
+  /** Free Space Path Loss (FSPL) in positive dB: 20 * log10(4 * pi * d / lambda) */
   freeSpaceLoss_dB: number;
   receivedEbN0_dB: number;
   linkMargin_dB: number;
