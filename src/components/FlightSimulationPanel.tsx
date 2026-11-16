@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Info } from 'lucide-react';
 import { CAMPAIGN_CONTRACTS, findObjectiveById } from '../engine';
 import { useMissionStore } from '../store';
 import { computeLevelStars, playHoloTone } from './holoAudio';
@@ -35,6 +36,7 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
     level1TutorialStep,
     setLevel1TutorialStep,
     setTutorialFeedback,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const [crisisTimer, setCrisisTimer] = useState(15);
@@ -159,17 +161,28 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
             <span className="text-slate-300 font-bold">
               {isEs ? '[HULL] INTEGRIDAD DE CASCO' : '[HULL] SPACECRAFT HULL'}
             </span>
-            <span
-              className={`font-black ${
-                hullIntegrity > 50
-                  ? 'text-[#5FF3FF]'
-                  : hullIntegrity > 25
-                    ? 'text-[#FFC15E]'
-                    : 'text-[#FF4D6D] animate-pulse'
-              }`}
-            >
-              {hullIntegrity}% {hullIntegrity <= 25 ? '[!] BREACH RISK' : ''}
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => openSubmoduleGuide('LAUNCH_PHYSICS')}
+                className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition cursor-pointer"
+                title={isEs ? 'Ver física de lanzamiento y Max-Q' : 'View launch physics and Max-Q'}
+              >
+                <Info className="h-2.5 w-2.5" />
+                <span>{isEs ? 'INFO FÍSICA' : 'PHYSICS INFO'}</span>
+              </button>
+              <span
+                className={`font-black ${
+                  hullIntegrity > 50
+                    ? 'text-[#5FF3FF]'
+                    : hullIntegrity > 25
+                      ? 'text-[#FFC15E]'
+                      : 'text-[#FF4D6D] animate-pulse'
+                }`}
+              >
+                {hullIntegrity}% {hullIntegrity <= 25 ? '[!] BREACH RISK' : ''}
+              </span>
+            </div>
           </div>
           <div className="w-full bg-[#04080F] h-2.5 rounded-full overflow-hidden border border-slate-700">
             <div
@@ -295,6 +308,15 @@ export function FlightSimulationPanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGH
           }`}>
             {simIsPlaying ? `▶ ${simSpeed}×` : (isEs ? '⏸ PAUSA' : '⏸ PAUSE')}
           </span>
+          <button
+            type="button"
+            onClick={() => openSubmoduleGuide('LAUNCH_PHYSICS')}
+            className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition cursor-pointer"
+            title={isEs ? 'Ver física de lanzamiento y Max-Q' : 'View launch physics and Max-Q'}
+          >
+            <Info className="h-2.5 w-2.5" />
+            <span>{isEs ? 'INFO FÍSICA' : 'PHYSICS INFO'}</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           {resolvedCount < simulationResult.dilemmas.length && (

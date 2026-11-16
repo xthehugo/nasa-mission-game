@@ -50,6 +50,7 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     setSubsystem,
     setTutorialFeedback,
     appendDecisionLog,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < LEVEL1_TOTAL_STEPS;
@@ -63,8 +64,19 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
   if (zone === 'LEFT') {
     return (
       <div className="space-y-3">
-        <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
-          {isEs ? 'SUBSISTEMAS (7 MÓDULOS)' : 'SUBSYSTEMS (7 MODULES)'}
+        <div className="flex items-center justify-between">
+          <div className="font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
+            {isEs ? 'SUBSISTEMAS (7 MÓDULOS)' : 'SUBSYSTEMS (7 MODULES)'}
+          </div>
+          <button
+            type="button"
+            onClick={() => openSubmoduleGuide('SWAP_C')}
+            className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2 py-0.5 font-mono text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/20 transition"
+            title={isEs ? 'Abrir guía SWaP-C y trade-offs físicos' : 'Open SWaP-C and physical trade-offs guide'}
+          >
+            <Info className="h-3 w-3" />
+            <span>{isEs ? 'INFO SWaP-C' : 'SWaP-C INFO'}</span>
+          </button>
         </div>
         <div className="space-y-1">
           {TABS.map((tab, i) => {
@@ -168,8 +180,19 @@ export function TradeSpacePanel({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     <div className="space-y-3">
       {tabGuide && (
         <div className="border-l-2 border-[#5FF3FF] bg-[#060d1a] px-2.5 py-2 text-[10.5px] leading-snug">
-          <div className="font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
-            {tabGuide.roleTitle[language]}
+          <div className="flex items-center justify-between">
+            <div className="font-mono text-[9px] font-bold tracking-[0.14em] text-[#5FF3FF] uppercase">
+              {tabGuide.roleTitle[language]}
+            </div>
+            <button
+              type="button"
+              onClick={() => openSubmoduleGuide('SWAP_C')}
+              className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 font-mono text-[8.5px] text-[#5FF3FF] hover:bg-[#5FF3FF]/25 transition"
+              title={isEs ? 'Ver guía completa de trade-offs' : 'View full trade-offs guide'}
+            >
+              <Info className="h-2.5 w-2.5" />
+              <span>{isEs ? 'FÍSICA & REGLAS' : 'PHYSICS & RULES'}</span>
+            </button>
           </div>
           <div className="mt-0.5 text-slate-200">{tabGuide.whatItDoes[language]}</div>
           <div className="mt-0.5 text-[#FFC15E]">{tabGuide.connectionRule[language]}</div>

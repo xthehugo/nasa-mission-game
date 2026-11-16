@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import {
   findObjectiveById,
   GROUND_STATIONS,
@@ -25,6 +26,7 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
     setDestination,
     setGroundStation,
     setPhaseTutorialStep,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const isEs = language === 'es';
@@ -39,8 +41,20 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
   if (zone === 'LEFT') {
     return (
       <div className="space-y-4">
-        <div className="font-mono text-[10px] tracking-[0.18em] text-[#5FF3FF] uppercase">
-          {isEs ? 'PARÁMETROS ORBITALES' : 'ORBITAL PARAMETERS'}
+        <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.18em] uppercase">
+          <span className="text-[#5FF3FF]">{isEs ? 'PARÁMETROS ORBITALES' : 'ORBITAL PARAMETERS'}</span>
+          <button
+            type="button"
+            onClick={() => {
+              openSubmoduleGuide('ORBIT');
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/25 cursor-pointer"
+            title={isEs ? 'Ver física orbital y leyes de Kepler' : 'View orbital physics & Kepler laws'}
+          >
+            <Info className="h-3 w-3" />
+            <span>{isEs ? 'INFO FÍSICA' : 'INFO'}</span>
+          </button>
         </div>
 
         <div className="border border-[#5FF3FF]/25 p-3">
@@ -205,8 +219,20 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
       </div>
 
       <div>
-        <div className="mb-2 font-mono text-[10px] tracking-[0.18em] text-slate-400 uppercase">
-          {isEs ? 'ESTACIÓN TERRENA' : 'GROUND NETWORK'}
+        <div className="mb-2 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] uppercase">
+          <span className="text-slate-400">{isEs ? 'ESTACIÓN TERRENA' : 'GROUND NETWORK'}</span>
+          <button
+            type="button"
+            onClick={() => {
+              openSubmoduleGuide('GROUND_STATION');
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-2 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/25 cursor-pointer"
+            title={isEs ? 'Ver física de radio y ecuación de Friis' : 'View RF physics & Friis equation'}
+          >
+            <Info className="h-3 w-3" />
+            <span>{isEs ? 'INFO ENLACE RF' : 'RF INFO'}</span>
+          </button>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
           {GROUND_STATIONS.map((gs) => (
@@ -235,21 +261,24 @@ export function OrbitGroundStep({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) 
           ))}
         </div>
 
-        {/* Guía Pedagógica de Telecomunicaciones y Eclipse para Cadetes */}
-        <div className="mt-3 border border-[#5FF3FF]/30 bg-[#040812]/80 p-2.5 font-mono text-[9.5px] leading-relaxed rounded">
-          <div className="flex items-center justify-between text-[#5FF3FF] font-bold uppercase tracking-wider">
-            <span>{isEs ? '📡 FÍSICA DEL ENLACE RF & ECLIPSE' : '📡 RF LINK PHYSICS & ECLIPSE'}</span>
-            <span className="text-[#FFC15E]">
-              {selection.groundStationId === 'gs-near-earth'
-                ? isEs ? 'LEO / SSO (CERCANO)' : 'LEO / SSO (NEAR)'
-                : isEs ? 'RED ESPACIO PROFUNDO (DSN)' : 'DEEP SPACE NETWORK'}
+        {/* Guía Pedagógica Compacta con Botón a Modal Completo */}
+        <div className="mt-3 border border-[#5FF3FF]/30 bg-[#040812]/80 p-2 font-mono text-[9.5px] leading-relaxed rounded flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="text-[#5FF3FF] font-bold">📡 {isEs ? 'ENLACE RF & ECLIPSE:' : 'RF LINK & ECLIPSE:'}</span>
+            <span className="truncate max-w-[190px] sm:max-w-none">
+              {isEs ? 'Atenuación Friis (1/R²) & 0W en Umbra' : 'Friis loss (1/R²) & 0W in Umbra'}
             </span>
           </div>
-          <p className="mt-1 text-slate-300">
-            {isEs
-              ? 'La señal de radio se atenúa con el cuadrado de la distancia (Friis). Para misiones lunares o interplanetarias (Marte/Júpiter), las antenas de 34m/70m del DSN son obligatorias para no perder la telemetría. Al entrar en el cono de sombra (umbra), los paneles no generan energía y la batería asume el control.'
-              : 'Radio signals attenuate with distance squared (Friis equation). For Lunar or deep-space missions, 34m/70m DSN dishes are required to maintain telemetry. Inside the shadow cone (umbra), solar panels stop generating and batteries take over.'}
-          </p>
+          <button
+            type="button"
+            onClick={() => {
+              openSubmoduleGuide('GROUND_STATION');
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="shrink-0 border border-[#5FF3FF]/40 bg-[#5FF3FF]/15 px-2 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/30 uppercase rounded cursor-pointer"
+          >
+            {isEs ? 'Ver Todo' : 'View Full'}
+          </button>
         </div>
       </div>
     </div>

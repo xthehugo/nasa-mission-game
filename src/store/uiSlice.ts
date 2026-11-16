@@ -1,4 +1,5 @@
 import type { StateCreator } from 'zustand';
+import type { SubmoduleGuideId } from '../components/submoduleGuideConfig';
 import type {
   CMLPhase,
   ExperienceMode,
@@ -81,6 +82,7 @@ export interface UISlice {
   isTelemetryOpen: boolean;
   isCampaignModalOpen: boolean;
   isAIStudioModalOpen: boolean;
+  activeSubmoduleGuideId: SubmoduleGuideId | null;
 
   commanderName: string;
   cadetName: string;
@@ -134,6 +136,8 @@ export interface UISlice {
   setTelemetryOpen: (open: boolean) => void;
   setCampaignModalOpen: (open: boolean) => void;
   setAIStudioModalOpen: (open: boolean) => void;
+  openSubmoduleGuide: (id: SubmoduleGuideId) => void;
+  closeSubmoduleGuide: () => void;
   addXP: (amount: number) => void;
   setActiveCampaignLevelId: (contractId: string) => void;
   recordContractResult: (contractId: string, stars: number, grade?: string) => void;
@@ -249,6 +253,7 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   isTelemetryOpen: false,
   isCampaignModalOpen: false,
   isAIStudioModalOpen: false,
+  activeSubmoduleGuideId: null,
 
   commanderName: 'Orion',
   cadetName: 'Orion',
@@ -350,6 +355,8 @@ export const createUISlice: StateCreator<UISlice, [], [], UISlice> = (set) => ({
   setTelemetryOpen: (isTelemetryOpen) => set({ isTelemetryOpen }),
   setCampaignModalOpen: (isCampaignModalOpen) => set({ isCampaignModalOpen }),
   setAIStudioModalOpen: (isAIStudioModalOpen) => set({ isAIStudioModalOpen }),
+  openSubmoduleGuide: (activeSubmoduleGuideId) => set({ activeSubmoduleGuideId }),
+  closeSubmoduleGuide: () => set({ activeSubmoduleGuideId: null }),
   addXP: (amount) => set((s) => ({ playerXP: Math.max(0, s.playerXP + amount) })),
   setActiveCampaignLevelId: (activeCampaignLevelId) => set({ activeCampaignLevelId }),
   recordContractResult: (contractId, stars, grade) =>

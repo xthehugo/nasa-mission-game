@@ -118,6 +118,7 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
     setLevel1TutorialStep,
     setTutorialFeedback,
     appendDecisionLog,
+    openSubmoduleGuide,
   } = useMissionStore();
 
   const isL1Tut = activeCampaignLevelId === 'contract-leo-bionutrients' && level1TutorialStep < LEVEL1_TOTAL_STEPS;
@@ -238,9 +239,24 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {chassisCompleted && <Check className="h-3.5 w-3.5 text-[#5FF3FF]" />}
                   <span>{isEs ? 'PASO 1 · CHASIS' : 'STEP 1 · CHASSIS'}</span>
                 </span>
-                <span className={metrics.volume.isCompliant ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
-                  {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={metrics.volume.isCompliant ? 'text-[#5FF3FF]' : 'text-[#FF4D6D]'}>
+                    {metrics.volume.used_U.toFixed(1)}U / {metrics.volume.maxFairing_U}U
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openSubmoduleGuide('CHASSIS');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/25 cursor-pointer"
+                    title={isEs ? 'Ver física y guía del chasis' : 'View chassis physics & guide'}
+                  >
+                    <Info className="h-3 w-3" />
+                    <span>{isEs ? 'INFO FÍSICA' : 'INFO'}</span>
+                  </button>
+                </div>
               </div>
               {!isChassisOpen && (
                 <div className="mt-0.5 truncate font-mono text-[12px] text-[#5FF3FF]">
@@ -371,7 +387,22 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
                   {epsCompleted && <Check className="h-3.5 w-3.5 text-[#5FF3FF]" />}
                   <span>{isEs ? 'PANELES SOLARES / EPS' : 'SOLAR ARRAYS / EPS'}</span>
                 </span>
-                <span className="text-[#FFC15E]">+{activeEps?.powerGenerated1AU_W ?? 0}W</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#FFC15E]">+{activeEps?.powerGenerated1AU_W ?? 0}W</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openSubmoduleGuide('EPS');
+                      playHoloTone('STEP', soundEnabled);
+                    }}
+                    className="flex items-center gap-1 rounded border border-[#5FF3FF]/40 bg-[#5FF3FF]/10 px-1.5 py-0.5 text-[9px] text-[#5FF3FF] hover:bg-[#5FF3FF]/25 cursor-pointer"
+                    title={isEs ? 'Ver física y guía de paneles solares' : 'View solar & power physics guide'}
+                  >
+                    <Info className="h-3 w-3" />
+                    <span>{isEs ? 'INFO FÍSICA' : 'INFO'}</span>
+                  </button>
+                </div>
               </div>
               {!isEpsOpen && activeEps && (
                 <div className="mt-0.5 truncate font-mono text-[12px] text-slate-400">
@@ -545,9 +576,24 @@ export function PhaseStep1User({ zone = 'LEFT' }: { zone?: 'LEFT' | 'RIGHT' }) {
         <span className="font-mono text-[12px] font-semibold tracking-[0.16em] text-slate-300 uppercase">
           {isEs ? 'PASO 2 · MISIÓN' : 'STEP 2 · MISSION'}
         </span>
-        <span className="font-mono text-[12px] text-[#FFC15E] font-bold">
-          ${activeObj.baseBudgetMillions}M
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[12px] text-[#FFC15E] font-bold">
+            ${activeObj.baseBudgetMillions}M
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openSubmoduleGuide('CONTRACT');
+              playHoloTone('STEP', soundEnabled);
+            }}
+            className="flex items-center gap-1 rounded border border-[#FFC15E]/40 bg-[#FFC15E]/10 px-1.5 py-0.5 text-[9px] text-[#FFC15E] hover:bg-[#FFC15E]/25 cursor-pointer"
+            title={isEs ? 'Ver reglas de vuelo y requisitos' : 'View flight rules & contract specs'}
+          >
+            <Info className="h-3 w-3" />
+            <span>{isEs ? 'REGLAS' : 'RULES'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Pestañas limpias de la columna derecha */}
